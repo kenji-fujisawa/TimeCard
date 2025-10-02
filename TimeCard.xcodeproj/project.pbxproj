@@ -29,9 +29,23 @@
 		CA20F19A2E84019100444640 /* TimeCardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeCardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CA824DB02E8E289D006325EF /* Exceptions for "TimeCard" folder in "TimeCardTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				CalendarExtension.swift,
+				DateExtension.swift,
+			);
+			target = CA20F18F2E84019100444640 /* TimeCardTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CA20F1842E84019000444640 /* TimeCard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CA824DB02E8E289D006325EF /* Exceptions for "TimeCard" folder in "TimeCardTests" target */,
+			);
 			path = TimeCard;
 			sourceTree = "<group>";
 		};
