@@ -36,5 +36,8 @@ struct DateExtensionTest {
         
         let sun = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 5))
         #expect(sun?.isHoliday() == true)
+        
+        let sports = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 13))
+        #expect(sports?.isHoliday() == true)
     }
 }

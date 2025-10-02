@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import JapaneseNationalHolidays
 
 extension Date {
     var year: Int {
@@ -29,6 +30,6 @@ extension Date {
     
     func isHoliday() -> Bool {
         let weekday = Calendar.current.component(.weekday, from: self)
-        return weekday == 1 || weekday == 7
+        return weekday == 1 || weekday == 7 || self.japaneseNationalHolidayName != nil
     }
 }
