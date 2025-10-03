@@ -10,7 +10,14 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
-    @Query(sort: \TimeRecord.checkIn) var records: [TimeRecord]
+    @Query var records: [TimeRecord]
+    
+    init() {
+        let now = Date.now
+        let year = now.year
+        let month = now.month
+        _records = Query(filter: #Predicate<TimeRecord> { $0.year == year && $0.month == month }, sort: \.checkIn)
+    }
     
     var body: some View {
         VStack {
@@ -24,14 +31,7 @@ struct ContentView: View {
                     .padding()
             }
             
-            List {
-                ForEach(records) { record in
-                    HStack {
-                        Text(record.checkIn?.formatted() ?? "")
-                        Text(record.checkOut?.formatted() ?? "")
-                    }
-                }
-            }
+            CalendarView()
         }
         .padding()
     }
@@ -44,7 +44,8 @@ struct ContentView: View {
         if isWorking() {
             records.last?.checkOut = Date.now
         } else {
-            context.insert(TimeRecord(checkIn: Date.now))
+            let now = Date.now
+            context.insert(TimeRecord(year: now.year, month: now.month, checkIn: now))
         }
     }
 }

@@ -10,7 +10,7 @@ import Testing
 
 struct DateExtensionTest {
 
-    let date = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 2))
+    let date = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 2, hour: 15, minute: 57, second: 32))
     
     @Test func testYear() async throws {
         #expect(date?.year == 2025)
@@ -22,6 +22,18 @@ struct DateExtensionTest {
     
     @Test func testDay() async throws {
         #expect(date?.day == 2)
+    }
+    
+    @Test func testHour() async throws {
+        #expect(date?.hour == 15)
+    }
+    
+    @Test func testMinute() async throws {
+        #expect(date?.minute == 57)
+    }
+    
+    @Test func testSecond() async throws {
+        #expect(date?.second == 32)
     }
     
     @Test func testWeekDay() async throws {

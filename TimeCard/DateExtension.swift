@@ -21,6 +21,18 @@ extension Date {
         Calendar.current.component(.day, from: self)
     }
     
+    var hour: Int {
+        Calendar.current.component(.hour, from: self)
+    }
+    
+    var minute: Int {
+        Calendar.current.component(.minute, from: self)
+    }
+    
+    var second: Int {
+        Calendar.current.component(.second, from: self)
+    }
+    
     var weekDay: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ja_JP")
