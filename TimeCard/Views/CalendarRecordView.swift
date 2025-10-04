@@ -11,7 +11,7 @@ struct CalendarRecordView: View {
     let record: CalendarRecord
     
     var body: some View {
-        HStack {
+        GridRow {
             Text("\(String(format: "%02d", record.date.day))(\(record.date.weekDay))")
                 .foregroundStyle(record.date.isHoliday() ? .red : .black)
             
@@ -37,6 +37,8 @@ struct CalendarRecordView: View {
         }
         .font(.system(.headline, design: .monospaced))
         .fontWeight(.regular)
+        
+        Divider()
     }
 }
 
@@ -44,5 +46,7 @@ struct CalendarRecordView: View {
     let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now)
     let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now)
     let record = CalendarRecord(date: .now, records: [rec1, rec2])
-    CalendarRecordView(record: record)
+    Grid {
+        CalendarRecordView(record: record)
+    }
 }

@@ -43,8 +43,19 @@ struct CalendarBodyView: View {
     
     var body: some View {
         List {
-            ForEach(records) { record in
-                CalendarRecordView(record: record)
+            Grid(alignment: .leading) {
+                GridRow {
+                    Text("")
+                    Text("出勤")
+                        .bold()
+                    Text("退勤")
+                        .bold()
+                }
+                Divider()
+                
+                ForEach(records) { record in
+                    CalendarRecordView(record: record)
+                }
             }
         }
     }
