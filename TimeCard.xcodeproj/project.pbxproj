@@ -53,8 +53,8 @@
 		CA824DB02E8E289D006325EF /* Exceptions for "TimeCard" folder in "TimeCardTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				CalendarExtension.swift,
-				DateExtension.swift,
+				Models/CalendarExtension.swift,
+				Models/DateExtension.swift,
 			);
 			target = CA20F18F2E84019100444640 /* TimeCardTests */;
 		};
