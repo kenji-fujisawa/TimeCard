@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CA824DC52E8E8821006325EF /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */; };
+		CA824DC82E8E8920006325EF /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */; };
+		CA824DCA2E8E8920006325EF /* SwiftJapaneseNationalHolidays in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		CA20F1912E84019100444640 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -23,15 +29,43 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		CA824DC92E8E8920006325EF /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CA824DCA2E8E8920006325EF /* SwiftJapaneseNationalHolidays in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		CA20F1822E84019000444640 /* TimeCard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeCard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA20F1902E84019100444640 /* TimeCardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeCardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA20F19A2E84019100444640 /* TimeCardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeCardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		CA824DB02E8E289D006325EF /* Exceptions for "TimeCard" folder in "TimeCardTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/CalendarExtension.swift,
+				Models/DateExtension.swift,
+			);
+			target = CA20F18F2E84019100444640 /* TimeCardTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		CA20F1842E84019000444640 /* TimeCard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				CA824DB02E8E289D006325EF /* Exceptions for "TimeCard" folder in "TimeCardTests" target */,
+			);
 			path = TimeCard;
 			sourceTree = "<group>";
 		};
@@ -52,6 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA824DC52E8E8821006325EF /* SwiftJapaneseNationalHolidays in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,6 +94,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA824DC82E8E8920006325EF /* SwiftJapaneseNationalHolidays in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +114,7 @@
 				CA20F1842E84019000444640 /* TimeCard */,
 				CA20F1932E84019100444640 /* TimeCardTests */,
 				CA20F19D2E84019100444640 /* TimeCardUITests */,
+				CA824DC62E8E8920006325EF /* Frameworks */,
 				CA20F1832E84019000444640 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +127,13 @@
 				CA20F19A2E84019100444640 /* TimeCardUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CA824DC62E8E8920006325EF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +156,7 @@
 			);
 			name = TimeCard;
 			packageProductDependencies = (
+				CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */,
 			);
 			productName = TimeCard;
 			productReference = CA20F1822E84019000444640 /* TimeCard.app */;
@@ -124,6 +169,7 @@
 				CA20F18C2E84019100444640 /* Sources */,
 				CA20F18D2E84019100444640 /* Frameworks */,
 				CA20F18E2E84019100444640 /* Resources */,
+				CA824DC92E8E8920006325EF /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -135,6 +181,7 @@
 			);
 			name = TimeCardTests;
 			packageProductDependencies = (
+				CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */,
 			);
 			productName = TimeCardTests;
 			productReference = CA20F1902E84019100444640 /* TimeCardTests.xctest */;
@@ -195,6 +242,9 @@
 			);
 			mainGroup = CA20F1792E84019000444640;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CA824DC32E8E8821006325EF /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA20F1832E84019000444640 /* Products */;
 			projectDirPath = "";
@@ -583,6 +633,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CA824DC32E8E8821006325EF /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/YOCKOW/SwiftJapaneseNationalHolidays";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA824DC32E8E8821006325EF /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */;
+			productName = SwiftJapaneseNationalHolidays;
+		};
+		CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA824DC32E8E8821006325EF /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */;
+			productName = SwiftJapaneseNationalHolidays;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CA20F17A2E84019000444640 /* Project object */;
 }
