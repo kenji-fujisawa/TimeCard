@@ -23,12 +23,39 @@ struct ContentView: View {
         VStack {
             ClockView()
             
-            Button {
-                addRecord()
-            } label: {
-                Text(isWorking() ? "退勤" : "出勤")
-                    .bold()
-                    .padding()
+            if records.isEmpty || records.last?.state == .OffWork {
+                Button {
+                    checkIn()
+                } label: {
+                    Text("出勤")
+                        .bold()
+                        .padding()
+                }
+            } else if records.last?.state == .AtBreak {
+                Button {
+                    endBreak()
+                } label: {
+                    Text("休憩終了")
+                        .bold()
+                        .padding()
+                }
+            } else if records.last?.state == .AtWork {
+                HStack {
+                    Button {
+                        checkOut()
+                    } label: {
+                        Text("退勤")
+                            .bold()
+                            .padding()
+                    }
+                    Button {
+                        startBreak()
+                    } label: {
+                        Text("休憩")
+                            .bold()
+                            .padding()
+                    }
+                }
             }
             
             CalendarView()
@@ -36,17 +63,22 @@ struct ContentView: View {
         .padding()
     }
     
-    private func isWorking() -> Bool {
-        !records.isEmpty && records.last?.checkOut == nil
+    private func checkIn() {
+        let now = Date.now
+        context.insert(TimeRecord(year: now.year, month: now.month, checkIn: now))
     }
     
-    private func addRecord() {
-        if isWorking() {
-            records.last?.checkOut = Date.now
-        } else {
-            let now = Date.now
-            context.insert(TimeRecord(year: now.year, month: now.month, checkIn: now))
-        }
+    private func checkOut() {
+        records.last?.checkOut = Date.now
+    }
+    
+    private func startBreak() {
+        let breakTime = TimeRecord.BreakTime(start: .now)
+        records.last?.breakTimes.append(breakTime)
+    }
+    
+    private func endBreak() {
+        records.last?.sortedBreakTimes.last?.end = .now
     }
 }
 

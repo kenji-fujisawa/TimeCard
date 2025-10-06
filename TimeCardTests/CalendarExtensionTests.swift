@@ -8,6 +8,8 @@
 import Foundation
 import Testing
 
+@testable import TimeCard
+
 struct CalendarExtensionTests {
 
     @Test func testDatesOf() async throws {
