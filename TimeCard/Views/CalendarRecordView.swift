@@ -12,13 +12,13 @@ struct CalendarRecordView: View {
     
     var body: some View {
         GridRow {
-            Text("\(String(format: "%02d", record.date.day))(\(record.date.weekDay))")
+            Text(record.date, format: .dayWithWeekday)
                 .foregroundStyle(record.date.isHoliday() ? .red : .black)
             
             VStack {
                 ForEach(record.records) { record in
                     if let checkIn = record.checkIn {
-                        Text("\(String(format: "%02d", checkIn.hour)):\(String(format: "%02d", checkIn.minute))")
+                        Text(checkIn, format: .dateTime.hour().minute())
                     } else {
                         Text(" ")
                     }
@@ -28,7 +28,7 @@ struct CalendarRecordView: View {
             VStack {
                 ForEach(record.records) { record in
                     if let checkOut = record.checkOut {
-                        Text("\(String(format: "%02d", checkOut.hour)):\(String(format: "%02d", checkOut.minute))")
+                        Text(checkOut, format: .dateTime.hour().minute())
                     } else {
                         Text(" ")
                     }

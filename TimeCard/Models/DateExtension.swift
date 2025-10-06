@@ -44,4 +44,17 @@ extension Date {
         let weekday = Calendar.current.component(.weekday, from: self)
         return weekday == 1 || weekday == 7 || self.japaneseNationalHolidayName != nil
     }
+    
+    struct DayWithWeekdayFormatStyle: Foundation.FormatStyle {
+        func format(_ value: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd(E)"
+            formatter.locale = Locale(identifier: "ja_JP")
+            return formatter.string(from: value)
+        }
+    }
+}
+
+extension FormatStyle where Self == Date.DayWithWeekdayFormatStyle {
+    static var dayWithWeekday: Self { .init() }
 }
