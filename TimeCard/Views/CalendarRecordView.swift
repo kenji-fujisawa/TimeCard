@@ -27,8 +27,8 @@ struct CalendarRecordView: View {
             
             VStack {
                 ForEach(record.records) { record in
-                    if let checkOut = record.checkOut {
-                        Text(checkOut, format: .dateTime.hour().minute())
+                    if record.checkOut != nil {
+                        Text(interval(record: record), format: .timeWorked)
                     } else {
                         Text(" ")
                     }
@@ -50,8 +50,8 @@ struct CalendarRecordView: View {
             VStack {
                 ForEach(record.records) { record in
                     ForEach(record.sortedBreakTimes) { breakTime in
-                        if let end = breakTime.end {
-                            Text(end, format: .dateTime.hour().minute())
+                        if breakTime.end != nil {
+                            Text(interval(breakTime: breakTime), format: .timeWorked)
                         } else {
                             Text(" ")
                         }
@@ -69,6 +69,20 @@ struct CalendarRecordView: View {
         .fontWeight(.regular)
         
         Divider()
+    }
+    
+    private func interval(record: TimeRecord) -> TimeInterval {
+        interval(start: record.checkIn, end: record.checkOut)
+    }
+    
+    private func interval(breakTime: TimeRecord.BreakTime) -> TimeInterval {
+        interval(start: breakTime.start, end: breakTime.end)
+    }
+    
+    private func interval(start: Date?, end: Date?) -> TimeInterval {
+        guard let start = start else { return 0 }
+        guard let end = end else { return 0 }
+        return end.timeIntervalSince(Calendar.current.startOfDay(for: start))
     }
 }
 
