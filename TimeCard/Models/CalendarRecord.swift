@@ -12,4 +12,10 @@ struct CalendarRecord: Identifiable {
     
     var date: Date
     var records: [TimeRecord]
+    
+    var timeWorked: TimeInterval {
+        records.reduce(0) { partialResult, record in
+            partialResult + record.timeWorked
+        }
+    }
 }
