@@ -34,6 +34,30 @@ struct CalendarRecordView: View {
                     }
                 }
             }
+            
+            VStack {
+                ForEach(record.records) { record in
+                    ForEach(record.sortedBreakTimes) { breakTime in
+                        if let start = breakTime.start {
+                            Text(start, format: .dateTime.hour().minute())
+                        } else {
+                            Text(" ")
+                        }
+                    }
+                }
+            }
+            
+            VStack {
+                ForEach(record.records) { record in
+                    ForEach(record.sortedBreakTimes) { breakTime in
+                        if let end = breakTime.end {
+                            Text(end, format: .dateTime.hour().minute())
+                        } else {
+                            Text(" ")
+                        }
+                    }
+                }
+            }
         }
         .font(.system(.headline, design: .monospaced))
         .fontWeight(.regular)
@@ -43,8 +67,10 @@ struct CalendarRecordView: View {
 }
 
 #Preview {
-    let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now)
-    let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now)
+    let break1 = TimeRecord.BreakTime(start: .now, end: .now)
+    let break2 = TimeRecord.BreakTime(start: .now)
+    let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
+    let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
     let record = CalendarRecord(date: .now, records: [rec1, rec2])
     Grid {
         CalendarRecordView(record: record)

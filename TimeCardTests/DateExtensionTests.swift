@@ -1,5 +1,5 @@
 //
-//  DateExtensionTest.swift
+//  DateExtensionTests.swift
 //  TimeCardTests
 //
 //  Created by uhimania on 2025/10/02.
@@ -8,7 +8,9 @@
 import Foundation
 import Testing
 
-struct DateExtensionTest {
+@testable import TimeCard
+
+struct DateExtensionTests {
 
     let date = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 2, hour: 15, minute: 57, second: 32))
     
