@@ -56,6 +56,20 @@ class TimeRecord {
         return .OffWork
     }
     
+    var timeWorked: TimeInterval {
+        guard let checkIn = self.checkIn else { return 0 }
+        guard let checkOut = self.checkOut else { return 0 }
+        
+        var interval = checkOut.timeIntervalSince(checkIn)
+        for breakTime in self.breakTimes {
+            guard let start = breakTime.start else { continue }
+            guard let end = breakTime.end else { continue }
+            interval -= end.timeIntervalSince(start)
+        }
+        
+        return interval
+    }
+    
     init(year: Int, month: Int, checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
         self.year = year
         self.month = month

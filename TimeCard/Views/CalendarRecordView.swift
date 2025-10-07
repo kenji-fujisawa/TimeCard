@@ -58,6 +58,12 @@ struct CalendarRecordView: View {
                     }
                 }
             }
+            
+            if record.timeWorked > 0 {
+                Text(record.timeWorked, format: .timeWorked)
+            } else {
+                Text(" ")
+            }
         }
         .font(.system(.headline, design: .monospaced))
         .fontWeight(.regular)

@@ -54,6 +54,8 @@ struct CalendarBodyView: View {
                         .bold()
                     Text("休憩終了")
                         .bold()
+                    Text("労働時間")
+                        .bold()
                 }
                 Divider()
                 
