@@ -34,6 +34,12 @@ struct CalendarBodyView: View {
         return results
     }
     
+    var timeWorkedSum: TimeInterval {
+        records.reduce(0) { partialResult, record in
+            partialResult + record.timeWorked
+        }
+    }
+    
     init(year: Int, month: Int) {
         self.year = year
         self.month = month
@@ -61,6 +67,15 @@ struct CalendarBodyView: View {
                 
                 ForEach(records) { record in
                     CalendarRecordView(record: record)
+                }
+                
+                GridRow {
+                    Text("")
+                    Text("")
+                    Text("")
+                    Text("")
+                    Text("")
+                    Text(timeWorkedSum, format: .timeWorked)
                 }
             }
         }
