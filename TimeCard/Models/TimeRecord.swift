@@ -44,7 +44,8 @@ class TimeRecord {
             return .OffWork
         }
         
-        if !breakTimes.isEmpty && breakTimes.last?.start != nil && breakTimes.last?.end == nil {
+        let latest = sortedBreakTimes.last
+        if latest?.start != nil && latest?.end == nil {
             return .AtBreak
         }
         

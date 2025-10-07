@@ -19,8 +19,10 @@ struct TimeRecordTests {
         #expect(record.state == .AtWork)
         
         let breakTime = TimeRecord.BreakTime()
-        breakTime.start = .now
         record.breakTimes.append(breakTime)
+        #expect(record.state == .AtWork)
+        
+        breakTime.start = .now
         #expect(record.state == .AtBreak)
         
         breakTime.end = .now
