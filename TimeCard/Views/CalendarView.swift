@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CalendarView: View {
-    @State var now: Date = Date.now
+    @State private var now: Date = Date.now
     
     var body: some View {
         VStack {

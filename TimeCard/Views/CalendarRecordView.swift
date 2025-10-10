@@ -9,6 +9,8 @@ import SwiftUI
 
 struct CalendarRecordView: View {
     let record: CalendarRecord
+    let fixed: Bool
+    @Binding var recordToEdit: CalendarRecord?
     
     var body: some View {
         GridRow {
@@ -64,6 +66,12 @@ struct CalendarRecordView: View {
             } else {
                 Text(" ")
             }
+            
+            if fixed {
+                Button("edit") {
+                    recordToEdit = record
+                }
+            }
         }
         .font(.system(.headline, design: .monospaced))
         .fontWeight(.regular)
@@ -87,12 +95,13 @@ struct CalendarRecordView: View {
 }
 
 #Preview {
+    @Previewable @State var recordToEdit: CalendarRecord?
     let break1 = TimeRecord.BreakTime(start: .now, end: .now)
     let break2 = TimeRecord.BreakTime(start: .now)
     let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
     let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
     let record = CalendarRecord(date: .now, records: [rec1, rec2])
     Grid {
-        CalendarRecordView(record: record)
+        CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
     }
 }

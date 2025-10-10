@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var context
-    @Query var records: [TimeRecord]
+    @Query private var records: [TimeRecord]
     
     init() {
         let now = Date.now
