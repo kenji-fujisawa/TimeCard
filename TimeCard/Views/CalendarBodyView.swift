@@ -11,9 +11,10 @@ import SwiftUI
 struct CalendarBodyView: View {
     var year: Int
     var month: Int
-    @Query var recs: [TimeRecord]
+    @Query private var recs: [TimeRecord]
+    @State private var recordToEdit: CalendarRecord? = nil
     
-    var records: [CalendarRecord] {
+    private var records: [CalendarRecord] {
         let dates = Calendar.current.datesOf(year: self.year, month: self.month)
         
         var grouped: [Int: [TimeRecord]] = [:]
@@ -34,7 +35,7 @@ struct CalendarBodyView: View {
         return results
     }
     
-    var timeWorkedSum: TimeInterval {
+    private var timeWorkedSum: TimeInterval {
         records.reduce(0) { partialResult, record in
             partialResult + record.timeWorked
         }
@@ -66,7 +67,7 @@ struct CalendarBodyView: View {
                 Divider()
                 
                 ForEach(records) { record in
-                    CalendarRecordView(record: record)
+                    CalendarRecordView(record: record, fixed: isFixed(record: record), recordToEdit: $recordToEdit)
                 }
                 
                 GridRow {
@@ -79,6 +80,21 @@ struct CalendarBodyView: View {
                 }
             }
         }
+        .sheet(item: $recordToEdit) { record in
+            RecordEditView(record: record)
+        }
+    }
+    
+    private func isFixed(record: CalendarRecord) -> Bool {
+        guard let latest = recs.last else {
+            return record.date < .now
+        }
+        
+        if record.date.day == latest.checkIn?.day {
+            return latest.state == .OffWork
+        }
+        
+        return record.date.day < latest.checkIn?.day ?? Date.now.day
     }
 }
 
