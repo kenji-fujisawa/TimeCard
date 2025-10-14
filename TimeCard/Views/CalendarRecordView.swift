@@ -17,54 +17,64 @@ struct CalendarRecordView: View {
             Text(record.date, format: .dayWithWeekday)
                 .foregroundStyle(record.date.isHoliday() ? .red : .black)
             
-            VStack {
-                ForEach(record.records) { record in
-                    if let checkIn = record.checkIn {
-                        Text(checkIn, format: .dateTime.hour().minute())
-                    } else {
-                        Text(" ")
-                    }
-                }
-            }
-            
-            VStack {
-                ForEach(record.records) { record in
-                    if record.checkOut != nil {
-                        Text(interval(record: record), format: .timeWorked)
-                    } else {
-                        Text(" ")
-                    }
-                }
-            }
-            
-            VStack {
-                ForEach(record.records) { record in
-                    ForEach(record.sortedBreakTimes) { breakTime in
-                        if let start = breakTime.start {
-                            Text(start, format: .dateTime.hour().minute())
-                        } else {
-                            Text(" ")
+            ZStack {
+                VStack {
+                    ForEach(record.records) { record in
+                        if let checkIn = record.checkIn {
+                            Text(checkIn, format: .dateTime.hour().minute())
                         }
                     }
                 }
+                Text("00:00")
+                    .opacity(0)
             }
             
-            VStack {
-                ForEach(record.records) { record in
-                    ForEach(record.sortedBreakTimes) { breakTime in
-                        if breakTime.end != nil {
-                            Text(interval(breakTime: breakTime), format: .timeWorked)
-                        } else {
-                            Text(" ")
+            ZStack {
+                VStack {
+                    ForEach(record.records) { record in
+                        if record.checkOut != nil {
+                            Text(interval(record: record), format: .timeWorked)
                         }
                     }
                 }
+                Text("00:00")
+                    .opacity(0)
             }
             
-            if record.timeWorked > 0 {
-                Text(record.timeWorked, format: .timeWorked)
-            } else {
-                Text(" ")
+            ZStack {
+                VStack {
+                    ForEach(record.records) { record in
+                        ForEach(record.sortedBreakTimes) { breakTime in
+                            if let start = breakTime.start {
+                                Text(start, format: .dateTime.hour().minute())
+                            }
+                        }
+                    }
+                }
+                Text("00:00")
+                    .opacity(0)
+            }
+            
+            ZStack {
+                VStack {
+                    ForEach(record.records) { record in
+                        ForEach(record.sortedBreakTimes) { breakTime in
+                            if breakTime.end != nil {
+                                Text(interval(breakTime: breakTime), format: .timeWorked)
+                            }
+                        }
+                    }
+                }
+                Text("00:00")
+                    .opacity(0)
+            }
+            
+            ZStack {
+                if record.timeWorked > 0 {
+                    Text(record.timeWorked, format: .timeWorked)
+                }
+                Text("00:00")
+                    .opacity(0)
             }
             
             if fixed {
@@ -75,8 +85,6 @@ struct CalendarRecordView: View {
         }
         .font(.system(.headline, design: .monospaced))
         .fontWeight(.regular)
-        
-        Divider()
     }
     
     private func interval(record: TimeRecord) -> TimeInterval {

@@ -13,6 +13,7 @@ struct CalendarBodyView: View {
     var month: Int
     @Query private var recs: [TimeRecord]
     @State private var recordToEdit: CalendarRecord? = nil
+    @State private var showFileExport: Bool = false
     
     private var records: [CalendarRecord] {
         let dates = Calendar.current.datesOf(year: self.year, month: self.month)
@@ -33,12 +34,6 @@ struct CalendarBodyView: View {
         }
         
         return results
-    }
-    
-    private var timeWorkedSum: TimeInterval {
-        records.reduce(0) { partialResult, record in
-            partialResult + record.timeWorked
-        }
     }
     
     init(year: Int, month: Int) {
@@ -68,6 +63,7 @@ struct CalendarBodyView: View {
                 
                 ForEach(records) { record in
                     CalendarRecordView(record: record, fixed: isFixed(record: record), recordToEdit: $recordToEdit)
+                    Divider()
                 }
                 
                 GridRow {
@@ -76,13 +72,15 @@ struct CalendarBodyView: View {
                     Text("")
                     Text("")
                     Text("")
-                    Text(timeWorkedSum, format: .timeWorked)
+                    Text(records.timeWorkedSum, format: .timeWorked)
                 }
             }
         }
         .sheet(item: $recordToEdit) { record in
             RecordEditView(record: record)
         }
+        .fileExporter(isPresented: $showFileExport, item: PdfDocument()) { _ in }
+        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: records, showExporter: { showFileExport = true }))
     }
     
     private func isFixed(record: CalendarRecord) -> Bool {
