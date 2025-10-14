@@ -15,5 +15,10 @@ struct TimeCardApp: App {
             ContentView()
                 .modelContainer(for: TimeRecord.self)
         }
+        .commands {
+            CommandGroup(replacing: .pasteboard) {}
+            CommandGroup(replacing: .undoRedo) {}
+            ExportPDFCommands()
+        }
     }
 }

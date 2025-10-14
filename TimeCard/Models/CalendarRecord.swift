@@ -19,3 +19,11 @@ struct CalendarRecord: Identifiable {
         }
     }
 }
+
+extension [CalendarRecord] {
+    var timeWorkedSum: TimeInterval {
+        self.reduce(0) { partialResult, record in
+            partialResult + record.timeWorked
+        }
+    }
+}
