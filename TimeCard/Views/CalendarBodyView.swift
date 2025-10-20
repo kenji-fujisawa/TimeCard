@@ -12,25 +12,33 @@ struct CalendarBodyView: View {
     var year: Int
     var month: Int
     @Query private var recs: [TimeRecord]
+    @Query private var uptimes: [SystemUptimeRecord]
     @State private var recordToEdit: CalendarRecord? = nil
     @State private var showFileExport: Bool = false
     
     private var records: [CalendarRecord] {
         let dates = Calendar.current.datesOf(year: self.year, month: self.month)
         
-        var grouped: [Int: [TimeRecord]] = [:]
+        var timeRecords: [Int: [TimeRecord]] = [:]
         for rec in recs {
             if let day = rec.checkIn?.day {
-                if grouped[day] == nil {
-                    grouped[day] = []
+                if timeRecords[day] == nil {
+                    timeRecords[day] = []
                 }
-                grouped[day]?.append(rec)
+                timeRecords[day]?.append(rec)
             }
+        }
+        
+        var uptimes: [Int: TimeInterval] = [:]
+        for uptime in self.uptimes {
+            let day = uptime.day
+            let interval = uptimes[day] ?? 0
+            uptimes[day] = interval + (uptime.shutdown - uptime.launch)
         }
         
         var results: [CalendarRecord] = []
         for date in dates {
-            results.append(CalendarRecord(date: date, records: grouped[date.day] ?? []))
+            results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? [], systemUptime: uptimes[date.day] ?? 0))
         }
         
         return results
@@ -41,6 +49,7 @@ struct CalendarBodyView: View {
         self.month = month
         
         _recs = Query(filter: #Predicate<TimeRecord> { $0.year == year && $0.month == month }, sort: \.checkIn)
+        _uptimes = Query(filter: #Predicate<SystemUptimeRecord> { $0.year == year && $0.month == month }, sort: \.day)
     }
     
     var body: some View {
@@ -58,6 +67,9 @@ struct CalendarBodyView: View {
                         .bold()
                     Text("労働時間")
                         .bold()
+                    Text("システム稼働時間")
+                        .bold()
+                        .frame(width: 60, height: 35)
                 }
                 Divider()
                 
@@ -73,6 +85,7 @@ struct CalendarBodyView: View {
                     Text("")
                     Text("")
                     Text(records.timeWorkedSum, format: .timeWorked)
+                    Text(records.systemUptimeSum, format: .timeWorked)
                 }
             }
         }

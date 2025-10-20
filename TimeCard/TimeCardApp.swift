@@ -13,7 +13,7 @@ struct TimeCardApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(for: TimeRecord.self)
+                .modelContainer(for: [TimeRecord.self, SystemUptimeRecord.self])
         }
         .commands {
             CommandGroup(replacing: .pasteboard) {}

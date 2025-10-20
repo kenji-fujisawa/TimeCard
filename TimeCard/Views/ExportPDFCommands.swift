@@ -116,6 +116,9 @@ private struct PDFView: View {
                     .font(.system(.subheadline, design: .monospaced))
                 Text("勤務時間")
                     .font(.system(.subheadline, design: .monospaced))
+                Text("システム稼働時間")
+                    .font(.system(.subheadline, design: .monospaced))
+                    .frame(width: 50)
             }
             Divider()
             
@@ -138,7 +141,7 @@ private struct PDFView: View {
                 Text("00:00")
                     .opacity(0)
                 Text(records.timeWorkedSum, format: .timeWorked)
-                    .font(.system(.subheadline, design: .monospaced))
+                Text(records.systemUptimeSum, format: .timeWorked)
             }
             .font(.system(.headline, design: .monospaced))
         }
@@ -148,6 +151,6 @@ private struct PDFView: View {
 #Preview {
     let time = TimeRecord.BreakTime(start: .now, end: .now)
     let rec = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [time, time])
-    let record = CalendarRecord(date: .now, records: [rec, rec])
+    let record = CalendarRecord(date: .now, records: [rec, rec], systemUptime: 60 * 30)
     PDFView(records: [record, record])
 }

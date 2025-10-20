@@ -59,6 +59,8 @@ struct ContentView: View {
             }
             
             CalendarView()
+            
+            SystemUptimeView()
         }
         .padding()
     }
