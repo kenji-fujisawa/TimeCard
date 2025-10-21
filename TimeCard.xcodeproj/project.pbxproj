@@ -10,6 +10,7 @@
 		CA824DC52E8E8821006325EF /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */; };
 		CA824DC82E8E8920006325EF /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */; };
 		CA824DCA2E8E8920006325EF /* SwiftJapaneseNationalHolidays in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		CADBC4F12EA72C9500E7DB2E /* SwiftJapaneseNationalHolidays in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +38,17 @@
 			dstSubfolderSpec = 10;
 			files = (
 				CA824DCA2E8E8920006325EF /* SwiftJapaneseNationalHolidays in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CADBC4F22EA72C9500E7DB2E /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CADBC4F12EA72C9500E7DB2E /* SwiftJapaneseNationalHolidays in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -132,6 +144,7 @@
 				CA20F17E2E84019000444640 /* Sources */,
 				CA20F17F2E84019000444640 /* Frameworks */,
 				CA20F1802E84019000444640 /* Resources */,
+				CADBC4F22EA72C9500E7DB2E /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
