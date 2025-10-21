@@ -10,15 +10,32 @@ import SwiftUI
 
 @main
 struct TimeCardApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .modelContainer(for: [TimeRecord.self, SystemUptimeRecord.self])
+    private var container: ModelContainer
+    
+    init() {
+        let schema = Schema([TimeRecord.self, SystemUptimeRecord.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        do {
+            try container = ModelContainer(for: schema, configurations: [config])
+        } catch {
+            fatalError(error.localizedDescription)
         }
-        .commands {
-            CommandGroup(replacing: .pasteboard) {}
-            CommandGroup(replacing: .undoRedo) {}
-            ExportPDFCommands()
+    }
+    
+    var body: some Scene {
+        MenuBarExtra {
+            ContentView()
+                .modelContainer(container)
+        } label: {
+            Image(systemName: "clock.badge.checkmark.fill")
+            SystemUptimeView()
+                .modelContainer(container)
+        }
+        .menuBarExtraStyle(.window)
+        
+        Window("TimeCard", id: "calendar") {
+            CalendarView()
+                .modelContainer(container)
         }
     }
 }

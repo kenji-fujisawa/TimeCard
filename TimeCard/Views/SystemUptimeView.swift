@@ -35,6 +35,11 @@ struct SystemUptimeView: View {
                 recordShutdown()
                 try? context.save()
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.exitApp)) { _ in
+                recordShutdown()
+                try? context.save()
+                NSApplication.shared.terminate(nil)
+            }
     }
     
     private func recordShutdown() {

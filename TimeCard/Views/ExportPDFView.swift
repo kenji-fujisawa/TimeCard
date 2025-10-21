@@ -1,5 +1,5 @@
 //
-//  ExportPDFCommands.swift
+//  ExportPDFView.swift
 //  TimeCard
 //
 //  Created by uhimania on 2025/10/14.
@@ -34,17 +34,17 @@ extension FocusedValues {
     }
 }
 
-struct ExportPDFCommands: Commands {
+struct ExportPDFView: View {
     @FocusedValue(\.exportPDFAction) private var action
     
-    var body: some Commands {
-        CommandGroup(after: .newItem) {
-            Divider()
-            Button("Export PDF...") {
-                exportPdf()
-                action?.showExporter()
-            }
+    var body: some View {
+        Button {
+            exportPdf()
+            action?.showExporter()
+        } label: {
+            Image(systemName: "printer")
         }
+        .help("Export PDF")
     }
     
     private func exportPdf() {
@@ -146,6 +146,10 @@ private struct PDFView: View {
             .font(.system(.headline, design: .monospaced))
         }
     }
+}
+
+#Preview {
+    ExportPDFView()
 }
 
 #Preview {
