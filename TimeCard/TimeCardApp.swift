@@ -37,5 +37,9 @@ struct TimeCardApp: App {
             CalendarView()
                 .modelContainer(container)
         }
+        
+        Settings {
+            LaunchSettingView()
+        }
     }
 }
