@@ -167,6 +167,6 @@ struct RecordEditView: View {
     let break2 = TimeRecord.BreakTime(start: .now)
     let rec1 = TimeRecord(year: 2025, month: 10, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
     let rec2 = TimeRecord(year: 2025, month: 10, checkIn: .now, breakTimes: [break1])
-    let record = CalendarRecord(date: .now, records: [rec1, rec2])
+    let record = CalendarRecord(date: .now, records: [rec1, rec2], systemUptime: 60 * 30)
     RecordEditView(record: record)
 }

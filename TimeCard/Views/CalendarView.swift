@@ -34,6 +34,9 @@ struct CalendarView: View {
         .onAppear {
             refresh(addMonths: 0)
         }
+        .toolbar {
+            ExportPDFView()
+        }
     }
     
     private func refresh(addMonths: Int) {

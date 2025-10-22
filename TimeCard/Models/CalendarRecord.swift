@@ -12,6 +12,7 @@ struct CalendarRecord: Identifiable {
     
     var date: Date
     var records: [TimeRecord]
+    var systemUptime: TimeInterval
     
     var timeWorked: TimeInterval {
         records.reduce(0) { partialResult, record in
@@ -24,6 +25,12 @@ extension [CalendarRecord] {
     var timeWorkedSum: TimeInterval {
         self.reduce(0) { partialResult, record in
             partialResult + record.timeWorked
+        }
+    }
+    
+    var systemUptimeSum: TimeInterval {
+        self.reduce(0) { partialResult, record in
+            partialResult + record.systemUptime
         }
     }
 }

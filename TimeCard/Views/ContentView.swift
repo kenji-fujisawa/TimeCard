@@ -5,84 +5,86 @@
 //  Created by uhimania on 2025/09/24.
 //
 
-import SwiftData
 import SwiftUI
 
+extension Notification {
+    static let exitApp = Notification.Name("exitApp")
+}
+
 struct ContentView: View {
-    @Environment(\.modelContext) private var context
-    @Query private var records: [TimeRecord]
-    
-    init() {
-        let now = Date.now
-        let year = now.year
-        let month = now.month
-        _records = Query(filter: #Predicate<TimeRecord> { $0.year == year && $0.month == month }, sort: \.checkIn)
-    }
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
     
     var body: some View {
         VStack {
-            ClockView()
+            RecorderView()
             
-            if records.isEmpty || records.last?.state == .OffWork {
+            Divider()
+            
+            HStack {
                 Button {
-                    checkIn()
+                    openWindow(id: "calendar")
+                    dismissWindow()
                 } label: {
-                    Text("出勤")
-                        .bold()
-                        .padding()
+                    VStack {
+                        Image(systemName: "calendar")
+                            .padding(2)
+                        Text("勤怠")
+                    }
+                    .padding(3)
                 }
-            } else if records.last?.state == .AtBreak {
+                
+                SettingsLink {
+                    VStack {
+                        Image(systemName: "gearshape")
+                            .padding(2)
+                        Text("設定")
+                    }
+                    .padding(3)
+                }
+                .buttonStyle(.preAction {
+                    dismissWindow()
+                })
+                
                 Button {
-                    endBreak()
+                    NotificationCenter.default.post(name: Notification.exitApp, object: nil)
                 } label: {
-                    Text("休憩終了")
-                        .bold()
-                        .padding()
-                }
-            } else if records.last?.state == .AtWork {
-                HStack {
-                    Button {
-                        checkOut()
-                    } label: {
-                        Text("退勤")
-                            .bold()
-                            .padding()
+                    VStack {
+                        Image(systemName: "xmark.circle")
+                            .padding(2)
+                        Text("終了")
                     }
-                    Button {
-                        startBreak()
-                    } label: {
-                        Text("休憩")
-                            .bold()
-                            .padding()
-                    }
+                    .padding(3)
                 }
             }
-            
-            CalendarView()
         }
         .padding()
     }
+}
+
+private struct PreActionButtonStyle: PrimitiveButtonStyle {
+    var preAction: () -> Void
     
-    private func checkIn() {
-        let now = Date.now
-        context.insert(TimeRecord(year: now.year, month: now.month, checkIn: now))
+    init(preAction: @escaping () -> Void) {
+        self.preAction = preAction
     }
     
-    private func checkOut() {
-        records.last?.checkOut = Date.now
+    func makeBody(configuration: Configuration) -> some View {
+        Button(role: configuration.role) {
+            preAction()
+            configuration.trigger()
+        } label: {
+            configuration.label
+        }
     }
-    
-    private func startBreak() {
-        let breakTime = TimeRecord.BreakTime(start: .now)
-        records.last?.breakTimes.append(breakTime)
-    }
-    
-    private func endBreak() {
-        records.last?.sortedBreakTimes.last?.end = .now
+}
+
+extension PrimitiveButtonStyle where Self == PreActionButtonStyle {
+    static func preAction(perform action: @escaping () -> Void) -> PreActionButtonStyle {
+        PreActionButtonStyle(preAction: action)
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: TimeRecord.self, inMemory: true)
 }

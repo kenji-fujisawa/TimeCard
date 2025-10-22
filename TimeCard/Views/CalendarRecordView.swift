@@ -77,6 +77,14 @@ struct CalendarRecordView: View {
                     .opacity(0)
             }
             
+            ZStack {
+                if record.systemUptime > 0 {
+                    Text(record.systemUptime, format: .timeWorked)
+                }
+                Text("00:00")
+                    .opacity(0)
+            }
+            
             if fixed {
                 Button("edit") {
                     recordToEdit = record
@@ -108,7 +116,7 @@ struct CalendarRecordView: View {
     let break2 = TimeRecord.BreakTime(start: .now)
     let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
     let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
-    let record = CalendarRecord(date: .now, records: [rec1, rec2])
+    let record = CalendarRecord(date: .now, records: [rec1, rec2], systemUptime: 60 * 30)
     Grid {
         CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
     }
