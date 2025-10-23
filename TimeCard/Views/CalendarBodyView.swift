@@ -87,6 +87,8 @@ struct CalendarBodyView: View {
                     Text(records.timeWorkedSum, format: .timeWorked)
                     Text(records.systemUptimeSum, format: .timeWorked)
                 }
+                .font(.system(.headline, design: .monospaced))
+                .fontWeight(.regular)
             }
         }
         .sheet(item: $recordToEdit) { record in

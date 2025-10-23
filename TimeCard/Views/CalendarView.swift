@@ -18,9 +18,10 @@ struct CalendarView: View {
                 }
                 .labelStyle(.iconOnly)
                 
-                Text("\(String(now.year))-\(now.month)")
+                Text(now, format: .dateTime.year().month())
                     .font(.title)
                     .bold()
+                    .environment(\.locale, Locale(identifier: "ja_JP"))
                 
                 Button("next", systemImage: "chevron.right") {
                     refresh(addMonths: 1)
