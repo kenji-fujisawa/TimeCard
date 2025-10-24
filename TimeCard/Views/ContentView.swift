@@ -24,6 +24,7 @@ struct ContentView: View {
             HStack {
                 Button {
                     openWindow(id: "calendar")
+                    NSApp.activate(ignoringOtherApps: true)
                     dismissWindow()
                 } label: {
                     VStack {
@@ -45,6 +46,7 @@ struct ContentView: View {
                     .frame(width: 30, height: 40)
                 }
                 .buttonStyle(.preAction {
+                    NSApp.activate(ignoringOtherApps: true)
                     dismissWindow()
                 })
                 
