@@ -30,17 +30,19 @@ struct ContentView: View {
                         Image(systemName: "calendar")
                             .padding(2)
                         Text("勤怠")
+                            .font(.caption)
                     }
-                    .padding(3)
+                    .frame(width: 30, height: 40)
                 }
                 
                 SettingsLink {
                     VStack {
                         Image(systemName: "gearshape")
-                            .padding(2)
+                            .padding(1)
                         Text("設定")
+                            .font(.caption)
                     }
-                    .padding(3)
+                    .frame(width: 30, height: 40)
                 }
                 .buttonStyle(.preAction {
                     dismissWindow()
@@ -53,8 +55,9 @@ struct ContentView: View {
                         Image(systemName: "xmark.circle")
                             .padding(2)
                         Text("終了")
+                            .font(.caption)
                     }
-                    .padding(3)
+                    .frame(width: 30, height: 40)
                 }
             }
         }

@@ -27,33 +27,57 @@ struct RecorderView: View {
                 Button {
                     checkIn()
                 } label: {
-                    Text("出勤")
-                        .bold()
-                        .padding()
+                    VStack {
+                        Image(systemName: "play.desktopcomputer")
+                            .font(.title)
+                            .foregroundStyle(.cyan)
+                            .padding(2)
+                        Text("出勤")
+                            .font(.caption)
+                    }
+                    .frame(width: 50, height: 50)
                 }
             } else if records.last?.state == .AtBreak {
                 Button {
                     endBreak()
                 } label: {
-                    Text("休憩終了")
-                        .bold()
-                        .padding()
+                    VStack {
+                        Image(systemName: "power.circle")
+                            .font(.title)
+                            .foregroundStyle(.orange)
+                            .padding(2)
+                        Text("休憩終了")
+                            .font(.caption)
+                    }
+                    .frame(width: 50, height: 50)
                 }
             } else if records.last?.state == .AtWork {
                 HStack {
                     Button {
                         checkOut()
                     } label: {
-                        Text("退勤")
-                            .bold()
-                            .padding()
+                        VStack {
+                            Image(systemName: "powersleep")
+                                .font(.title)
+                                .foregroundStyle(.yellow)
+                                .padding(2)
+                            Text("退勤")
+                                .font(.caption)
+                        }
+                        .frame(width: 50, height: 50)
                     }
                     Button {
                         startBreak()
                     } label: {
-                        Text("休憩")
-                            .bold()
-                            .padding()
+                        VStack {
+                            Image(systemName: "cup.and.saucer.fill")
+                                .font(.title)
+                                .foregroundStyle(.purple)
+                                .padding(2)
+                            Text("休憩")
+                                .font(.caption)
+                        }
+                        .frame(width: 50, height: 50)
                     }
                 }
             }

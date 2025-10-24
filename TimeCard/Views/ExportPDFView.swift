@@ -65,19 +65,27 @@ struct ExportPDFView: View {
     
     private func computeHeight() -> CGFloat {
         guard let action = action else { return 0 }
-        var lines: Int = 0
+        
+        var height: CGFloat = 0
+        let lineHeight: CGFloat = 15
+        let dividerHeight: CGFloat = 15
+        let headerHeight: CGFloat = 100
+        let footerHeight: CGFloat = 15
+        
         for record in action.records {
+            var lines = 0
             if record.records.isEmpty {
                 lines += 1
-                continue
+            } else {
+                for rec in record.records {
+                    lines += max(rec.breakTimes.count, 1)
+                }
             }
             
-            for rec in record.records {
-                lines += min(rec.breakTimes.count, 1)
-            }
+            height += CGFloat(lines) * lineHeight + dividerHeight
         }
         
-        return CGFloat(lines * 40 + 50)
+        return height + headerHeight + footerHeight
     }
 }
 
@@ -144,6 +152,7 @@ private struct PDFView: View {
                 Text(records.systemUptimeSum, format: .timeWorked)
             }
             .font(.system(.headline, design: .monospaced))
+            .fontWeight(.regular)
         }
     }
 }

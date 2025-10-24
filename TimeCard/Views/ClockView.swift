@@ -13,13 +13,18 @@ struct ClockView: View {
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        Text(now, format: .dateTime.hour().minute().second())
-            .font(.system(.largeTitle, design: .monospaced))
-            .bold()
-            .padding()
-            .onReceive(timer) { input in
-                now = input
-            }
+        VStack {
+            Text(now, format: .dateTime.year().month().day())
+                .environment(\.locale, Locale(identifier: "ja_JP"))
+            
+            Text(now, format: .dateTime.hour().minute().second())
+                .font(.system(.largeTitle, design: .monospaced))
+                .bold()
+                .padding(5)
+                .onReceive(timer) { input in
+                    now = input
+                }
+        }
     }
 }
 
