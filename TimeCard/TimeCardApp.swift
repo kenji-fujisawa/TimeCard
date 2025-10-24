@@ -13,8 +13,13 @@ struct TimeCardApp: App {
     private var container: ModelContainer
     
     init() {
+        #if DEBUG
+        let inMemory = true
+        #else
+        let inMemory = false
+        #endif
         let schema = Schema([TimeRecord.self, SystemUptimeRecord.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         do {
             try container = ModelContainer(for: schema, configurations: [config])
         } catch {
