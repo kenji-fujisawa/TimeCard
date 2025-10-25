@@ -32,7 +32,7 @@ struct TimeCardApp: App {
             ContentView()
                 .modelContainer(container)
         } label: {
-            Image(systemName: "clock.badge.checkmark.fill")
+            Image(systemName: "clock.badge.checkmark")
             SystemUptimeView()
                 .modelContainer(container)
             SleepView()
