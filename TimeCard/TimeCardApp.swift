@@ -35,6 +35,8 @@ struct TimeCardApp: App {
             Image(systemName: "clock.badge.checkmark.fill")
             SystemUptimeView()
                 .modelContainer(container)
+            SleepView()
+                .modelContainer(container)
         }
         .menuBarExtraStyle(.window)
         
