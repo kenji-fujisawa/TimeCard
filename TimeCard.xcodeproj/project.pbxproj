@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA32D18B2EB0A27B00BFDA7B /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D18A2EB0A27B00BFDA7B /* NIO */; };
+		CA32D18D2EB0A27B00BFDA7B /* NIOConcurrencyHelpers in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D18C2EB0A27B00BFDA7B /* NIOConcurrencyHelpers */; };
+		CA32D18F2EB0A27B00BFDA7B /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D18E2EB0A27B00BFDA7B /* NIOCore */; };
+		CA32D1912EB0A27B00BFDA7B /* NIOEmbedded in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D1902EB0A27B00BFDA7B /* NIOEmbedded */; };
+		CA32D1932EB0A27B00BFDA7B /* NIOFoundationCompat in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D1922EB0A27B00BFDA7B /* NIOFoundationCompat */; };
+		CA32D2682EB0AC0D00BFDA7B /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D2672EB0AC0D00BFDA7B /* NIOHTTP1 */; };
 		CA824DC52E8E8821006325EF /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */; };
 		CA824DC82E8E8920006325EF /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */; };
 		CA824DCA2E8E8920006325EF /* SwiftJapaneseNationalHolidays in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CA824DC72E8E8920006325EF /* SwiftJapaneseNationalHolidays */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -71,7 +77,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA32D18D2EB0A27B00BFDA7B /* NIOConcurrencyHelpers in Frameworks */,
 				CA824DC52E8E8821006325EF /* SwiftJapaneseNationalHolidays in Frameworks */,
+				CA32D18F2EB0A27B00BFDA7B /* NIOCore in Frameworks */,
+				CA32D2682EB0AC0D00BFDA7B /* NIOHTTP1 in Frameworks */,
+				CA32D18B2EB0A27B00BFDA7B /* NIO in Frameworks */,
+				CA32D1932EB0A27B00BFDA7B /* NIOFoundationCompat in Frameworks */,
+				CA32D1912EB0A27B00BFDA7B /* NIOEmbedded in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,6 +146,12 @@
 			name = TimeCard;
 			packageProductDependencies = (
 				CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */,
+				CA32D18A2EB0A27B00BFDA7B /* NIO */,
+				CA32D18C2EB0A27B00BFDA7B /* NIOConcurrencyHelpers */,
+				CA32D18E2EB0A27B00BFDA7B /* NIOCore */,
+				CA32D1902EB0A27B00BFDA7B /* NIOEmbedded */,
+				CA32D1922EB0A27B00BFDA7B /* NIOFoundationCompat */,
+				CA32D2672EB0AC0D00BFDA7B /* NIOHTTP1 */,
 			);
 			productName = TimeCard;
 			productReference = CA20F1822E84019000444640 /* TimeCard.app */;
@@ -194,6 +212,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CA824DC32E8E8821006325EF /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */,
+				CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA20F1832E84019000444640 /* Products */;
@@ -518,17 +537,55 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-nio.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.87.0;
+			};
+		};
 		CA824DC32E8E8821006325EF /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/YOCKOW/SwiftJapaneseNationalHolidays";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.1.0;
+				kind = exactVersion;
+				version = 1.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		CA32D18A2EB0A27B00BFDA7B /* NIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIO;
+		};
+		CA32D18C2EB0A27B00BFDA7B /* NIOConcurrencyHelpers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOConcurrencyHelpers;
+		};
+		CA32D18E2EB0A27B00BFDA7B /* NIOCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOCore;
+		};
+		CA32D1902EB0A27B00BFDA7B /* NIOEmbedded */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOEmbedded;
+		};
+		CA32D1922EB0A27B00BFDA7B /* NIOFoundationCompat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOFoundationCompat;
+		};
+		CA32D2672EB0AC0D00BFDA7B /* NIOHTTP1 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOHTTP1;
+		};
 		CA824DC42E8E8821006325EF /* SwiftJapaneseNationalHolidays */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CA824DC32E8E8821006325EF /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */;

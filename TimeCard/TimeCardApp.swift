@@ -11,6 +11,7 @@ import SwiftUI
 @main
 struct TimeCardApp: App {
     private var container: ModelContainer
+    private let terminationManager = AppTerminationManager()
     
     init() {
         #if DEBUG
@@ -31,12 +32,22 @@ struct TimeCardApp: App {
         MenuBarExtra {
             ContentView()
                 .modelContainer(container)
+                .onReceive(NotificationCenter.default.publisher(for: Notification.exitApp)) { _ in
+                    Task {
+                        await terminationManager.performCleanup()
+                        NSApplication.shared.terminate(nil)
+                    }
+                }
         } label: {
             Image(systemName: "clock.badge.checkmark")
             SystemUptimeView()
                 .modelContainer(container)
+                .environmentObject(terminationManager)
             SleepView()
                 .modelContainer(container)
+            ServerView()
+                .modelContainer(container)
+                .environmentObject(terminationManager)
         }
         .menuBarExtraStyle(.window)
         
@@ -47,6 +58,28 @@ struct TimeCardApp: App {
         
         Settings {
             LaunchSettingView()
+        }
+    }
+}
+
+extension Notification {
+    static let exitApp = Notification.Name("exitApp")
+}
+
+class AppTerminationManager: ObservableObject {
+    private var cleanupActions: [() async -> Void] = []
+    
+    func addCleanupAction(_ action: @escaping () async -> Void) {
+        cleanupActions.append(action)
+    }
+    
+    func performCleanup() async {
+        await withTaskGroup(of: Void.self) { group in
+            for action in cleanupActions {
+                group.addTask {
+                    await action()
+                }
+            }
         }
     }
 }

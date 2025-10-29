@@ -9,9 +9,13 @@ import Foundation
 import SwiftData
 
 @Model
-class TimeRecord {
+class TimeRecord: Encodable {
     @Model
-    class BreakTime {
+    class BreakTime: Encodable {
+        enum CodingKeys: String, CodingKey {
+            case start, end
+        }
+        
         var start: Date?
         var end: Date?
         
@@ -19,6 +23,16 @@ class TimeRecord {
             self.start = start
             self.end = end
         }
+        
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(start, forKey: .start)
+            try container.encode(end, forKey: .end)
+        }
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case year, month, checkIn, checkOut, breakTimes
     }
     
     enum State {
@@ -76,5 +90,14 @@ class TimeRecord {
         self.checkIn = checkIn
         self.checkOut = checkOut
         self.breakTimes = breakTimes
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(year, forKey: .year)
+        try container.encode(month, forKey: .month)
+        try container.encode(checkIn, forKey: .checkIn)
+        try container.encode(checkOut, forKey: .checkOut)
+        try container.encode(breakTimes, forKey: .breakTimes)
     }
 }
