@@ -13,26 +13,29 @@ class TimeRecord: Encodable {
     @Model
     class BreakTime: Encodable {
         enum CodingKeys: String, CodingKey {
-            case start, end
+            case id, start, end
         }
         
+        var id: UUID
         var start: Date?
         var end: Date?
         
         init(start: Date? = nil, end: Date? = nil) {
+            self.id = UUID()
             self.start = start
             self.end = end
         }
         
         func encode(to encoder: any Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(id, forKey: .id)
             try container.encode(start, forKey: .start)
             try container.encode(end, forKey: .end)
         }
     }
     
     enum CodingKeys: String, CodingKey {
-        case year, month, checkIn, checkOut, breakTimes
+        case id, year, month, checkIn, checkOut, breakTimes
     }
     
     enum State {
@@ -43,6 +46,7 @@ class TimeRecord: Encodable {
     
     #Index<TimeRecord>([\.year, \.month])
     
+    var id: UUID
     var year: Int
     var month: Int
     var checkIn: Date?
@@ -85,6 +89,7 @@ class TimeRecord: Encodable {
     }
     
     init(year: Int, month: Int, checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
+        self.id = UUID()
         self.year = year
         self.month = month
         self.checkIn = checkIn
@@ -94,6 +99,7 @@ class TimeRecord: Encodable {
     
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
         try container.encode(year, forKey: .year)
         try container.encode(month, forKey: .month)
         try container.encode(checkIn, forKey: .checkIn)
