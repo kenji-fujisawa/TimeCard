@@ -51,10 +51,8 @@ class TimeCardServer {
             case Unknown
         }
         
-        enum HTTPError: Error {
-            case BadRequest
-            case NotFound
-            case InternalServerError
+        struct HTTPError: Error {
+            let status: HTTPResponseStatus
         }
         
         typealias InboundIn = HTTPServerRequestPart
@@ -85,6 +83,11 @@ class TimeCardServer {
                 requestBody = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
                 
             case .end:
+                if !path.starts(with: "timecard/") {
+                    handleErrorResponse(status: .notFound, context: context)
+                    return
+                }
+                
                 do {
                     let route = routeFrom(path: path)
                     switch (method, route) {
@@ -107,10 +110,8 @@ class TimeCardServer {
                     default:
                         handleErrorResponse(status: .badRequest, context: context)
                     }
-                } catch HTTPError.BadRequest {
-                    handleErrorResponse(status: .badRequest, context: context)
-                } catch HTTPError.NotFound {
-                    handleErrorResponse(status: .notFound, context: context)
+                } catch let error as HTTPError {
+                    handleErrorResponse(status: error.status, context: context)
                 } catch {
                     handleErrorResponse(status: .internalServerError, context: context)
                 }
@@ -138,8 +139,8 @@ class TimeCardServer {
         }
         
         private func handleRecords(context: ChannelHandlerContext) throws {
-            guard let year = Int(requestParams?.first(where: { $0.name == "year" })?.value ?? "") else { throw HTTPError.BadRequest }
-            guard let month = Int(requestParams?.first(where: { $0.name == "month" })?.value ?? "") else { throw HTTPError.BadRequest}
+            guard let year = Int(requestParams?.first(where: { $0.name == "year" })?.value ?? "") else { throw HTTPError(status: .badRequest) }
+            guard let month = Int(requestParams?.first(where: { $0.name == "month" })?.value ?? "") else { throw HTTPError(status: .badRequest)}
             
             let descriptor = FetchDescriptor<TimeRecord>(
                 predicate: #Predicate { $0.year == year && $0.month == month },
@@ -162,7 +163,7 @@ class TimeCardServer {
         }
         
         private func handleRecord(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError.BadRequest }
+            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord>(
                 predicate: #Predicate { $0.id == uuid },
@@ -184,17 +185,17 @@ class TimeCardServer {
         }
         
         private func updateRecords(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError.BadRequest }
-            guard let requestBody = requestBody else { throw HTTPError.BadRequest }
-            guard let checkIn = requestBody["checkIn"] as? Double else { throw HTTPError.BadRequest }
-            guard let checkOut = requestBody["checkOut"] as? Double else { throw HTTPError.BadRequest }
+            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+            guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
+            guard let checkIn = requestBody["checkIn"] as? Double else { throw HTTPError(status: .badRequest) }
+            guard let checkOut = requestBody["checkOut"] as? Double else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord>(
                 predicate: #Predicate { $0.id == uuid },
             )
             let records = try modelContext.fetch(descriptor)
             
-            guard let record = records.first else { throw HTTPError.NotFound }
+            guard let record = records.first else { throw HTTPError(status: .notFound) }
             record.checkIn = Date(timeIntervalSinceReferenceDate: checkIn)
             record.checkOut = Date(timeIntervalSinceReferenceDate: checkOut)
             
@@ -213,7 +214,7 @@ class TimeCardServer {
         }
         
         private func handleBreakTime(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError.BadRequest }
+            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord.BreakTime>(
                 predicate: #Predicate { $0.id == uuid },
@@ -235,17 +236,17 @@ class TimeCardServer {
         }
         
         private func updateBreakTime(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError.BadRequest }
-            guard let requestBody = requestBody else { throw HTTPError.BadRequest }
-            guard let start = requestBody["start"] as? Double else { throw HTTPError.BadRequest }
-            guard let end = requestBody["end"] as? Double else { throw HTTPError.BadRequest }
+            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+            guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
+            guard let start = requestBody["start"] as? Double else { throw HTTPError(status: .badRequest) }
+            guard let end = requestBody["end"] as? Double else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord.BreakTime>(
                 predicate: #Predicate { $0.id == uuid },
             )
             let records = try modelContext.fetch(descriptor)
             
-            guard let record = records.first else { throw HTTPError.NotFound }
+            guard let record = records.first else { throw HTTPError(status: .notFound) }
             record.start = Date(timeIntervalSinceReferenceDate: start)
             record.end = Date(timeIntervalSinceReferenceDate: end)
             
