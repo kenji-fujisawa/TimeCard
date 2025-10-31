@@ -93,16 +93,16 @@ class TimeCardServer {
                     switch (method, route) {
                     case (.GET, .Records(let id)):
                         if id.isEmpty {
-                            try handleRecords(context: context)
+                            try getRecords(context: context)
                         } else {
-                            try handleRecord(id: id, context: context)
+                            try getRecord(id: id, context: context)
                         }
                         
                     case (.PUT, .Records(let id)):
                         try updateRecords(id: id, context: context)
                         
                     case (.GET, .BreakTime(let id)):
-                        try handleBreakTime(id: id, context: context)
+                        try getBreakTime(id: id, context: context)
                         
                     case (.PUT, .BreakTime(let id)):
                         try updateBreakTime(id: id, context: context)
@@ -138,7 +138,7 @@ class TimeCardServer {
             }
         }
         
-        private func handleRecords(context: ChannelHandlerContext) throws {
+        private func getRecords(context: ChannelHandlerContext) throws {
             guard let year = Int(requestParams?.first(where: { $0.name == "year" })?.value ?? "") else { throw HTTPError(status: .badRequest) }
             guard let month = Int(requestParams?.first(where: { $0.name == "month" })?.value ?? "") else { throw HTTPError(status: .badRequest)}
             
@@ -148,21 +148,12 @@ class TimeCardServer {
             )
             let records = try modelContext.fetch(descriptor)
             
-            let encoder = JSONEncoder()
-            let json = try encoder.encode(records)
-            
-            let buffer = context.channel.allocator.buffer(buffer: ByteBuffer(data: json))
-            
-            var responseHeaders = HTTPHeaders()
-            responseHeaders.add(name: "Content-Type", value: "application/json")
-            responseHeaders.add(name: "Content-Length", value: "\(buffer.readableBytes)")
-            let responseHead = HTTPResponseHead(version: .init(major: 1, minor: 1), status: .ok, headers: responseHeaders)
-            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
-            context.write(wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
-            context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
+            let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
         }
         
-        private func handleRecord(id: String, context: ChannelHandlerContext) throws {
+        private func getRecord(id: String, context: ChannelHandlerContext) throws {
             guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord>(
@@ -170,18 +161,9 @@ class TimeCardServer {
             )
             let records = try modelContext.fetch(descriptor)
             
-            let encoder = JSONEncoder()
-            let json = try encoder.encode(records)
-            
-            let buffer = context.channel.allocator.buffer(buffer: ByteBuffer(data: json))
-            
-            var responseHeaders = HTTPHeaders()
-            responseHeaders.add(name: "Content-Type", value: "application/json")
-            responseHeaders.add(name: "Content-Length", value: "\(buffer.readableBytes)")
-            let responseHead = HTTPResponseHead(version: .init(major: 1, minor: 1), status: .ok, headers: responseHeaders)
-            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
-            context.write(wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
-            context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
+            let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
         }
         
         private func updateRecords(id: String, context: ChannelHandlerContext) throws {
@@ -199,21 +181,12 @@ class TimeCardServer {
             record.checkIn = Date(timeIntervalSinceReferenceDate: checkIn)
             record.checkOut = Date(timeIntervalSinceReferenceDate: checkOut)
             
-            let encoder = JSONEncoder()
-            let json = try encoder.encode(records)
-            
-            let buffer = context.channel.allocator.buffer(buffer: ByteBuffer(data: json))
-            
-            var responseHeaders = HTTPHeaders()
-            responseHeaders.add(name: "Content-Type", value: "application/json")
-            responseHeaders.add(name: "Content-Length", value: "\(buffer.readableBytes)")
-            let responseHead = HTTPResponseHead(version: .init(major: 1, minor: 1), status: .ok, headers: responseHeaders)
-            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
-            context.write(wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
-            context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
+            let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
         }
         
-        private func handleBreakTime(id: String, context: ChannelHandlerContext) throws {
+        private func getBreakTime(id: String, context: ChannelHandlerContext) throws {
             guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord.BreakTime>(
@@ -221,18 +194,9 @@ class TimeCardServer {
             )
             let records = try modelContext.fetch(descriptor)
             
-            let encoder = JSONEncoder()
-            let json = try encoder.encode(records)
-            
-            let buffer = context.channel.allocator.buffer(buffer: ByteBuffer(data: json))
-            
-            var responseHeaders = HTTPHeaders()
-            responseHeaders.add(name: "Content-Type", value: "application/json")
-            responseHeaders.add(name: "Content-Length", value: "\(buffer.readableBytes)")
-            let responseHead = HTTPResponseHead(version: .init(major: 1, minor: 1), status: .ok, headers: responseHeaders)
-            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
-            context.write(wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
-            context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
+            let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
         }
         
         private func updateBreakTime(id: String, context: ChannelHandlerContext) throws {
@@ -250,11 +214,12 @@ class TimeCardServer {
             record.start = Date(timeIntervalSinceReferenceDate: start)
             record.end = Date(timeIntervalSinceReferenceDate: end)
             
-            let encoder = JSONEncoder()
-            let json = try encoder.encode(records)
-            
-            let buffer = context.channel.allocator.buffer(buffer: ByteBuffer(data: json))
-            
+            let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
+        }
+        
+        private func handleResponse(buffer: ByteBuffer, context: ChannelHandlerContext) {
             var responseHeaders = HTTPHeaders()
             responseHeaders.add(name: "Content-Type", value: "application/json")
             responseHeaders.add(name: "Content-Length", value: "\(buffer.readableBytes)")
