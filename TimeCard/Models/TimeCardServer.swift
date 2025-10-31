@@ -83,7 +83,7 @@ class TimeCardServer {
                 requestBody = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
                 
             case .end:
-                if !path.starts(with: "timecard/") {
+                if !path.starts(with: "/timecard/") {
                     handleErrorResponse(status: .notFound, context: context)
                     return
                 }

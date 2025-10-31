@@ -87,7 +87,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetRecords() async throws {
-        try runTest(method: .GET, uri: "timecard/records?year=2025&month=10", body: "")
+        try runTest(method: .GET, uri: "/timecard/records?year=2025&month=10", body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -112,17 +112,17 @@ struct TimeCardServerTests {
     }
 
     @Test mutating func testGetRecords_missingParameter() async throws {
-        try runTest(method: .GET, uri: "timecard/records", body: "")
+        try runTest(method: .GET, uri: "/timecard/records", body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testGetRecords_wrongMethod() async throws {
-        try runTest(method: .POST, uri: "timecard/records?year=2025&month=10", body: "")
+        try runTest(method: .POST, uri: "/timecard/records?year=2025&month=10", body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testGetRecord() async throws {
-        let uri = "timecard/records/\(records[1].id.uuidString)"
+        let uri = "/timecard/records/\(records[1].id.uuidString)"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
@@ -147,25 +147,25 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetRecord_wrongId() async throws {
-        let uri = "timecard/records/id"
+        let uri = "/timecard/records/id"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testGetRecord_missingId() async throws {
-        let uri = "timecard/records/"
+        let uri = "/timecard/records/"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testGetRecord_tooManyPath() async throws {
-        let uri = "timecard/records/\(records[1].id.uuidString)/redundant"
+        let uri = "/timecard/records/\(records[1].id.uuidString)/redundant"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testPutRecord() async throws {
-        let uri = "timecard/records/\(records[1].id.uuidString)"
+        let uri = "/timecard/records/\(records[1].id.uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
@@ -203,7 +203,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutRecord_wrongBody() async throws {
-        let uri = "timecard/records/\(records[1].id.uuidString)"
+        let uri = "/timecard/records/\(records[1].id.uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
@@ -221,7 +221,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutRecord_missingParameter() async throws {
-        let uri = "timecard/records/\(records[1].id.uuidString)"
+        let uri = "/timecard/records/\(records[1].id.uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
             {
@@ -236,7 +236,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutRecord_wrongId() async throws {
-        let uri = "timecard/records/\(UUID().uuidString)"
+        let uri = "/timecard/records/\(UUID().uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
@@ -255,7 +255,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutRecord_missingId() async throws {
-        let uri = "timecard/records/"
+        let uri = "/timecard/records/"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
@@ -274,7 +274,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetBreakTime() async throws {
-        let uri = "timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
+        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
@@ -289,25 +289,25 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetBreakTime_wrongId() async throws {
-        let uri = "timecard/breaktime/id"
+        let uri = "/timecard/breaktime/id"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testGetBreakTime_missingId() async throws {
-        let uri = "timecard/breaktime"
+        let uri = "/timecard/breaktime"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testGetBreakTime_tooManyPath() async throws {
-        let uri = "timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)/redundant"
+        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)/redundant"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testPutBreakTime() async throws {
-        let uri = "timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
+        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
         let start = date(2025, 10, 18, 11, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let end = date(2025, 10, 18, 12, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
@@ -337,7 +337,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutBreakTime_wrongBody() async throws {
-        let uri = "timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
+        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
         let start = date(2025, 10, 18, 11, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let end = date(2025, 10, 18, 12, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
@@ -355,7 +355,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutBreakTime_missingParameter() async throws {
-        let uri = "timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
+        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
         let start = date(2025, 10, 18, 11, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
             {
@@ -370,7 +370,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutBreakTime_wrongId() async throws {
-        let uri = "timecard/breaktime/\(UUID().uuidString)"
+        let uri = "/timecard/breaktime/\(UUID().uuidString)"
         let start = date(2025, 10, 18, 11, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let end = date(2025, 10, 18, 12, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
@@ -387,7 +387,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testPutBreakTime_missingId() async throws {
-        let uri = "timecard/breaktime/"
+        let uri = "/timecard/breaktime/"
         let start = date(2025, 10, 18, 11, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
         let end = date(2025, 10, 18, 12, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
         let body = """
