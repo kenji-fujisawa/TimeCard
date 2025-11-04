@@ -55,10 +55,10 @@ struct CalendarRecordView: View {
 }
 
 #Preview {
-    let break1 = TimeRecord.BreakTime(start: .now, end: .now)
-    let break2 = TimeRecord.BreakTime(start: .now)
-    let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
-    let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
+    let break1 = TimeRecord.BreakTime(id: UUID(), start: .now, end: .now)
+    let break2 = TimeRecord.BreakTime(id: UUID(), start: .now)
+    let rec1 = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
+    let rec2 = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
     let record = CalendarRecord(date: .now, records: [rec1, rec2])
     Grid {
         CalendarRecordView(record: record)

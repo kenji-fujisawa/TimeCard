@@ -11,43 +11,56 @@ struct CalendarView: View {
     @ObservedObject private var model = CalendarViewModel()
     
     var body: some View {
-        if let records = model.records {
-            HStack {
-                Button("prev", systemImage: "chevron.left") {
-                    refresh(addMonths: -1)
-                }
-                .labelStyle(.iconOnly)
-                
-                Text(model.now, format: .dateTime.year().month())
-                    .font(.title)
-                    .bold()
-                    .environment(\.locale, Locale(identifier: "ja_JP"))
-                
-                Button("next", systemImage: "chevron.right") {
-                    refresh(addMonths: 1)
-                }
-                .labelStyle(.iconOnly)
-            }
-            
-            List {
-                Grid {
-                    GridRow {
-                        Text("")
-                        Text("出勤")
-                        Text("退勤")
-                        Text("休始")
-                        Text("休終")
+        NavigationStack {
+            if model.records != nil {
+                HStack {
+                    Button("prev", systemImage: "chevron.left") {
+                        refresh(addMonths: -1)
                     }
-                    Divider()
+                    .labelStyle(.iconOnly)
                     
-                    ForEach(records) { record in
-                        CalendarRecordView(record: record)
+                    Text(model.now, format: .dateTime.year().month())
+                        .font(.title)
+                        .bold()
+                        .environment(\.locale, Locale(identifier: "ja_JP"))
+                    
+                    Button("next", systemImage: "chevron.right") {
+                        refresh(addMonths: 1)
+                    }
+                    .labelStyle(.iconOnly)
+                }
+                
+                ScrollView {
+                    Grid {
+                        GridRow {
+                            Text("")
+                            Text("出勤")
+                            Text("退勤")
+                            Text("休始")
+                            Text("休終")
+                        }
+                        .frame(maxWidth: .infinity)
+                        
                         Divider()
+                        
+                        ForEach($model.records.bindUnwrap(defaultValue: [])) { $record in
+                            NavigationLink {
+                                CalendarDetailView(record: $record)
+                            } label: {
+                                CalendarRecordView(record: record)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            
+                            Divider()
+                        }
                     }
                 }
+                .padding()
+            } else {
+                ProgressView()
             }
-        } else {
-            ProgressView()
         }
     }
     

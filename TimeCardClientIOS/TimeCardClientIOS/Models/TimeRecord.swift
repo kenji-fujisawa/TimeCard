@@ -7,12 +7,14 @@
 
 import Foundation
 
-struct TimeRecord: Codable {
-    struct BreakTime: Codable {
+struct TimeRecord: Codable, Identifiable {
+    struct BreakTime: Codable, Identifiable {
+        var id: UUID
         var start: Date?
         var end: Date?
     }
     
+    var id: UUID
     var year: Int
     var month: Int
     var checkIn: Date?
