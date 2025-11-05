@@ -8,11 +8,18 @@
 import SwiftUI
 
 struct ContentView: View {
+    @ObservedObject private var toast = ToastViewModel()
+    @ObservedObject private var calendarModel = CalendarViewModel()
+    
     var body: some View {
         VStack {
-            CalendarView()
+            CalendarView(model: calendarModel)
         }
         .padding()
+        .overlay {
+            ToastView(model: toast)
+        }
+        .environmentObject(toast)
     }
 }
 

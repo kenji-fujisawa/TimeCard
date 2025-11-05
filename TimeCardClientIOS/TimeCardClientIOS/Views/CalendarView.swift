@@ -7,8 +7,82 @@
 
 import SwiftUI
 
+class CalendarViewModel: ObservableObject {
+    @Published var now: Date = .now
+    @Published var records: [CalendarRecord]? = nil
+    @Published var error: Bool = false
+    
+    init() {
+        fetchRecords()
+    }
+    
+    func fetchRecords() {
+        records = nil
+        error = false
+        
+        var url = URL(string: "http://192.168.4.33:8080/timecard/records")
+        url = url?.appending(queryItems: [.init(name: "year", value: String(now.year))])
+        url = url?.appending(queryItems: [.init(name: "month", value: String(now.month))])
+        guard let url = url else { return toCalendarRecords(records: []) }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+            var records: [TimeRecord] = []
+            defer {
+                Task { @MainActor in
+                    self.toCalendarRecords(records: records)
+                }
+            }
+            
+            if error != nil {
+                Task { @MainActor in
+                    self.error = true
+                }
+            }
+            
+            if let response = response as? HTTPURLResponse,
+               response.statusCode != 200 {
+                Task { @MainActor in
+                    self.error = true
+                }
+            }
+            
+            guard let data = data else { return }
+            let decoder = JSONDecoder()
+            if let recs = try? decoder.decode([TimeRecord].self, from: data) {
+                records = recs
+            }
+        }
+        task.resume()
+    }
+    
+    private func toCalendarRecords(records: [TimeRecord]) {
+        let dates = Calendar.current.datesOf(year: now.year, month: now.month)
+        
+        var timeRecords: [Int: [TimeRecord]] = [:]
+        for rec in records {
+            if let day = rec.checkIn?.day {
+                if timeRecords[day] == nil {
+                    timeRecords[day] = []
+                }
+                timeRecords[day]?.append(rec)
+            }
+        }
+        
+        var results: [CalendarRecord] = []
+        for date in dates {
+            results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? []))
+        }
+        
+        self.records = results
+    }
+}
+
 struct CalendarView: View {
-    @ObservedObject private var model = CalendarViewModel()
+    @EnvironmentObject private var toast: ToastViewModel
+    @ObservedObject var model: CalendarViewModel
     
     var body: some View {
         NavigationStack {
@@ -62,6 +136,14 @@ struct CalendarView: View {
                 ProgressView()
             }
         }
+        .onChange(of: model.error) { _, newValue in
+            if newValue == true {
+                withAnimation {
+                    toast.isPresented = true
+                    toast.message = "データを取得できませんでした"
+                }
+            }
+        }
     }
     
     private func refresh(addMonths: Int) {
@@ -72,66 +154,10 @@ struct CalendarView: View {
             }
         }
     }
-    
-    private class CalendarViewModel: ObservableObject {
-        @Published var now: Date = .now
-        @Published var records: [CalendarRecord]? = nil
-        
-        init() {
-            fetchRecords()
-        }
-        
-        func fetchRecords() {
-            records = nil
-            
-            var url = URL(string: "http://192.168.4.33:8080/timecard/records")
-            url = url?.appending(queryItems: [.init(name: "year", value: String(now.year))])
-            url = url?.appending(queryItems: [.init(name: "month", value: String(now.month))])
-            guard let url = url else { return toCalendarRecords(records: []) }
-            
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            
-            let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-                var records: [TimeRecord] = []
-                defer {
-                    DispatchQueue.main.async {
-                        self.toCalendarRecords(records: records)
-                    }
-                }
-                
-                guard let data = data else { return }
-                let decoder = JSONDecoder()
-                if let recs = try? decoder.decode([TimeRecord].self, from: data) {
-                    records = recs
-                }
-            }
-            task.resume()
-        }
-        
-        private func toCalendarRecords(records: [TimeRecord]) {
-            let dates = Calendar.current.datesOf(year: now.year, month: now.month)
-            
-            var timeRecords: [Int: [TimeRecord]] = [:]
-            for rec in records {
-                if let day = rec.checkIn?.day {
-                    if timeRecords[day] == nil {
-                        timeRecords[day] = []
-                    }
-                    timeRecords[day]?.append(rec)
-                }
-            }
-            
-            var results: [CalendarRecord] = []
-            for date in dates {
-                results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? []))
-            }
-            
-            self.records = results
-        }
-    }
 }
 
 #Preview {
-    CalendarView()
+    var model = CalendarViewModel()
+    CalendarView(model: model)
+        .environmentObject(ToastViewModel())
 }
