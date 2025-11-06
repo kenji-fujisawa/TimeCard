@@ -19,13 +19,11 @@ class TimeRecord: Encodable {
         var id: UUID
         var start: Date?
         var end: Date?
-        var parent: TimeRecord?
         
-        init(start: Date? = nil, end: Date? = nil, parent: TimeRecord? = nil) {
+        init(start: Date? = nil, end: Date? = nil) {
             self.id = UUID()
             self.start = start
             self.end = end
-            self.parent = parent
         }
         
         func encode(to encoder: any Encoder) throws {
@@ -53,8 +51,6 @@ class TimeRecord: Encodable {
     var month: Int
     var checkIn: Date?
     var checkOut: Date?
-    
-    @Relationship(deleteRule: .cascade, inverse: \BreakTime.parent)
     var breakTimes: [BreakTime]
     
     var sortedBreakTimes: [BreakTime] {
