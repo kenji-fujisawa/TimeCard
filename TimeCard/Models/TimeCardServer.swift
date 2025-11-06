@@ -98,14 +98,30 @@ class TimeCardServer {
                             try getRecord(id: id, context: context)
                         }
                         
+                    case (.POST, .Records(let id)):
+                        if id.isEmpty {
+                            try insertRecord(context: context)
+                        } else {
+                            throw HTTPError(status: .badRequest)
+                        }
+                        
                     case (.PUT, .Records(let id)):
-                        try updateRecords(id: id, context: context)
+                        try updateRecord(id: id, context: context)
+                        
+                    case (.DELETE, .Records(let id)):
+                        try deleteRecord(id: id, context: context)
                         
                     case (.GET, .BreakTime(let id)):
                         try getBreakTime(id: id, context: context)
                         
+                    case (.POST, .BreakTime(let id)):
+                        try insertBreakTime(id: id, context: context)
+                        
                     case (.PUT, .BreakTime(let id)):
                         try updateBreakTime(id: id, context: context)
+                        
+                    case (.DELETE, .BreakTime(let id)):
+                        try deleteBreakTime(id: id, context: context)
                         
                     default:
                         handleErrorResponse(status: .badRequest, context: context)
@@ -119,17 +135,23 @@ class TimeCardServer {
         }
         
         private func routeFrom(path: String) -> Route {
-            let pathComponents = path.split(separator: "/")
+            var pathComponents = path.split(separator: "/")
             if pathComponents.count < 2 { return .Unknown }
+            if pathComponents.count > 4 { return .Unknown }
+            while pathComponents.count < 4 {
+                pathComponents.append("")
+            }
             
-            switch (pathComponents[0], pathComponents[1]) {
-            case ("timecard", "records"):
-                if pathComponents.count > 3 { return .Unknown }
-                let id = pathComponents.count < 3 ? "" : String(pathComponents[2])
+            switch (pathComponents[0], pathComponents[1], pathComponents[3]) {
+            case ("timecard", "records", ""):
+                let id = String(pathComponents[2])
                 return .Records(id: id)
                 
-            case ("timecard", "breaktime"):
-                if pathComponents.count != 3 { return .Unknown }
+            case ("timecard", "breaktime", ""):
+                let id = String(pathComponents[2])
+                return .BreakTime(id: id)
+                
+            case ("timecard", "records", "breaktime"):
                 let id = String(pathComponents[2])
                 return .BreakTime(id: id)
                 
@@ -157,7 +179,7 @@ class TimeCardServer {
             guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord>(
-                predicate: #Predicate { $0.id == uuid },
+                predicate: #Predicate { $0.id == uuid }
             )
             let records = try modelContext.fetch(descriptor)
             
@@ -166,20 +188,58 @@ class TimeCardServer {
             handleResponse(buffer: buffer, context: context)
         }
         
-        private func updateRecords(id: String, context: ChannelHandlerContext) throws {
+        private func insertRecord(context: ChannelHandlerContext) throws {
+            guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
+            guard let checkIn = requestBody["checkIn"] as? Double else { throw HTTPError(status: .badRequest) }
+            guard let checkOut = requestBody["checkOut"] as? Double else { throw HTTPError(status: .badRequest) }
+            
+            let checkInDate = Date(timeIntervalSinceReferenceDate: checkIn)
+            let checkOutDate = Date(timeIntervalSinceReferenceDate: checkOut)
+            let record = TimeRecord(year: checkInDate.year, month: checkInDate.month, checkIn: checkInDate, checkOut: checkOutDate)
+            modelContext.insert(record)
+            
+            try modelContext.save()
+            
+            let json = try JSONEncoder().encode([record])
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
+        }
+        
+        private func updateRecord(id: String, context: ChannelHandlerContext) throws {
             guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
             guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
             guard let checkIn = requestBody["checkIn"] as? Double else { throw HTTPError(status: .badRequest) }
             guard let checkOut = requestBody["checkOut"] as? Double else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord>(
-                predicate: #Predicate { $0.id == uuid },
+                predicate: #Predicate { $0.id == uuid }
             )
             let records = try modelContext.fetch(descriptor)
             
             guard let record = records.first else { throw HTTPError(status: .notFound) }
             record.checkIn = Date(timeIntervalSinceReferenceDate: checkIn)
             record.checkOut = Date(timeIntervalSinceReferenceDate: checkOut)
+            
+            try modelContext.save()
+            
+            let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
+        }
+        
+        private func deleteRecord(id: String, context: ChannelHandlerContext) throws {
+            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+            
+            let descriptor = FetchDescriptor<TimeRecord>(
+                predicate: #Predicate { $0.id == uuid }
+            )
+            var records = try modelContext.fetch(descriptor)
+            
+            guard let record = records.first else { throw HTTPError(status: .notFound) }
+            modelContext.delete(record)
+            records.removeFirst()
+            
+            try modelContext.save()
             
             let json = try JSONEncoder().encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
@@ -190,11 +250,35 @@ class TimeCardServer {
             guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord.BreakTime>(
-                predicate: #Predicate { $0.id == uuid },
+                predicate: #Predicate { $0.id == uuid }
             )
             let records = try modelContext.fetch(descriptor)
             
             let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
+        }
+        
+        private func insertBreakTime(id: String, context: ChannelHandlerContext) throws {
+            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+            guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
+            guard let start = requestBody["start"] as? Double else { throw HTTPError(status: .badRequest) }
+            guard let end = requestBody["end"] as? Double else { throw HTTPError(status: .badRequest) }
+            
+            let descriptor = FetchDescriptor<TimeRecord>(
+                predicate: #Predicate { $0.id == uuid }
+            )
+            let records = try modelContext.fetch(descriptor)
+            
+            guard let record = records.first else { throw HTTPError(status: .notFound) }
+            let startDate = Date(timeIntervalSinceReferenceDate: start)
+            let endDate = Date(timeIntervalSinceReferenceDate: end)
+            let breakTime = TimeRecord.BreakTime(start: startDate, end: endDate)
+            record.breakTimes.append(breakTime)
+            
+            try modelContext.save()
+            
+            let json = try JSONEncoder().encode([breakTime])
             let buffer = context.channel.allocator.buffer(data: json)
             handleResponse(buffer: buffer, context: context)
         }
@@ -206,13 +290,34 @@ class TimeCardServer {
             guard let end = requestBody["end"] as? Double else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord.BreakTime>(
-                predicate: #Predicate { $0.id == uuid },
+                predicate: #Predicate { $0.id == uuid }
             )
             let records = try modelContext.fetch(descriptor)
             
             guard let record = records.first else { throw HTTPError(status: .notFound) }
             record.start = Date(timeIntervalSinceReferenceDate: start)
             record.end = Date(timeIntervalSinceReferenceDate: end)
+            
+            try modelContext.save()
+            
+            let json = try JSONEncoder().encode(records)
+            let buffer = context.channel.allocator.buffer(data: json)
+            handleResponse(buffer: buffer, context: context)
+        }
+        
+        private func deleteBreakTime(id: String, context: ChannelHandlerContext) throws {
+            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+            
+            let descriptor = FetchDescriptor<TimeRecord.BreakTime>(
+                predicate: #Predicate { $0.id == uuid }
+            )
+            var records = try modelContext.fetch(descriptor)
+            
+            guard let record = records.first else { throw HTTPError(status: .notFound) }
+            modelContext.delete(record)
+            records.removeFirst()
+            
+            try modelContext.save()
             
             let json = try JSONEncoder().encode(records)
             let buffer = context.channel.allocator.buffer(data: json)

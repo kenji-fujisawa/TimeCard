@@ -14,7 +14,7 @@ import Testing
 
 @testable @preconcurrency import TimeCard
 
-struct TimeCardServerTests {
+@Suite(.serialized) struct TimeCardServerTests {
 
     var records: [TimeRecord] = []
     var container: ModelContainer!
@@ -103,7 +103,7 @@ struct TimeCardServerTests {
             #expect(breakTimes?.count == record.breakTimes.count)
             for i in 0..<record.breakTimes.count {
                 let dict = breakTimes?[i]
-                let breakTime = record.breakTimes[i]
+                let breakTime = record.sortedBreakTimes[i]
                 #expect(dict?["id"] as? String == breakTime.id.uuidString)
                 #expect(dict?["start"] as? Double == breakTime.start?.timeIntervalSinceReferenceDate)
                 #expect(dict?["end"] as? Double == breakTime.end?.timeIntervalSinceReferenceDate)
@@ -117,7 +117,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetRecords_wrongMethod() async throws {
-        try runTest(method: .POST, uri: "/timecard/records?year=2025&month=10", body: "")
+        try runTest(method: .ACL, uri: "/timecard/records?year=2025&month=10", body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
@@ -139,7 +139,7 @@ struct TimeCardServerTests {
         #expect(breakTimes?.count == record.breakTimes.count)
         for i in 0..<record.breakTimes.count {
             let dict = breakTimes?[i]
-            let breakTime = record.breakTimes[i]
+            let breakTime = record.sortedBreakTimes[i]
             #expect(dict?["id"] as? String == breakTime.id.uuidString)
             #expect(dict?["start"] as? Double == breakTime.start?.timeIntervalSinceReferenceDate)
             #expect(dict?["end"] as? Double == breakTime.end?.timeIntervalSinceReferenceDate)
@@ -164,6 +164,111 @@ struct TimeCardServerTests {
         #expect(responseHead?.status == .badRequest)
     }
     
+    @Test mutating func testPostRecord() async throws {
+        let uri = "/timecard/records"
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkOut = date(2025, 10, 20, 17, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "checkIn":  \(checkIn),
+                "checkOut": \(checkOut)
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .ok)
+        #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 3)
+        #expect(records[0].checkIn?.day == 15)
+        #expect(records[1].checkIn?.day == 18)
+        #expect(records[2].checkIn?.timeIntervalSinceReferenceDate == checkIn)
+        #expect(records[2].checkOut?.timeIntervalSinceReferenceDate == checkOut)
+        #expect(records[2].breakTimes.count == 0)
+        
+        #expect(responseBody?.count == 1)
+        
+        let dict = responseBody?[0]
+        #expect(dict?["id"] as? String != "")
+        #expect(dict?["checkIn"] as? Double == checkIn)
+        #expect(dict?["checkOut"] as? Double == checkOut)
+        
+        let breakTimes = dict?["breakTimes"] as? [[String: Any]]
+        #expect(breakTimes?.count == 0)
+    }
+    
+    @Test mutating func testPostRecord_wrongBody() async throws {
+        let uri = "/timecard/records"
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkOut = date(2025, 10, 20, 17, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "checkIn":  \(checkIn),
+                "checkOut": \(checkOut),
+                wrongKey:   wrongValue
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].checkIn?.day == 15)
+        #expect(records[1].checkIn?.day == 18)
+    }
+    
+    @Test mutating func testPostRecord_missingParameter() async throws {
+        let uri = "/timecard/records"
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "checkIn":  \(checkIn)
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].checkIn?.day == 15)
+        #expect(records[1].checkIn?.day == 18)
+    }
+    
+    @Test mutating func testPostRecord_tooManyPath() async throws {
+        let uri = "/timecard/records/\(UUID().uuidString)"
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkOut = date(2025, 10, 20, 17, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "checkIn":  \(checkIn),
+                "checkOut": \(checkOut)
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].checkIn?.day == 15)
+        #expect(records[1].checkIn?.day == 18)
+    }
+    
     @Test mutating func testPutRecord() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
@@ -178,6 +283,11 @@ struct TimeCardServerTests {
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[0].checkIn?.day == 15)
         #expect(records[0].checkOut?.day == 15)
         #expect(records[1].checkIn?.timeIntervalSinceReferenceDate == checkIn)
@@ -195,7 +305,7 @@ struct TimeCardServerTests {
         #expect(breakTimes?.count == record.breakTimes.count)
         for i in 0..<record.breakTimes.count {
             let dict = breakTimes?[i]
-            let breakTime = record.breakTimes[i]
+            let breakTime = record.sortedBreakTimes[i]
             #expect(dict?["id"] as? String == breakTime.id.uuidString)
             #expect(dict?["start"] as? Double == breakTime.start?.timeIntervalSinceReferenceDate)
             #expect(dict?["end"] as? Double == breakTime.end?.timeIntervalSinceReferenceDate)
@@ -216,6 +326,11 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[1].checkIn?.hour == 10)
         #expect(records[1].checkOut?.hour == 18)
     }
@@ -231,6 +346,11 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[1].checkIn?.hour == 10)
         #expect(records[1].checkOut?.hour == 18)
     }
@@ -248,6 +368,11 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .notFound)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[0].checkIn?.day == 15)
         #expect(records[0].checkOut?.day == 15)
         #expect(records[1].checkIn?.hour == 10)
@@ -267,10 +392,62 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[0].checkIn?.day == 15)
         #expect(records[0].checkOut?.day == 15)
         #expect(records[1].checkIn?.hour == 10)
         #expect(records[1].checkOut?.hour == 18)
+    }
+    
+    @Test mutating func testDeleteRecord() async throws {
+        let uri = "/timecard/records/\(records[1].id.uuidString)"
+        try runTest(method: .DELETE, uri: uri, body: "")
+        #expect(responseHead?.status == .ok)
+        #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 1)
+        #expect(records[0].checkIn?.day == 15)
+        
+        #expect(responseBody?.count == 0)
+    }
+    
+    @Test mutating func testDeleteRecord_wrongId() async throws {
+        let uri = "/timecard/records/\(UUID().uuidString)"
+        try runTest(method: .DELETE, uri: uri, body: "")
+        #expect(responseHead?.status == .notFound)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].checkIn?.day == 15)
+        #expect(records[1].checkIn?.day == 18)
+    }
+    
+    @Test mutating func testDeleteRecord_missingId() async throws {
+        let uri = "/timecard/records/"
+        try runTest(method: .DELETE, uri: uri, body: "")
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].checkIn?.day == 15)
+        #expect(records[1].checkIn?.day == 18)
     }
     
     @Test mutating func testGetBreakTime() async throws {
@@ -306,6 +483,140 @@ struct TimeCardServerTests {
         #expect(responseHead?.status == .badRequest)
     }
     
+    @Test mutating func testPostBreakTime() async throws {
+        let uri = "/timecard/records/\(records[0].id.uuidString)/breaktime"
+        let start = date(2025, 10, 15, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let end = date(2025, 10, 15, 15, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "start":    \(start),
+                "end":      \(end)
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .ok)
+        #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 2)
+        #expect(records[0].sortedBreakTimes[0].start?.hour == 12)
+        #expect(records[0].sortedBreakTimes[0].end?.hour == 12)
+        #expect(records[0].sortedBreakTimes[1].start?.timeIntervalSinceReferenceDate == start)
+        #expect(records[0].sortedBreakTimes[1].end?.timeIntervalSinceReferenceDate == end)
+        #expect(records[1].breakTimes.count == 2)
+        
+        #expect(responseBody?.count == 1)
+        
+        let dict = responseBody?[0]
+        #expect(dict?["id"] as? String != "")
+        #expect(dict?["start"] as? Double == start)
+        #expect(dict?["end"] as? Double == end)
+    }
+    
+    @Test mutating func testPostBreakTime_wrongBody() async throws {
+        let uri = "/timecard/records/\(records[0].id.uuidString)/breaktime"
+        let start = date(2025, 10, 15, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let end = date(2025, 10, 15, 15, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "start":    \(start),
+                "end":      \(end),
+                wrongKey:   wrongValue
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 1)
+        #expect(records[0].breakTimes[0].start?.hour == 12)
+        #expect(records[0].breakTimes[0].end?.hour == 12)
+        #expect(records[1].breakTimes.count == 2)
+    }
+    
+    @Test mutating func testPostBreakTime_missingParameter() async throws {
+        let uri = "/timecard/records/\(records[0].id.uuidString)/breaktime"
+        let start = date(2025, 10, 15, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "start":    \(start),
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 1)
+        #expect(records[0].breakTimes[0].start?.hour == 12)
+        #expect(records[0].breakTimes[0].end?.hour == 12)
+        #expect(records[1].breakTimes.count == 2)
+    }
+    
+    @Test mutating func testPostBreakTime_tooManyPath() async throws {
+        let uri = "/timecard/records/\(records[0].id.uuidString)/breaktime/\(UUID().uuidString)"
+        let start = date(2025, 10, 15, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let end = date(2025, 10, 15, 15, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "start":    \(start),
+                "end":      \(end)
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 1)
+        #expect(records[0].breakTimes[0].start?.hour == 12)
+        #expect(records[0].breakTimes[0].end?.hour == 12)
+        #expect(records[1].breakTimes.count == 2)
+    }
+    
+    @Test mutating func testPostBreakTime_wrongId() async throws {
+        let uri = "/timecard/records/\(UUID().uuidString)/breaktime"
+        let start = date(2025, 10, 15, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let end = date(2025, 10, 15, 15, 15, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let body = """
+            {
+                "start":    \(start),
+                "end":      \(end)
+            }
+            """
+        try runTest(method: .POST, uri: uri, body: body)
+        #expect(responseHead?.status == .notFound)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 1)
+        #expect(records[0].breakTimes[0].start?.hour == 12)
+        #expect(records[0].breakTimes[0].end?.hour == 12)
+        #expect(records[1].breakTimes.count == 2)
+    }
+    
     @Test mutating func testPutBreakTime() async throws {
         let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
         let start = date(2025, 10, 18, 11, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
@@ -320,17 +631,22 @@ struct TimeCardServerTests {
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[0].breakTimes[0].start?.day == 15)
         #expect(records[0].breakTimes[0].end?.day == 15)
-        #expect(records[1].breakTimes[0].start?.timeIntervalSinceReferenceDate == start)
-        #expect(records[1].breakTimes[0].end?.timeIntervalSinceReferenceDate == end)
-        #expect(records[1].breakTimes[1].start?.hour == 17)
-        #expect(records[1].breakTimes[1].end?.hour == 18)
+        #expect(records[1].sortedBreakTimes[0].start?.timeIntervalSinceReferenceDate == start)
+        #expect(records[1].sortedBreakTimes[0].end?.timeIntervalSinceReferenceDate == end)
+        #expect(records[1].sortedBreakTimes[1].start?.hour == 17)
+        #expect(records[1].sortedBreakTimes[1].end?.hour == 18)
         
         #expect(responseBody?.count == 1)
         
         let dict = responseBody?[0]
-        let record = records[1].breakTimes[0]
+        let record = records[1].sortedBreakTimes[0]
         #expect(dict?["id"] as? String == record.id.uuidString)
         #expect(dict?["start"] as? Double == record.start?.timeIntervalSinceReferenceDate)
         #expect(dict?["end"] as? Double == record.end?.timeIntervalSinceReferenceDate)
@@ -350,6 +666,11 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[1].breakTimes[0].start?.hour == 12)
         #expect(records[1].breakTimes[0].end?.hour == 13)
     }
@@ -365,6 +686,11 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[1].breakTimes[0].start?.hour == 12)
         #expect(records[1].breakTimes[0].end?.hour == 13)
     }
@@ -382,6 +708,11 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .notFound)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[1].breakTimes[0].start?.hour == 12)
         #expect(records[1].breakTimes[0].end?.hour == 13)
     }
@@ -399,7 +730,70 @@ struct TimeCardServerTests {
         try runTest(method: .PUT, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
         #expect(records[1].breakTimes[0].start?.hour == 12)
         #expect(records[1].breakTimes[0].end?.hour == 13)
+    }
+    
+    @Test mutating func testDeleteBreakTime() async throws {
+        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
+        try runTest(method: .DELETE, uri: uri, body: "")
+        #expect(responseHead?.status == .ok)
+        #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 1)
+        #expect(records[1].breakTimes.count == 1)
+        #expect(records[1].breakTimes[0].start?.hour == 17)
+        #expect(records[1].breakTimes[0].end?.hour == 18)
+        
+        #expect(responseBody?.count == 0)
+    }
+    
+    @Test mutating func testDeleteBreakTime_wrongId() async throws {
+        let uri = "/timecard/breaktime/\(UUID().uuidString)"
+        try runTest(method: .DELETE, uri: uri, body: "")
+        #expect(responseHead?.status == .notFound)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 1)
+        #expect(records[1].breakTimes.count == 2)
+        #expect(records[1].sortedBreakTimes[0].start?.hour == 12)
+        #expect(records[1].sortedBreakTimes[0].end?.hour == 13)
+        #expect(records[1].sortedBreakTimes[1].start?.hour == 17)
+        #expect(records[1].sortedBreakTimes[1].end?.hour == 18)
+    }
+    
+    @Test mutating func testDeleteBreakTime_missingId() async throws {
+        let uri = "/timecard/breaktime/"
+        try runTest(method: .DELETE, uri: uri, body: "")
+        #expect(responseHead?.status == .badRequest)
+        
+        let descriptor = FetchDescriptor<TimeRecord>(
+            predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
+            sortBy: [.init(\.checkIn)]
+        )
+        let records = try context.fetch(descriptor)
+        #expect(records.count == 2)
+        #expect(records[0].breakTimes.count == 1)
+        #expect(records[1].breakTimes.count == 2)
+        #expect(records[1].sortedBreakTimes[0].start?.hour == 12)
+        #expect(records[1].sortedBreakTimes[0].end?.hour == 13)
+        #expect(records[1].sortedBreakTimes[1].start?.hour == 17)
+        #expect(records[1].sortedBreakTimes[1].end?.hour == 18)
     }
 }
