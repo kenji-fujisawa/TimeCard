@@ -43,7 +43,7 @@ struct CalendarDetailView: View {
                 original = record
             }
             .onDisappear() {
-                if record.checkIn != original?.checkIn || record.checkOut != original?.checkOut {
+                if record != original {
                     update()
                 }
             }
@@ -59,7 +59,7 @@ struct CalendarDetailView: View {
                     let json = try JSONEncoder().encode(record)
                     
                     var request = URLRequest(url: url)
-                    request.httpMethod = "PUT"
+                    request.httpMethod = "PATCH"
                     request.httpBody = json
                     
                     let (data, response) = try await URLSession.shared.data(for: request)
@@ -69,14 +69,9 @@ struct CalendarDetailView: View {
                         return
                     }
                     
-                    if let json = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
-                       let rec = json.first,
-                       let id = rec["id"] as? String,
-                       let checkIn = rec["checkIn"] as? Double,
-                       let checkOut = rec["checkOut"] as? Double,
-                       record.id.uuidString == id {
-                        record.checkIn = Date(timeIntervalSinceReferenceDate: checkIn)
-                        record.checkOut = Date(timeIntervalSinceReferenceDate: checkOut)
+                    if let records = try? JSONDecoder().decode([TimeRecord].self, from: data),
+                       let record = records.first {
+                        self.record = record
                     }
                 } catch {
                     onUpdateFailed()
@@ -89,74 +84,20 @@ struct CalendarDetailView: View {
                 toast.isPresented = true
                 toast.message = "出勤・退勤を更新できませんでした"
                 
-                record.checkIn = original?.checkIn
-                record.checkOut = original?.checkOut
+                if let record = original {
+                    self.record = record
+                }
             }
         }
     }
     
     private struct BreakTimeView: View {
-        @EnvironmentObject private var toast: ToastViewModel
         @Binding var breakTime: TimeRecord.BreakTime
-        @State private var original: TimeRecord.BreakTime? = nil
         
         var body: some View {
             Group {
                 DatePicker("休憩開始", selection: $breakTime.start.bindUnwrap(defaultValue: .now), displayedComponents: [.hourAndMinute])
                 DatePicker("休憩終了", selection: $breakTime.end.bindUnwrap(defaultValue: .now), displayedComponents: [.hourAndMinute])
-            }
-            .onAppear() {
-                original = breakTime
-            }
-            .onDisappear() {
-                if breakTime.start != original?.start || breakTime.end != original?.end {
-                    update()
-                }
-            }
-        }
-        
-        private func update() {
-            TaskQueue.shared.add {
-                do {
-                    var url = URL(string: "http://192.168.4.33:8080/timecard/breaktime")
-                    url = url?.appending(path: breakTime.id.uuidString)
-                    guard let url = url else { return }
-                    
-                    let json = try JSONEncoder().encode(breakTime)
-                    
-                    var request = URLRequest(url: url)
-                    request.httpMethod = "PUT"
-                    request.httpBody = json
-                    
-                    let (data, response) = try await URLSession.shared.data(for: request)
-                    if let response = response as? HTTPURLResponse,
-                       response.statusCode != 200 {
-                        onUpdateFailed()
-                        return
-                    }
-                    
-                    if let json = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
-                       let rec = json.first,
-                       let id = rec["id"] as? String,
-                       let start = rec["start"] as? Double,
-                       let end = rec["end"] as? Double,
-                       breakTime.id.uuidString == id {
-                        breakTime.start = Date(timeIntervalSinceReferenceDate: start)
-                        breakTime.end = Date(timeIntervalSinceReferenceDate: end)
-                    }
-                } catch {
-                    onUpdateFailed()
-                }
-            }
-        }
-        
-        private func onUpdateFailed() {
-            withAnimation {
-                toast.isPresented = true
-                toast.message = "休憩時間を更新できませんでした"
-                
-                breakTime.start = original?.start
-                breakTime.end = original?.end
             }
         }
     }
