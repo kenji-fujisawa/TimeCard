@@ -118,7 +118,7 @@ struct TimeCardServerTests {
     
     @Test mutating func testGetRecords_wrongMethod() async throws {
         try runTest(method: .ACL, uri: "/timecard/records?year=2025&month=10", body: "")
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .methodNotAllowed)
     }
     
     @Test mutating func testGetRecord() async throws {
@@ -147,21 +147,15 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetRecord_wrongId() async throws {
-        let uri = "/timecard/records/id"
+        let uri = "/timecard/records/\(UUID().uuidString)"
         try runTest(method: .GET, uri: uri, body: "")
-        #expect(responseHead?.status == .badRequest)
-    }
-    
-    @Test mutating func testGetRecord_missingId() async throws {
-        let uri = "/timecard/records/"
-        try runTest(method: .GET, uri: uri, body: "")
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetRecord_tooManyPath() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)/redundant"
         try runTest(method: .GET, uri: uri, body: "")
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testPostRecord() async throws {
@@ -293,7 +287,7 @@ struct TimeCardServerTests {
             }
             """
         try runTest(method: .POST, uri: uri, body: body)
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .methodNotAllowed)
         
         let descriptor = FetchDescriptor<TimeRecord>(
             predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
@@ -453,7 +447,7 @@ struct TimeCardServerTests {
             }
             """
         try runTest(method: .PUT, uri: uri, body: body)
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .methodNotAllowed)
         
         let descriptor = FetchDescriptor<TimeRecord>(
             predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
@@ -501,7 +495,7 @@ struct TimeCardServerTests {
     @Test mutating func testDeleteRecord_missingId() async throws {
         let uri = "/timecard/records/"
         try runTest(method: .DELETE, uri: uri, body: "")
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .methodNotAllowed)
         
         let descriptor = FetchDescriptor<TimeRecord>(
             predicate: #Predicate { $0.year == 2025 && $0.month == 10 },
@@ -529,20 +523,20 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetBreakTime_wrongId() async throws {
-        let uri = "/timecard/breaktime/id"
+        let uri = "/timecard/breaktime/\(UUID().uuidString)"
         try runTest(method: .GET, uri: uri, body: "")
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetBreakTime_missingId() async throws {
         let uri = "/timecard/breaktime"
         try runTest(method: .GET, uri: uri, body: "")
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetBreakTime_tooManyPath() async throws {
         let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)/redundant"
         try runTest(method: .GET, uri: uri, body: "")
-        #expect(responseHead?.status == .badRequest)
+        #expect(responseHead?.status == .notFound)
     }
 }

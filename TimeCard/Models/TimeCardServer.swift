@@ -45,10 +45,10 @@ class TimeCardServer {
     }
     
     class TimeCardServerHandler: ChannelInboundHandler {
-        enum Route {
-            case Records(id: String)
-            case BreakTime(id: String)
-            case Unknown
+        struct Route {
+            let method: HTTPMethod
+            let path: [String]
+            let handler: (ChannelHandlerContext) throws -> Void
         }
         
         struct HTTPError: Error {
@@ -59,13 +59,44 @@ class TimeCardServer {
         typealias OutboundOut = HTTPServerResponsePart
         
         private let modelContext: ModelContext
+        private var routes: [Route] = []
         private var method: HTTPMethod = .GET
         private var path: String = ""
-        private var requestParams: [URLQueryItem]? = nil
+        private var queryItems: [URLQueryItem]? = nil
+        private var requestParams: [String: String] = [:]
         private var requestBody: [String: Any]? = nil
         
         init(context: ModelContext) {
             modelContext = context
+            setupRoutes()
+        }
+        
+        private func setupRoutes() {
+            routes.append(Route(method: .GET, path: ["timecard", "records"], handler: getRecords))
+            routes.append(Route(method: .GET, path: ["timecard", "records", ":id"], handler: getRecord))
+            routes.append(Route(method: .POST, path: ["timecard", "records"], handler: insertRecord))
+            routes.append(Route(method: .PUT, path: ["timecard", "records", ":id"], handler: updateRecord))
+            routes.append(Route(method: .DELETE, path: ["timecard", "records", ":id"], handler: deleteRecord))
+            routes.append(Route(method: .GET, path: ["timecard", "breaktime", ":id"], handler: getBreakTime))
+        }
+        
+        private func handleRoutes(context: ChannelHandlerContext) throws {
+            typealias Handler = (ChannelHandlerContext) throws -> Void
+            var pathMethods: [[String]: [(method: HTTPMethod, handler: Handler)]] = [:]
+            for route in routes {
+                if pathMethods[route.path] == nil {
+                    pathMethods[route.path] = []
+                }
+                pathMethods[route.path]?.append((route.method, route.handler))
+            }
+            
+            let pathComponents = path.split(separator: "/")
+            guard let pathMethod = pathMethods.first(where: { pathComponents.match($0.key) }) else { throw HTTPError(status: .notFound) }
+            guard let methodHandlerPair = pathMethod.value.first(where: { $0.method == method }) else { throw HTTPError(status: .methodNotAllowed) }
+            
+            requestParams = pathComponents.extractParams(rule: pathMethod.key)
+            
+            try methodHandlerPair.handler(context)
         }
         
         func channelRead(context: ChannelHandlerContext, data: NIOAny) {
@@ -76,47 +107,15 @@ class TimeCardServer {
                 method = header.method
                 if let url = URLComponents(string: header.uri) {
                     path = url.path
-                    requestParams = url.queryItems
+                    queryItems = url.queryItems
                 }
                 
             case .body(let body):
                 requestBody = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
                 
             case .end:
-                if !path.starts(with: "/timecard/") {
-                    handleErrorResponse(status: .notFound, context: context)
-                    return
-                }
-                
                 do {
-                    let route = routeFrom(path: path)
-                    switch (method, route) {
-                    case (.GET, .Records(let id)):
-                        if id.isEmpty {
-                            try getRecords(context: context)
-                        } else {
-                            try getRecord(id: id, context: context)
-                        }
-                        
-                    case (.POST, .Records(let id)):
-                        if id.isEmpty {
-                            try insertRecord(context: context)
-                        } else {
-                            throw HTTPError(status: .badRequest)
-                        }
-                        
-                    case (.PUT, .Records(let id)):
-                        try updateRecord(id: id, context: context)
-                        
-                    case (.DELETE, .Records(let id)):
-                        try deleteRecord(id: id, context: context)
-                        
-                    case (.GET, .BreakTime(let id)):
-                        try getBreakTime(id: id, context: context)
-                        
-                    default:
-                        handleErrorResponse(status: .badRequest, context: context)
-                    }
+                    try handleRoutes(context: context)
                 } catch let error as HTTPError {
                     handleErrorResponse(status: error.status, context: context)
                 } catch {
@@ -125,31 +124,9 @@ class TimeCardServer {
             }
         }
         
-        private func routeFrom(path: String) -> Route {
-            var pathComponents = path.split(separator: "/")
-            if pathComponents.count < 2 { return .Unknown }
-            if pathComponents.count > 3 { return .Unknown }
-            while pathComponents.count < 3 {
-                pathComponents.append("")
-            }
-            
-            switch (pathComponents[0], pathComponents[1]) {
-            case ("timecard", "records"):
-                let id = String(pathComponents[2])
-                return .Records(id: id)
-                
-            case ("timecard", "breaktime"):
-                let id = String(pathComponents[2])
-                return .BreakTime(id: id)
-                
-            default:
-                return .Unknown
-            }
-        }
-        
         private func getRecords(context: ChannelHandlerContext) throws {
-            guard let year = Int(requestParams?.first(where: { $0.name == "year" })?.value ?? "") else { throw HTTPError(status: .badRequest) }
-            guard let month = Int(requestParams?.first(where: { $0.name == "month" })?.value ?? "") else { throw HTTPError(status: .badRequest)}
+            guard let year = Int(queryItems?.first(where: { $0.name == "year" })?.value ?? "") else { throw HTTPError(status: .badRequest) }
+            guard let month = Int(queryItems?.first(where: { $0.name == "month" })?.value ?? "") else { throw HTTPError(status: .badRequest)}
             
             let descriptor = FetchDescriptor<TimeRecord>(
                 predicate: #Predicate { $0.year == year && $0.month == month },
@@ -162,13 +139,14 @@ class TimeCardServer {
             handleResponse(buffer: buffer, context: context)
         }
         
-        private func getRecord(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+        private func getRecord(context: ChannelHandlerContext) throws {
+            guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord>(
                 predicate: #Predicate { $0.id == uuid }
             )
             let records = try modelContext.fetch(descriptor)
+            if records.isEmpty { throw HTTPError(status: .notFound) }
             
             let json = try JSONEncoder().encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
@@ -204,8 +182,8 @@ class TimeCardServer {
             handleResponse(buffer: buffer, context: context)
         }
         
-        private func updateRecord(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+        private func updateRecord(context: ChannelHandlerContext) throws {
+            guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
             guard let checkIn = requestBody["checkIn"] as? Double else { throw HTTPError(status: .badRequest) }
             guard let checkOut = requestBody["checkOut"] as? Double else { throw HTTPError(status: .badRequest) }
@@ -239,8 +217,8 @@ class TimeCardServer {
             handleResponse(buffer: buffer, context: context)
         }
         
-        private func deleteRecord(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+        private func deleteRecord(context: ChannelHandlerContext) throws {
+            guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord>(
                 predicate: #Predicate { $0.id == uuid }
@@ -258,13 +236,14 @@ class TimeCardServer {
             handleResponse(buffer: buffer, context: context)
         }
         
-        private func getBreakTime(id: String, context: ChannelHandlerContext) throws {
-            guard let uuid = UUID(uuidString: id) else { throw HTTPError(status: .badRequest) }
+        private func getBreakTime(context: ChannelHandlerContext) throws {
+            guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             
             let descriptor = FetchDescriptor<TimeRecord.BreakTime>(
                 predicate: #Predicate { $0.id == uuid }
             )
             let records = try modelContext.fetch(descriptor)
+            if records.isEmpty { throw HTTPError(status: .notFound) }
             
             let json = try JSONEncoder().encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
@@ -292,5 +271,32 @@ class TimeCardServer {
             context.write(wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
             context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
         }
+    }
+}
+
+extension [String.SubSequence] {
+    func match(_ target: [String]) -> Bool {
+        if self.count != target.count { return false }
+        
+        for i in 0..<self.count {
+            if self[i] == target[i] { continue }
+            if target[i].starts(with: ":") { continue }
+            return false
+        }
+        
+        return true
+    }
+    
+    func extractParams(rule: [String]) -> [String: String] {
+        var params: [String: String] = [:]
+        if self.count != rule.count { return params }
+        
+        for i in 0..<self.count {
+            if !rule[i].starts(with: ":") { continue }
+            let key = String(rule[i].dropFirst())
+            params[key] = String(self[i])
+        }
+        
+        return params
     }
 }
