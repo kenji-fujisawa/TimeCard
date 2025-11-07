@@ -508,7 +508,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetBreakTime() async throws {
-        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)"
+        let uri = "/timecard/breaktimes/\(records[1].breakTimes[0].id.uuidString)"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
@@ -523,19 +523,19 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetBreakTime_wrongId() async throws {
-        let uri = "/timecard/breaktime/\(UUID().uuidString)"
+        let uri = "/timecard/breaktimes/\(UUID().uuidString)"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetBreakTime_missingId() async throws {
-        let uri = "/timecard/breaktime"
+        let uri = "/timecard/breaktimes"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetBreakTime_tooManyPath() async throws {
-        let uri = "/timecard/breaktime/\(records[1].breakTimes[0].id.uuidString)/redundant"
+        let uri = "/timecard/breaktimes/\(records[1].breakTimes[0].id.uuidString)/redundant"
         try runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
