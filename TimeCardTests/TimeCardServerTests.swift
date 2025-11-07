@@ -299,7 +299,7 @@ struct TimeCardServerTests {
         #expect(records[1].checkIn?.day == 18)
     }
     
-    @Test mutating func testPutRecord() async throws {
+    @Test mutating func testPatchRecord() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
@@ -315,7 +315,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PUT, uri: uri, body: body)
+        try runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -351,7 +351,7 @@ struct TimeCardServerTests {
         }
     }
     
-    @Test mutating func testPutRecord_wrongBody() async throws {
+    @Test mutating func testPatchRecord_wrongBody() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
@@ -362,7 +362,7 @@ struct TimeCardServerTests {
                 wrongKey:   wrongValue
             }
             """
-        try runTest(method: .PUT, uri: uri, body: body)
+        try runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
         let descriptor = FetchDescriptor<TimeRecord>(
@@ -374,7 +374,7 @@ struct TimeCardServerTests {
         #expect(records[1].checkOut?.hour == 18)
     }
     
-    @Test mutating func testPutRecord_missingParameter() async throws {
+    @Test mutating func testPatchRecord_missingParameter() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
@@ -388,7 +388,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PUT, uri: uri, body: body)
+        try runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
         let descriptor = FetchDescriptor<TimeRecord>(
@@ -400,7 +400,7 @@ struct TimeCardServerTests {
         #expect(records[1].checkOut?.hour == 18)
     }
     
-    @Test mutating func testPutRecord_wrongId() async throws {
+    @Test mutating func testPatchRecord_wrongId() async throws {
         let uri = "/timecard/records/\(UUID().uuidString)"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
@@ -416,7 +416,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PUT, uri: uri, body: body)
+        try runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .notFound)
         
         let descriptor = FetchDescriptor<TimeRecord>(
@@ -430,7 +430,7 @@ struct TimeCardServerTests {
         #expect(records[1].checkOut?.hour == 18)
     }
     
-    @Test mutating func testPutRecord_missingId() async throws {
+    @Test mutating func testPatchRecord_missingId() async throws {
         let uri = "/timecard/records/"
         let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
         let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
@@ -446,7 +446,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PUT, uri: uri, body: body)
+        try runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .methodNotAllowed)
         
         let descriptor = FetchDescriptor<TimeRecord>(

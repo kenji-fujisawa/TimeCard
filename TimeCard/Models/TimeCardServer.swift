@@ -75,7 +75,7 @@ class TimeCardServer {
             routes.append(Route(method: .GET, path: ["timecard", "records"], handler: getRecords))
             routes.append(Route(method: .GET, path: ["timecard", "records", ":id"], handler: getRecord))
             routes.append(Route(method: .POST, path: ["timecard", "records"], handler: insertRecord))
-            routes.append(Route(method: .PUT, path: ["timecard", "records", ":id"], handler: updateRecord))
+            routes.append(Route(method: .PATCH, path: ["timecard", "records", ":id"], handler: updateRecord))
             routes.append(Route(method: .DELETE, path: ["timecard", "records", ":id"], handler: deleteRecord))
             routes.append(Route(method: .GET, path: ["timecard", "breaktimes", ":id"], handler: getBreakTime))
         }
