@@ -107,7 +107,7 @@ struct CalendarBodyView: View {
             return latest.state == .OffWork
         }
         
-        return record.date.day < latest.checkIn?.day ?? Date.now.day
+        return record.date.day < Date.now.day
     }
 }
 
