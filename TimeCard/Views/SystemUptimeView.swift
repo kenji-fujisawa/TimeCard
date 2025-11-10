@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SystemUptimeView: View {
     @Environment(\.modelContext) private var context
+    @EnvironmentObject private var terminationManager: AppTerminationManager
     @State private var record: SystemUptimeRecord
     @State private var becomeActive = false
     
@@ -27,18 +28,14 @@ struct SystemUptimeView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 if !becomeActive {
+                    terminationManager.addCleanupAction {
+                        recordShutdown()
+                        try? context.save()
+                    }
+                    
                     context.insert(self.record)
                     becomeActive = true
                 }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-                recordShutdown()
-                try? context.save()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: Notification.exitApp)) { _ in
-                recordShutdown()
-                try? context.save()
-                NSApplication.shared.terminate(nil)
             }
     }
     
