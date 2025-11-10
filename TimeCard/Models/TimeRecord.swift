@@ -9,16 +9,35 @@ import Foundation
 import SwiftData
 
 @Model
-class TimeRecord {
+class TimeRecord: Encodable {
     @Model
-    class BreakTime {
+    class BreakTime: Encodable {
+        enum CodingKeys: String, CodingKey {
+            case id, start, end
+        }
+        
+        var id: UUID
         var start: Date?
         var end: Date?
+        var parent: TimeRecord?
         
-        init(start: Date? = nil, end: Date? = nil) {
+        init(start: Date? = nil, end: Date? = nil, parent: TimeRecord? = nil) {
+            self.id = UUID()
             self.start = start
             self.end = end
+            self.parent = parent
         }
+        
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(id, forKey: .id)
+            try container.encode(start, forKey: .start)
+            try container.encode(end, forKey: .end)
+        }
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id, year, month, checkIn, checkOut, breakTimes
     }
     
     enum State {
@@ -29,10 +48,13 @@ class TimeRecord {
     
     #Index<TimeRecord>([\.year, \.month])
     
+    var id: UUID
     var year: Int
     var month: Int
     var checkIn: Date?
     var checkOut: Date?
+    
+    @Relationship(deleteRule: .cascade, inverse: \BreakTime.parent)
     var breakTimes: [BreakTime]
     
     var sortedBreakTimes: [BreakTime] {
@@ -71,10 +93,21 @@ class TimeRecord {
     }
     
     init(year: Int, month: Int, checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
+        self.id = UUID()
         self.year = year
         self.month = month
         self.checkIn = checkIn
         self.checkOut = checkOut
         self.breakTimes = breakTimes
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(year, forKey: .year)
+        try container.encode(month, forKey: .month)
+        try container.encode(checkIn, forKey: .checkIn)
+        try container.encode(checkOut, forKey: .checkOut)
+        try container.encode(breakTimes, forKey: .breakTimes)
     }
 }

@@ -7,10 +7,6 @@
 
 import SwiftUI
 
-extension Notification {
-    static let exitApp = Notification.Name("exitApp")
-}
-
 struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow

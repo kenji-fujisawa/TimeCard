@@ -32,7 +32,8 @@ struct SleepView: View {
     private func startBreak() {
         if let record = records.last {
             if record.state == .AtWork {
-                let breakTime = TimeRecord.BreakTime(start: Date.now)
+                let now = Date.now
+                let breakTime = TimeRecord.BreakTime(start: now, end: now)
                 record.breakTimes.append(breakTime)
                 self.breakTime = breakTime
             }
