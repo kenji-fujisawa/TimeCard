@@ -8,7 +8,10 @@
 - 出退勤、休憩時間の履歴を閲覧、修正する
 - PC の稼働時間を自動的に記録する（そのため、メニューバーに常駐します）
 - 月毎の稼働時間を PDF 出力する
+- スマホから稼働時間を閲覧・修正する
 
-<img width="316" height="268" alt="Image" src="https://github.com/user-attachments/assets/feea8025-7aa8-4900-b301-8dcb9ef29fc8" />
-<img width="1012" height="562" alt="Image" src="https://github.com/user-attachments/assets/98bef414-5c5b-47e5-8450-d42d12e00370" />
-<img width="1012" height="562" alt="Image" src="https://github.com/user-attachments/assets/40a9afa4-d5ec-42fb-8ab2-3a6ede849f10" />
+<img width="323" height="274" alt="Image" src="https://github.com/user-attachments/assets/d5431360-30c1-4654-943f-dd0fff9eac04" />
+<img width="1012" height="562" alt="Image" src="https://github.com/user-attachments/assets/77cfe141-1bbd-4b9f-88ff-8c262bff7227" />
+<img width="1012" height="562" alt="Image" src="https://github.com/user-attachments/assets/55b53dd8-790d-41b3-9a16-2899520ee61f" />
+<img width="496" height="940" alt="Image" src="https://github.com/user-attachments/assets/0aa33083-826d-4ae4-9d04-ca157df811a3" />
+<img width="496" height="940" alt="Image" src="https://github.com/user-attachments/assets/14b2692e-0cca-41d0-8d69-5648c668ed8e" />
