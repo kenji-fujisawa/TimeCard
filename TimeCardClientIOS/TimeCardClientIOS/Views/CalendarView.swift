@@ -157,7 +157,7 @@ struct CalendarView: View {
 }
 
 #Preview {
-    var model = CalendarViewModel()
+    let model = CalendarViewModel()
     CalendarView(model: model)
         .environmentObject(ToastViewModel())
 }

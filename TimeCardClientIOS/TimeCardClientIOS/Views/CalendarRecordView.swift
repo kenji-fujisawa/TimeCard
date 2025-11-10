@@ -16,7 +16,7 @@ struct CalendarRecordView: View {
                 .foregroundStyle(record.date.isHoliday() ? .red : .black)
             
             VStack {
-                ForEach(record.records, id: \.checkIn) { record in
+                ForEach(record.records) { record in
                     if let checkIn = record.checkIn {
                         Text(checkIn, format: .dateTime.hour().minute())
                     }
@@ -24,7 +24,7 @@ struct CalendarRecordView: View {
             }
             
             VStack {
-                ForEach(record.records, id: \.checkIn) { record in
+                ForEach(record.records) { record in
                     if let checkOut = record.checkOut {
                         Text(checkOut, format: .dateTime.hour().minute())
                     }
@@ -32,8 +32,8 @@ struct CalendarRecordView: View {
             }
             
             VStack {
-                ForEach(record.records, id: \.checkIn) { record in
-                    ForEach(record.breakTimes, id: \.start) { breakTime in
+                ForEach(record.records) { record in
+                    ForEach(record.breakTimes) { breakTime in
                         if let start = breakTime.start {
                             Text(start, format: .dateTime.hour().minute())
                         }
@@ -42,8 +42,8 @@ struct CalendarRecordView: View {
             }
             
             VStack {
-                ForEach(record.records, id: \.checkIn) { record in
-                    ForEach(record.breakTimes, id: \.start) { breakTime in
+                ForEach(record.records) { record in
+                    ForEach(record.breakTimes) { breakTime in
                         if let end = breakTime.end {
                             Text(end, format: .dateTime.hour().minute())
                         }
