@@ -33,7 +33,7 @@ struct CalendarBodyView: View {
         for uptime in self.uptimes {
             let day = uptime.day
             let interval = uptimes[day] ?? 0
-            uptimes[day] = interval + (uptime.shutdown - uptime.launch)
+            uptimes[day] = interval + uptime.uptimes
         }
         
         var results: [CalendarRecord] = []
