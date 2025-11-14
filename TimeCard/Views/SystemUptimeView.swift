@@ -12,6 +12,7 @@ struct SystemUptimeView: View {
     @EnvironmentObject private var terminationManager: AppTerminationManager
     @State private var record: SystemUptimeRecord
     @State private var becomeActive = false
+    @State private var inSleep = false
     
     private let timer = Timer.publish(every: 60 * 5, on: .main, in: .common).autoconnect()
     
@@ -37,16 +38,39 @@ struct SystemUptimeView: View {
                     becomeActive = true
                 }
             }
+            .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.willSleepNotification)) { _ in
+                let uptime = ProcessInfo.processInfo.systemUptime
+                let sleep = SystemUptimeRecord.SleepRecord(start: uptime, end: uptime)
+                record.sleepRecords.append(sleep)
+                inSleep = true
+            }
+            .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
+                if let sleep = record.sortedSleepRecords.last {
+                    let uptime = ProcessInfo.processInfo.systemUptime
+                    sleep.end = uptime
+                }
+                inSleep = false
+            }
     }
     
     private func recordShutdown() {
         let uptime = ProcessInfo.processInfo.systemUptime
         record.shutdown = uptime
         
+        if inSleep,
+           let sleep = record.sortedSleepRecords.last {
+            sleep.end = uptime
+        }
+        
         let now = Date.now
         if record.day != now.day {
             record = SystemUptimeRecord(year: now.year, month: now.month, day: now.day, launch: uptime, shutdown: uptime)
             context.insert(record)
+            
+            if inSleep {
+                let sleep = SystemUptimeRecord.SleepRecord(start: uptime, end: uptime)
+                record.sleepRecords.append(sleep)
+            }
         }
     }
 }
