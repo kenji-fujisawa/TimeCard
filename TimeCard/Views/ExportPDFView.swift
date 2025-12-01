@@ -7,14 +7,20 @@
 
 import SwiftData
 import SwiftUI
+import UniformTypeIdentifiers
 
-struct PdfDocument: Transferable {
+struct PdfDocument: FileDocument {
+    static var readableContentTypes: [UTType] = [.pdf]
     static let tmpPath = FileManager.default.temporaryDirectory.appendingPathComponent("tmp.pdf")
     
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(exportedContentType: .pdf) { document in
-            SentTransferredFile(tmpPath)
-        }
+    init() {
+    }
+    
+    init(configuration: ReadConfiguration) throws {
+    }
+    
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        return try FileWrapper(url: PdfDocument.tmpPath)
     }
 }
 
