@@ -94,7 +94,7 @@ struct CalendarBodyView: View {
         .sheet(item: $recordToEdit) { record in
             RecordEditView(record: record)
         }
-        .fileExporter(isPresented: $showFileExport, item: PdfDocument()) { _ in }
+        .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
         .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: records, showExporter: { showFileExport = true }))
     }
     
