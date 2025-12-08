@@ -29,16 +29,18 @@ struct CalendarBodyView: View {
             }
         }
         
-        var uptimes: [Int: TimeInterval] = [:]
+        var uptimes: [Int: [SystemUptimeRecord]] = [:]
         for uptime in self.uptimes {
             let day = uptime.day
-            let interval = uptimes[day] ?? 0
-            uptimes[day] = interval + uptime.uptimes
+            if uptimes[day] == nil {
+                uptimes[day] = []
+            }
+            uptimes[day]?.append(uptime)
         }
         
         var results: [CalendarRecord] = []
         for date in dates {
-            results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? [], systemUptime: uptimes[date.day] ?? 0))
+            results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? [], systemUptimeRecords: uptimes[date.day] ?? []))
         }
         
         return results
@@ -107,7 +109,11 @@ struct CalendarBodyView: View {
             return latest.state == .OffWork
         }
         
-        return record.date.day < Date.now.day
+        if record.date.year == Date.now.year && record.date.month == Date.now.month {
+            return record.date.day < Date.now.day
+        } else {
+            return record.date < .now
+        }
     }
 }
 
