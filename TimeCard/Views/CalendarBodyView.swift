@@ -109,7 +109,11 @@ struct CalendarBodyView: View {
             return latest.state == .OffWork
         }
         
-        return record.date.day < Date.now.day
+        if record.date.year == Date.now.year && record.date.month == Date.now.month {
+            return record.date.day < Date.now.day
+        } else {
+            return record.date < .now
+        }
     }
 }
 
