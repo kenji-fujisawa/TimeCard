@@ -73,5 +73,7 @@ struct SystemUptimeView: View {
 }
 
 #Preview {
+    let terminationManager = AppTerminationManager()
     SystemUptimeView()
+        .environmentObject(terminationManager)
 }

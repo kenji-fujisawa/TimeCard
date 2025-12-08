@@ -101,7 +101,31 @@ struct SystemUptimeRecordEditView: View {
                 
                 List {
                     ForEach(record.sortedSleepRecords) { sleepRecord in
-                        SleepRecordView(record: record, sleepRecord: sleepRecord, recordToRemove: $recordToRemove)
+                        Section {
+                            SleepRecordView(sleepRecord: sleepRecord)
+                        } header: {
+                            HStack {
+                                Text("スリープ")
+                                
+                                Spacer()
+                                
+                                if recordToRemove == sleepRecord {
+                                    Button(role: .destructive) {
+                                        record.sleepRecords.removeAll(where: { $0 == sleepRecord })
+                                        recordToRemove = nil
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .foregroundStyle(.red)
+                                    }
+                                } else {
+                                    Button {
+                                        recordToRemove = sleepRecord
+                                    } label: {
+                                        Image(systemName: "minus")
+                                    }
+                                }
+                            }
+                        }
                     }
                     
                     Button("スリープを追加", systemImage: "plus") {
@@ -116,38 +140,12 @@ struct SystemUptimeRecordEditView: View {
     }
     
     private struct SleepRecordView: View {
-        @Bindable var record: SystemUptimeRecord
         @Bindable var sleepRecord: SystemUptimeRecord.SleepRecord
-        @Binding var recordToRemove: SystemUptimeRecord.SleepRecord?
         
         var body: some View {
-            Section {
-                Form {
-                    DatePicker("開始", selection: $sleepRecord.start, displayedComponents: [.date, .hourAndMinute])
-                    DatePicker("終了", selection: $sleepRecord.end, displayedComponents: [.date, .hourAndMinute])
-                }
-            } header: {
-                HStack {
-                    Text("スリープ")
-                    
-                    Spacer()
-                    
-                    if recordToRemove == sleepRecord {
-                        Button(role: .destructive) {
-                            record.sleepRecords.removeAll(where: { $0 == sleepRecord })
-                            recordToRemove = nil
-                        } label: {
-                            Image(systemName: "trash")
-                                .foregroundStyle(.red)
-                        }
-                    } else {
-                        Button {
-                            recordToRemove = sleepRecord
-                        } label: {
-                            Image(systemName: "minus")
-                        }
-                    }
-                }
+            Form {
+                DatePicker("開始", selection: $sleepRecord.start, displayedComponents: [.date, .hourAndMinute])
+                DatePicker("終了", selection: $sleepRecord.end, displayedComponents: [.date, .hourAndMinute])
             }
         }
     }

@@ -103,7 +103,31 @@ struct TimeRecordEditView: View {
                 
                 List {
                     ForEach(record.sortedBreakTimes) { breakTime in
-                        BreakTimeView(record: record, breakTime: breakTime, recordToRemove: $recordToRemove)
+                        Section {
+                            BreakTimeView(breakTime: breakTime)
+                        } header: {
+                            HStack {
+                                Text("休憩")
+                                
+                                Spacer()
+                                
+                                if recordToRemove == breakTime {
+                                    Button(role: .destructive) {
+                                        record.breakTimes.removeAll(where: { $0 == breakTime })
+                                        recordToRemove = nil
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .foregroundStyle(.red)
+                                    }
+                                } else {
+                                    Button {
+                                        recordToRemove = breakTime
+                                    } label: {
+                                        Image(systemName: "minus")
+                                    }
+                                }
+                            }
+                        }
                     }
                     
                     Button("休憩を追加", systemImage: "plus") {
@@ -118,38 +142,12 @@ struct TimeRecordEditView: View {
     }
     
     private struct BreakTimeView: View {
-        @Bindable var record: TimeRecord
         @Bindable var breakTime: TimeRecord.BreakTime
-        @Binding var recordToRemove: TimeRecord.BreakTime?
         
         var body: some View {
-            Section {
-                Form {
-                    DatePicker("開始", selection: $breakTime.start.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
-                    DatePicker("終了", selection: $breakTime.end.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
-                }
-            } header: {
-                HStack {
-                    Text("休憩")
-                    
-                    Spacer()
-                    
-                    if recordToRemove == breakTime {
-                        Button(role: .destructive) {
-                            record.breakTimes.removeAll(where: { $0 == breakTime })
-                            recordToRemove = nil
-                        } label: {
-                            Image(systemName: "trash")
-                                .foregroundStyle(.red)
-                        }
-                    } else {
-                        Button {
-                            recordToRemove = breakTime
-                        } label: {
-                            Image(systemName: "minus")
-                        }
-                    }
-                }
+            Form {
+                DatePicker("開始", selection: $breakTime.start.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                DatePicker("終了", selection: $breakTime.end.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
             }
         }
     }
