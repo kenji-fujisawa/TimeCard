@@ -19,10 +19,10 @@ struct TimeCardApp: App {
         #else
         let inMemory = false
         #endif
-        let schema = Schema([TimeRecord.self, SystemUptimeRecord.self])
+        let schema = Schema(versionedSchema: TimeCardSchema_v2_3.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         do {
-            try container = ModelContainer(for: schema, configurations: [config])
+            try container = ModelContainer(for: schema, migrationPlan: TimeCardMigrationPlan.self, configurations: [config])
         } catch {
             fatalError(error.localizedDescription)
         }
