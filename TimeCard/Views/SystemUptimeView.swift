@@ -18,8 +18,7 @@ struct SystemUptimeView: View {
     
     init() {
         let now = Date.now
-        let uptime = ProcessInfo.processInfo.systemUptime
-        self.record = SystemUptimeRecord(year: now.year, month: now.month, day: now.day, launch: uptime, shutdown: uptime)
+        self.record = SystemUptimeRecord(year: now.year, month: now.month, day: now.day, launch: now, shutdown: now)
     }
     
     var body: some View {
@@ -39,36 +38,34 @@ struct SystemUptimeView: View {
                 }
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.willSleepNotification)) { _ in
-                let uptime = ProcessInfo.processInfo.systemUptime
-                let sleep = SystemUptimeRecord.SleepRecord(start: uptime, end: uptime)
+                let now = Date.now
+                let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
                 record.sleepRecords.append(sleep)
                 inSleep = true
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
                 if let sleep = record.sortedSleepRecords.last {
-                    let uptime = ProcessInfo.processInfo.systemUptime
-                    sleep.end = uptime
+                    sleep.end = Date.now
                 }
                 inSleep = false
             }
     }
     
     private func recordShutdown() {
-        let uptime = ProcessInfo.processInfo.systemUptime
-        record.shutdown = uptime
+        let now = Date.now
+        record.shutdown = now
         
         if inSleep,
            let sleep = record.sortedSleepRecords.last {
-            sleep.end = uptime
+            sleep.end = now
         }
         
-        let now = Date.now
         if record.day != now.day {
-            record = SystemUptimeRecord(year: now.year, month: now.month, day: now.day, launch: uptime, shutdown: uptime)
+            record = SystemUptimeRecord(year: now.year, month: now.month, day: now.day, launch: now, shutdown: now)
             context.insert(record)
             
             if inSleep {
-                let sleep = SystemUptimeRecord.SleepRecord(start: uptime, end: uptime)
+                let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
                 record.sleepRecords.append(sleep)
             }
         }
@@ -76,5 +73,7 @@ struct SystemUptimeView: View {
 }
 
 #Preview {
+    let terminationManager = AppTerminationManager()
     SystemUptimeView()
+        .environmentObject(terminationManager)
 }

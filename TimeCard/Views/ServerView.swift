@@ -33,5 +33,7 @@ struct ServerView: View {
 }
 
 #Preview {
+    let terminationManager = AppTerminationManager()
     ServerView()
+        .environmentObject(terminationManager)
 }

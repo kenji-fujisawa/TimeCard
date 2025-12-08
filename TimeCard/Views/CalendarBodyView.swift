@@ -29,16 +29,18 @@ struct CalendarBodyView: View {
             }
         }
         
-        var uptimes: [Int: TimeInterval] = [:]
+        var uptimes: [Int: [SystemUptimeRecord]] = [:]
         for uptime in self.uptimes {
             let day = uptime.day
-            let interval = uptimes[day] ?? 0
-            uptimes[day] = interval + uptime.uptimes
+            if uptimes[day] == nil {
+                uptimes[day] = []
+            }
+            uptimes[day]?.append(uptime)
         }
         
         var results: [CalendarRecord] = []
         for date in dates {
-            results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? [], systemUptime: uptimes[date.day] ?? 0))
+            results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? [], systemUptimeRecords: uptimes[date.day] ?? []))
         }
         
         return results
