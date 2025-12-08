@@ -116,7 +116,8 @@ struct CalendarRecordView: View {
     let break2 = TimeRecord.BreakTime(start: .now)
     let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
     let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
-    let record = CalendarRecord(date: .now, records: [rec1, rec2], systemUptime: 60 * 30)
+    let uptime = SystemUptimeRecord(year: Date.now.year, month: Date.now.month, day: Date.now.day, launch: Date.now, shutdown: Date.now)
+    let record = CalendarRecord(date: .now, records: [rec1, rec2], systemUptimeRecords: [uptime])
     Grid {
         CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
     }
