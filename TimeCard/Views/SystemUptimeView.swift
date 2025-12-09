@@ -42,12 +42,16 @@ struct SystemUptimeView: View {
                 let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
                 record.sleepRecords.append(sleep)
                 inSleep = true
+                
+                recordShutdown()
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
                 if let sleep = record.sortedSleepRecords.last {
                     sleep.end = Date.now
                 }
                 inSleep = false
+                
+                recordShutdown()
             }
     }
     
