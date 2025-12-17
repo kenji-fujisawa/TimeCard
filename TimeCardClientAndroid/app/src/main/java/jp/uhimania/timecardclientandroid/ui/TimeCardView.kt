@@ -1,15 +1,23 @@
 package jp.uhimania.timecardclientandroid.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -49,44 +57,60 @@ private object NavigationRoutes {
 fun TimeCardView(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    viewModel: CalendarViewModel = viewModel(factory = CalendarViewModel.Factory)
+    viewModel: CalendarViewModel = viewModel(factory = CalendarViewModel.Factory),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    if (uiState.isLoading) {
-        LoadingView()
-    } else {
-        NavHost(
-            navController = navController,
-            startDestination = CALENDAR_ROUTE,
-            modifier = modifier
-        ) {
-            composable(CALENDAR_ROUTE) {
-                CalendarView(
-                    date = uiState.date,
-                    records = uiState.records,
-                    onDateChange = { viewModel.updateDate(it) },
-                    onDateSelect = { navController.navigate("$CALENDAR_DETAIL_VIEW/${it.date.day()}") }
-                )
-            }
-            composable(
-                route = CALENDAR_DETAIL_ROUTE,
-                arguments = listOf(
-                    navArgument(DAY_ARG) { type = NavType.IntType }
-                )
-            ) { entry ->
-                val day = entry.arguments?.getInt(DAY_ARG)
-                val rec = uiState.records.first { it.date.day() == day }
-                var record by rememberSaveable(stateSaver = CalendarRecordSaver) {
-                    mutableStateOf(rec)
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        val uiState by viewModel.uiState.collectAsState()
+        if (uiState.isLoading) {
+            LoadingView(
+                modifier = modifier.padding(innerPadding)
+            )
+        } else {
+            NavHost(
+                navController = navController,
+                startDestination = CALENDAR_ROUTE,
+                modifier = modifier.padding(innerPadding)
+            ) {
+                composable(CALENDAR_ROUTE) {
+                    CalendarView(
+                        date = uiState.date,
+                        records = uiState.records,
+                        onDateChange = { viewModel.updateDate(it) },
+                        onDateSelect = { navController.navigate("$CALENDAR_DETAIL_VIEW/${it.date.day()}") }
+                    )
                 }
-                CalendarDetailView(
-                    record = record,
-                    onRecordChange = { record = it },
-                    onBack = {
-                        navController.popBackStack()
-                        viewModel.updateRecord(record)
+                composable(
+                    route = CALENDAR_DETAIL_ROUTE,
+                    arguments = listOf(
+                        navArgument(DAY_ARG) { type = NavType.IntType }
+                    )
+                ) { entry ->
+                    val day = entry.arguments?.getInt(DAY_ARG)
+                    val rec = uiState.records.first { it.date.day() == day }
+                    var record by rememberSaveable(stateSaver = CalendarRecordSaver) {
+                        mutableStateOf(rec)
                     }
-                )
+                    CalendarDetailView(
+                        record = record,
+                        onRecordChange = { record = it },
+                        onBack = {
+                            navController.popBackStack()
+                            viewModel.updateRecord(record)
+                        }
+                    )
+                }
+            }
+
+            uiState.message?.let { 
+                val message = stringResource(it)
+                LaunchedEffect(snackbarHostState, viewModel, message) {
+                    snackbarHostState.showSnackbar(message)
+                    viewModel.messageShown()
+                }
             }
         }
     }

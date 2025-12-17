@@ -18,4 +18,6 @@
     <string name="label_break_end">休憩終了</string>
     <string name="caption_done">Done</string>
     <string name="caption_edit">Edit</string>
+    <string name="error_get_records_failed">データを取得できませんでした</string>
+    <string name="error_update_record_failed">データの更新に失敗しました</string>
 </resources>
