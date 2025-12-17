@@ -39,7 +39,7 @@ fun MonthSelector(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = Icons.AutoMirrored.Filled.KeyboardArrowLeft.toString(),
+                contentDescription = Icons.AutoMirrored.Filled.KeyboardArrowLeft.name,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -54,7 +54,7 @@ fun MonthSelector(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = Icons.AutoMirrored.Filled.KeyboardArrowRight.toString(),
+                contentDescription = Icons.AutoMirrored.Filled.KeyboardArrowRight.name,
                 modifier = Modifier.fillMaxSize()
             )
         }

@@ -53,6 +53,18 @@ class CalendarViewModel(
         }
     }
 
+    fun updateRecord(record: CalendarRecord) {
+        viewModelScope.launch {
+            val records = calendarRecordRepository.updateRecord(
+                source = uiState.value.records,
+                record = record
+            )
+            _uiState.update {
+                it.copy(records = records)
+            }
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

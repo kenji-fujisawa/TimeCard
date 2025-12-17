@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import jp.uhimania.timecardclientandroid.ui.CalendarView
+import jp.uhimania.timecardclientandroid.ui.TimeCardView
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 
 class MainActivity : ComponentActivity() {
@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TimeCardClientAndroidTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    CalendarView(
+                    TimeCardView(
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

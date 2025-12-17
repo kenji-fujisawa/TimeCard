@@ -8,15 +8,19 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.util.Calendar
 import java.util.Date
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Serializable
-data class BreakTime(
+data class BreakTime @OptIn(ExperimentalUuidApi::class) constructor(
+    val id: String = Uuid.random().toString(),
     @Serializable(DateSerializer::class) val start: Date?,
     @Serializable(DateSerializer::class) val end: Date?
 )
 
 @Serializable
-data class TimeRecord(
+data class TimeRecord @OptIn(ExperimentalUuidApi::class) constructor(
+    val id: String = Uuid.random().toString(),
     @Serializable(DateSerializer::class) val checkIn: Date?,
     @Serializable(DateSerializer::class) val checkOut: Date?,
     val breakTimes: List<BreakTime>

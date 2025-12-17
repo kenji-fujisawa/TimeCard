@@ -1,5 +1,6 @@
 package jp.uhimania.timecardclientandroid.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ import java.util.Calendar
 @Composable
 fun CalendarBodyView(
     records: List<CalendarRecord>,
+    onDateSelect: (CalendarRecord) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -48,7 +50,12 @@ fun CalendarBodyView(
         }
 
         items(records) {
-            CalendarRecordView(it)
+            CalendarRecordView(
+                record = it,
+                modifier = Modifier.clickable(
+                    onClick = { onDateSelect(it) }
+                )
+            )
             HorizontalDivider(
                 modifier = Modifier.padding(
                     start = dimensionResource(R.dimen.padding_medium),
@@ -68,6 +75,9 @@ private fun CalendarBodyViewPreview() {
             val record = TimeRecord(checkIn = it, checkOut = it, breakTimes = listOf(breakTime))
             CalendarRecord(date = it, records = listOf(record))
         }
-        CalendarBodyView(records)
+        CalendarBodyView(
+            records = records,
+            onDateSelect = {}
+        )
     }
 }

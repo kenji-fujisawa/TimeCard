@@ -1,6 +1,8 @@
 package jp.uhimania.timecardclientandroid.data.source
 
+import jp.uhimania.timecardclientandroid.data.TimeRecord
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -14,23 +16,7 @@ import java.util.Date
 class RetrofitNetworkDataSourceTest {
     private lateinit var mockServer: MockWebServer
 
-    @Before
-    fun setup() {
-        mockServer = MockWebServer()
-        mockServer.start()
-    }
-
-    @After
-    fun teardown() {
-        mockServer.shutdown()
-    }
-
-    @Test
-    fun testGetRecords_success() = runTest {
-        val response = MockResponse()
-            .setResponseCode(200)
-            .setBody(
-                """
+    private val responseBody = """
                     [
                         {
                             "id":"1B97D98D-A71E-4E57-B631-20F9AD492624",
@@ -62,12 +48,32 @@ class RetrofitNetworkDataSourceTest {
                         }
                     ]
                 """.trimIndent()
-            )
+
+    @Before
+    fun setup() {
+        mockServer = MockWebServer()
+        mockServer.start()
+    }
+
+    @After
+    fun teardown() {
+        mockServer.shutdown()
+    }
+
+    @Test
+    fun testGetRecords_success() = runTest {
+        val response = MockResponse()
+            .setResponseCode(200)
+            .setBody(responseBody)
         mockServer.enqueue(response)
 
         val source = RetrofitNetworkDataSource(mockServer.url(""))
         val records = source.getRecords(2025, 12)
         assertEquals(2, records.count())
+
+        val request = mockServer.takeRequest()
+        assertEquals("2025", request.requestUrl?.queryParameter("year"))
+        assertEquals("12", request.requestUrl?.queryParameter("month"))
 
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm")
         assertEquals("2025-12-01 09:48", formatter.format(records[0].checkIn ?: Date()))
@@ -92,5 +98,97 @@ class RetrofitNetworkDataSourceTest {
 
         val source = RetrofitNetworkDataSource(mockServer.url(""))
         source.getRecords(2025, 12)
+    }
+
+    @Test
+    fun testInsertRecords_success() = runTest {
+        val response = MockResponse()
+            .setResponseCode(200)
+            .setBody(responseBody)
+        mockServer.enqueue(response)
+
+        val source = RetrofitNetworkDataSource(mockServer.url(""))
+        val rec = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf())
+        val record = source.insertRecord(rec)
+
+        val request = mockServer.takeRequest()
+        assertEquals(Json.encodeToString(rec), request.body.readUtf8())
+
+        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm")
+        assertEquals("2025-12-01 09:48", formatter.format(record.checkIn ?: Date()))
+        assertEquals("2025-12-01 19:20", formatter.format(record.checkOut ?: Date()))
+
+        assertEquals(1, record.breakTimes.count())
+        assertEquals("2025-12-01 12:31", formatter.format(record.breakTimes[0].start ?: Date()))
+        assertEquals("2025-12-01 13:22", formatter.format(record.breakTimes[0].end ?: Date()))
+    }
+
+    @Test(expected = HttpException::class)
+    fun testInsertRecords_fail() = runTest {
+        val response = MockResponse().setResponseCode(404)
+        mockServer.enqueue(response)
+
+        val source = RetrofitNetworkDataSource(mockServer.url(""))
+        val rec = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf())
+        source.insertRecord(rec)
+    }
+
+    @Test
+    fun testUpdateRecords_success() = runTest {
+        val response = MockResponse()
+            .setResponseCode(200)
+            .setBody(responseBody)
+        mockServer.enqueue(response)
+
+        val source = RetrofitNetworkDataSource(mockServer.url(""))
+        val rec = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf())
+        val record = source.updateRecord(rec)
+
+        val request = mockServer.takeRequest()
+        assertEquals(listOf("timecard", "records", rec.id), request.requestUrl?.pathSegments)
+        assertEquals(Json.encodeToString(rec), request.body.readUtf8())
+
+        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm")
+        assertEquals("2025-12-01 09:48", formatter.format(record.checkIn ?: Date()))
+        assertEquals("2025-12-01 19:20", formatter.format(record.checkOut ?: Date()))
+
+        assertEquals(1, record.breakTimes.count())
+        assertEquals("2025-12-01 12:31", formatter.format(record.breakTimes[0].start ?: Date()))
+        assertEquals("2025-12-01 13:22", formatter.format(record.breakTimes[0].end ?: Date()))
+    }
+
+    @Test(expected = HttpException::class)
+    fun testUpdateRecords_fail() = runTest {
+        val response = MockResponse().setResponseCode(404)
+        mockServer.enqueue(response)
+
+        val source = RetrofitNetworkDataSource(mockServer.url(""))
+        val rec = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf())
+        source.updateRecord(rec)
+    }
+
+    @Test
+    fun testDeleteRecords_success() = runTest {
+        val response = MockResponse()
+            .setResponseCode(200)
+            .setBody(responseBody)
+        mockServer.enqueue(response)
+
+        val source = RetrofitNetworkDataSource(mockServer.url(""))
+        val rec = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf())
+        source.deleteRecord(rec)
+
+        val request = mockServer.takeRequest()
+        assertEquals(listOf("timecard", "records", rec.id), request.requestUrl?.pathSegments)
+    }
+
+    @Test(expected = HttpException::class)
+    fun testDeleteRecords_fail() = runTest {
+        val response = MockResponse().setResponseCode(404)
+        mockServer.enqueue(response)
+
+        val source = RetrofitNetworkDataSource(mockServer.url(""))
+        val rec = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf())
+        source.deleteRecord(rec)
     }
 }
