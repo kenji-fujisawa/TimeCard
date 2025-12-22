@@ -30,7 +30,6 @@ struct SystemUptimeView: View {
                 if !becomeActive {
                     terminationManager.addCleanupAction {
                         recordShutdown()
-                        try? context.save()
                     }
                     
                     context.insert(self.record)
@@ -42,12 +41,16 @@ struct SystemUptimeView: View {
                 let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
                 record.sleepRecords.append(sleep)
                 inSleep = true
+                
+                recordShutdown()
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
                 if let sleep = record.sortedSleepRecords.last {
                     sleep.end = Date.now
                 }
                 inSleep = false
+                
+                recordShutdown()
             }
     }
     
@@ -69,6 +72,8 @@ struct SystemUptimeView: View {
                 record.sleepRecords.append(sleep)
             }
         }
+        
+        try? context.save()
     }
 }
 
