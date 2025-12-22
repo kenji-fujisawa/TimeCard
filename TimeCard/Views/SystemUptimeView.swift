@@ -30,7 +30,6 @@ struct SystemUptimeView: View {
                 if !becomeActive {
                     terminationManager.addCleanupAction {
                         recordShutdown()
-                        try? context.save()
                     }
                     
                     context.insert(self.record)
@@ -73,6 +72,8 @@ struct SystemUptimeView: View {
                 record.sleepRecords.append(sleep)
             }
         }
+        
+        try? context.save()
     }
 }
 
