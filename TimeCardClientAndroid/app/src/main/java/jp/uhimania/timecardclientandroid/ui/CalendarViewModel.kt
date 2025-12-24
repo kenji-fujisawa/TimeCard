@@ -14,9 +14,13 @@ import jp.uhimania.timecardclientandroid.data.CalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.DefaultCalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.month
 import jp.uhimania.timecardclientandroid.data.year
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -30,70 +34,56 @@ data class CalendarUiState(
 class CalendarViewModel(
     private val calendarRecordRepository: CalendarRecordRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(CalendarUiState())
-    val uiState = _uiState.asStateFlow()
+    private val _date = MutableStateFlow(Date())
+    private val _isLoading = MutableStateFlow(false)
+    private val _message = MutableStateFlow<Int?>(null)
 
-    init {
-        fetchRecords()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _records = _date
+        .flatMapLatest { calendarRecordRepository.getRecords(it.year(), it.month()) }
+        .onEach { _isLoading.value = false }
+
+    val uiState = combine(_date, _isLoading, _records, _message) { date, loading, recs, msg ->
+        CalendarUiState(
+            date = date,
+            isLoading = loading,
+            records = recs,
+            message = msg
+        )
     }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = CalendarUiState(isLoading = true)
+        )
 
     fun updateDate(date: Date) {
-        _uiState.update { it.copy(date = date) }
-        fetchRecords()
-    }
-
-    private fun fetchRecords() {
-        _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
-            try {
-                val date = uiState.value.date
-                val records = calendarRecordRepository.getRecords(date.year(), date.month())
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        records = records
-                    )
-                }
-            } catch (_: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        message = R.string.error_get_records_failed
-                    )
-                }
-            }
-        }
+        _date.value = date
+        _isLoading.value = true
     }
 
     fun updateRecord(record: CalendarRecord) {
         viewModelScope.launch {
             try {
-                val records = calendarRecordRepository.updateRecord(
+                calendarRecordRepository.updateRecord(
                     source = uiState.value.records,
                     record = record
                 )
-                _uiState.update {
-                    it.copy(records = records)
-                }
             } catch (_: Exception) {
-                _uiState.update {
-                    it.copy(message = R.string.error_update_record_failed)
-                }
+                _message.value = R.string.error_update_record_failed
             }
         }
     }
 
     fun messageShown() {
-        _uiState.update {
-            it.copy(message = null)
-        }
+        _message.value = null
     }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as TimeCardClientApplication
-                val repository = DefaultCalendarRecordRepository(app.networkDataSource)
+                val repository = DefaultCalendarRecordRepository(app.networkDataSource, app.localDataSource)
                 CalendarViewModel(repository)
             }
         }

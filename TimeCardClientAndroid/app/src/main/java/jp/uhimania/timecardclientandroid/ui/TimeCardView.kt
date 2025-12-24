@@ -1,5 +1,6 @@
 package jp.uhimania.timecardclientandroid.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -37,6 +38,8 @@ import jp.uhimania.timecardclientandroid.ui.NavigationRoutes.CALENDAR_ROUTE
 import jp.uhimania.timecardclientandroid.ui.NavigationViews.CALENDAR_DETAIL_VIEW
 import jp.uhimania.timecardclientandroid.ui.NavigationViews.CALENDAR_VIEW
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.util.Calendar
 
 private object NavigationViews {
@@ -67,7 +70,9 @@ fun TimeCardView(
         val uiState by viewModel.uiState.collectAsState()
         if (uiState.isLoading) {
             LoadingView(
-                modifier = modifier.padding(innerPadding)
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
             )
         } else {
             NavHost(
@@ -128,6 +133,7 @@ private fun LoadingView(
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 private fun TimeCardViewPreview() {
@@ -138,15 +144,14 @@ private fun TimeCardViewPreview() {
 }
 
 private class FakeCalendarRecordRepository : CalendarRecordRepository {
-    override suspend fun getRecords(year: Int, month: Int): List<CalendarRecord> {
-        return Calendar.getInstance().datesOf(year, month).map {
+    override fun getRecords(year: Int, month: Int): Flow<List<CalendarRecord>> {
+        val records = Calendar.getInstance().datesOf(year, month).map {
             CalendarRecord(it, listOf())
         }
+        return flowOf(records)
     }
 
-    override suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord): List<CalendarRecord> {
-        return source
-    }
+    override suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord) {}
 }
 
 @Preview(showBackground = true)
