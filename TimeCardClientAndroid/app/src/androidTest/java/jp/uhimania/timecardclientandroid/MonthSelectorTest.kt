@@ -35,11 +35,11 @@ class MonthSelectorTest {
 
         composeTestRule.onNodeWithText("2025-12").assertExists()
 
-        val next = composeTestRule.onNodeWithContentDescription(Icons.AutoMirrored.Filled.KeyboardArrowRight.toString())
+        val next = composeTestRule.onNodeWithContentDescription(Icons.AutoMirrored.Filled.KeyboardArrowRight.name)
         next.performClick()
         composeTestRule.onNodeWithText("2026-01").assertExists()
 
-        val prev = composeTestRule.onNodeWithContentDescription(Icons.AutoMirrored.Filled.KeyboardArrowLeft.toString())
+        val prev = composeTestRule.onNodeWithContentDescription(Icons.AutoMirrored.Filled.KeyboardArrowLeft.name)
         prev.performClick()
         prev.performClick()
         composeTestRule.onNodeWithText("2025-11").assertExists()
