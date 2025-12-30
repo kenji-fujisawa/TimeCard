@@ -40,6 +40,7 @@ struct SystemUptimeRecordEditView: View {
                             NavigationLink(record.launch.formatted(.dateTime.hour().minute())) {
                                 DetailView(record: record)
                             }
+                            .accessibilityIdentifier("nav_link")
                             
                             Spacer()
                             
@@ -50,12 +51,14 @@ struct SystemUptimeRecordEditView: View {
                                     Image(systemName: "trash")
                                         .foregroundStyle(.red)
                                 }
+                                .accessibilityIdentifier("button_remove_uptime_record")
                             } else {
                                 Button {
                                     recordToRemove = record
                                 } label: {
                                     Image(systemName: "minus")
                                 }
+                                .accessibilityIdentifier("button_remove_uptime_confirm")
                             }
                         }
                         .tag(record)
@@ -66,6 +69,7 @@ struct SystemUptimeRecordEditView: View {
                     addRecord()
                 }
                 .font(.footnote)
+                .accessibilityIdentifier("button_add_uptime_record")
             }
         }
         
@@ -95,7 +99,9 @@ struct SystemUptimeRecordEditView: View {
             VStack(alignment: .leading) {
                 Form {
                     DatePicker("起動", selection: $record.launch, displayedComponents: [.date, .hourAndMinute])
+                        .accessibilityIdentifier("date_launch")
                     DatePicker("終了", selection: $record.shutdown, displayedComponents: [.date, .hourAndMinute])
+                        .accessibilityIdentifier("date_shutdown")
                 }
                 .padding()
                 
@@ -117,12 +123,14 @@ struct SystemUptimeRecordEditView: View {
                                         Image(systemName: "trash")
                                             .foregroundStyle(.red)
                                     }
+                                    .accessibilityIdentifier("button_remove_sleep_record")
                                 } else {
                                     Button {
                                         recordToRemove = sleepRecord
                                     } label: {
                                         Image(systemName: "minus")
                                     }
+                                    .accessibilityIdentifier("button_remove_sleep_confirm")
                                 }
                             }
                         }
@@ -134,6 +142,7 @@ struct SystemUptimeRecordEditView: View {
                         record.sleepRecords.append(sleep)
                     }
                     .font(.footnote)
+                    .accessibilityIdentifier("button_add_sleep_record")
                 }
             }
         }
@@ -145,7 +154,9 @@ struct SystemUptimeRecordEditView: View {
         var body: some View {
             Form {
                 DatePicker("開始", selection: $sleepRecord.start, displayedComponents: [.date, .hourAndMinute])
+                    .accessibilityIdentifier("date_sleep_start")
                 DatePicker("終了", selection: $sleepRecord.end, displayedComponents: [.date, .hourAndMinute])
+                    .accessibilityIdentifier("date_sleep_end")
             }
         }
     }

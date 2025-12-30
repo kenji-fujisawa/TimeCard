@@ -41,6 +41,7 @@ struct TimeRecordEditView: View {
                                 NavigationLink(checkIn.formatted(.dateTime.hour().minute())) {
                                     DetailView(record: record)
                                 }
+                                .accessibilityIdentifier("nav_link")
                                 
                                 Spacer()
                                 
@@ -51,12 +52,14 @@ struct TimeRecordEditView: View {
                                         Image(systemName: "trash")
                                             .foregroundStyle(.red)
                                     }
+                                    .accessibilityIdentifier("button_remove_time_record")
                                 } else {
                                     Button {
                                         recordToRemove = record
                                     } label: {
                                         Image(systemName: "minus")
                                     }
+                                    .accessibilityIdentifier("button_remove_time_confirm")
                                 }
                             }
                             .tag(record)
@@ -68,6 +71,7 @@ struct TimeRecordEditView: View {
                     addRecord()
                 }
                 .font(.footnote)
+                .accessibilityIdentifier("button_add_time_record")
             }
         }
         
@@ -97,7 +101,9 @@ struct TimeRecordEditView: View {
             VStack(alignment: .leading) {
                 Form {
                     DatePicker("出勤", selection: $record.checkIn.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                        .accessibilityIdentifier("date_check_in")
                     DatePicker("退勤", selection: $record.checkOut.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                        .accessibilityIdentifier("date_check_out")
                 }
                 .padding()
                 
@@ -119,12 +125,14 @@ struct TimeRecordEditView: View {
                                         Image(systemName: "trash")
                                             .foregroundStyle(.red)
                                     }
+                                    .accessibilityIdentifier("button_remove_break_time")
                                 } else {
                                     Button {
                                         recordToRemove = breakTime
                                     } label: {
                                         Image(systemName: "minus")
                                     }
+                                    .accessibilityIdentifier("button_remove_break_confirm")
                                 }
                             }
                         }
@@ -136,6 +144,7 @@ struct TimeRecordEditView: View {
                         record.breakTimes.append(breakTime)
                     }
                     .font(.footnote)
+                    .accessibilityIdentifier("button_add_break_time")
                 }
             }
         }
@@ -147,7 +156,9 @@ struct TimeRecordEditView: View {
         var body: some View {
             Form {
                 DatePicker("開始", selection: $breakTime.start.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                    .accessibilityIdentifier("date_break_start")
                 DatePicker("終了", selection: $breakTime.end.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                    .accessibilityIdentifier("date_break_end")
             }
         }
     }

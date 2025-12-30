@@ -37,6 +37,7 @@ struct RecorderView: View {
                     }
                     .frame(width: 50, height: 50)
                 }
+                .accessibilityIdentifier("button_check_in")
             } else if records.last?.state == .AtBreak {
                 Button {
                     endBreak()
@@ -51,6 +52,7 @@ struct RecorderView: View {
                     }
                     .frame(width: 50, height: 50)
                 }
+                .accessibilityIdentifier("button_break_end")
             } else if records.last?.state == .AtWork {
                 HStack {
                     Button {
@@ -66,6 +68,8 @@ struct RecorderView: View {
                         }
                         .frame(width: 50, height: 50)
                     }
+                    .accessibilityIdentifier("button_check_out")
+                    
                     Button {
                         startBreak()
                     } label: {
@@ -79,6 +83,7 @@ struct RecorderView: View {
                         }
                         .frame(width: 50, height: 50)
                     }
+                    .accessibilityIdentifier("button_break_start")
                 }
             }
         }

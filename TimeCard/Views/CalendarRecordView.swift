@@ -16,12 +16,14 @@ struct CalendarRecordView: View {
         GridRow {
             Text(record.date, format: .dayWithWeekday)
                 .foregroundStyle(record.date.isHoliday() ? .red : .black)
+                .accessibilityIdentifier("text_date")
             
             ZStack {
                 VStack {
                     ForEach(record.records) { record in
                         if let checkIn = record.checkIn {
                             Text(checkIn, format: .dateTime.hour().minute())
+                                .accessibilityIdentifier("text_check_in")
                         }
                     }
                 }
@@ -34,6 +36,7 @@ struct CalendarRecordView: View {
                     ForEach(record.records) { record in
                         if record.checkOut != nil {
                             Text(interval(record: record), format: .timeWorked)
+                                .accessibilityIdentifier("text_check_out")
                         }
                     }
                 }
@@ -47,6 +50,7 @@ struct CalendarRecordView: View {
                         ForEach(record.sortedBreakTimes) { breakTime in
                             if let start = breakTime.start {
                                 Text(start, format: .dateTime.hour().minute())
+                                    .accessibilityIdentifier("text_break_start")
                             }
                         }
                     }
@@ -61,6 +65,7 @@ struct CalendarRecordView: View {
                         ForEach(record.sortedBreakTimes) { breakTime in
                             if breakTime.end != nil {
                                 Text(interval(breakTime: breakTime), format: .timeWorked)
+                                    .accessibilityIdentifier("text_break_end")
                             }
                         }
                     }
@@ -72,6 +77,7 @@ struct CalendarRecordView: View {
             ZStack {
                 if record.timeWorked > 0 {
                     Text(record.timeWorked, format: .timeWorked)
+                        .accessibilityIdentifier("text_time_worked")
                 }
                 Text("00:00")
                     .opacity(0)
@@ -80,6 +86,7 @@ struct CalendarRecordView: View {
             ZStack {
                 if record.systemUptime > 0 {
                     Text(record.systemUptime, format: .timeWorked)
+                        .accessibilityIdentifier("text_system_uptime")
                 }
                 Text("00:00")
                     .opacity(0)
@@ -89,6 +96,7 @@ struct CalendarRecordView: View {
                 Button("edit") {
                     recordToEdit = record
                 }
+                .accessibilityIdentifier("button_edit")
             }
         }
         .font(.system(.headline, design: .monospaced))
