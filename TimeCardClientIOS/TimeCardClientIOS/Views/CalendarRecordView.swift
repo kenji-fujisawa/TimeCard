@@ -14,11 +14,13 @@ struct CalendarRecordView: View {
         GridRow {
             Text(record.date, format: .dayWithWeekday)
                 .foregroundStyle(record.date.isHoliday() ? .red : .black)
+                .accessibilityIdentifier("text_date")
             
             VStack {
                 ForEach(record.records) { record in
                     if let checkIn = record.checkIn {
                         Text(checkIn, format: .dateTime.hour().minute())
+                            .accessibilityIdentifier("text_check_in")
                     }
                 }
             }
@@ -27,6 +29,7 @@ struct CalendarRecordView: View {
                 ForEach(record.records) { record in
                     if record.checkOut != nil {
                         Text(interval(record: record), format: .timeWorked)
+                            .accessibilityIdentifier("text_check_out")
                     }
                 }
             }
@@ -36,6 +39,7 @@ struct CalendarRecordView: View {
                     ForEach(record.breakTimes) { breakTime in
                         if let start = breakTime.start {
                             Text(start, format: .dateTime.hour().minute())
+                                .accessibilityIdentifier("text_break_start")
                         }
                     }
                 }
@@ -46,6 +50,7 @@ struct CalendarRecordView: View {
                     ForEach(record.breakTimes) { breakTime in
                         if breakTime.end != nil {
                             Text(interval(breakTime: breakTime), format: .timeWorked)
+                                .accessibilityIdentifier("text_break_end")
                         }
                     }
                 }

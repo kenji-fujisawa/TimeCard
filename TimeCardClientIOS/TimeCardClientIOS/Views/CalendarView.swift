@@ -87,22 +87,10 @@ struct CalendarView: View {
     var body: some View {
         NavigationStack {
             if model.records != nil {
-                HStack {
-                    Button("prev", systemImage: "chevron.left") {
-                        refresh(addMonths: -1)
+                MonthSelectorView(now: $model.now)
+                    .onChange(of: model.now) { _, _ in
+                        model.fetchRecords()
                     }
-                    .labelStyle(.iconOnly)
-                    
-                    Text(model.now, format: .dateTime.year().month())
-                        .font(.title)
-                        .bold()
-                        .environment(\.locale, Locale(identifier: "ja_JP"))
-                    
-                    Button("next", systemImage: "chevron.right") {
-                        refresh(addMonths: 1)
-                    }
-                    .labelStyle(.iconOnly)
-                }
                 
                 ScrollView {
                     Grid {
@@ -142,15 +130,6 @@ struct CalendarView: View {
                     toast.isPresented = true
                     toast.message = "データを取得できませんでした"
                 }
-            }
-        }
-    }
-    
-    private func refresh(addMonths: Int) {
-        if let date = Calendar.current.date(from: DateComponents(year: model.now.year, month: model.now.month + addMonths)) {
-            withAnimation {
-                model.now = date
-                model.fetchRecords()
             }
         }
     }
