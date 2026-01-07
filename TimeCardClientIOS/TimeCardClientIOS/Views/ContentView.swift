@@ -9,11 +9,17 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject private var toast = ToastViewModel()
-    @ObservedObject private var calendarModel = CalendarViewModel()
+    @ObservedObject private var calendar: CalendarViewModel
+    
+    init() {
+        let source = DefaultNetworkDataSource()
+        let repository = DefaultCalendarRecordRepository(networkDataSource: source)
+        self.calendar = CalendarViewModel(repository: repository)
+    }
     
     var body: some View {
         VStack {
-            CalendarView(model: calendarModel)
+            CalendarView(model: calendar)
         }
         .padding()
         .overlay {

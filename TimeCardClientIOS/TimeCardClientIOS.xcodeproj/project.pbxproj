@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		CA5660642EB2090F0020C944 /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA5660632EB2090F0020C944 /* SwiftJapaneseNationalHolidays */; };
+		CA8C83442F04E73700BB46FA /* OHHTTPStubs in Frameworks */ = {isa = PBXBuildFile; productRef = CA8C83432F04E73700BB46FA /* OHHTTPStubs */; };
+		CA8C83462F04E73700BB46FA /* OHHTTPStubsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CA8C83452F04E73700BB46FA /* OHHTTPStubsSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +73,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA8C83442F04E73700BB46FA /* OHHTTPStubs in Frameworks */,
+				CA8C83462F04E73700BB46FA /* OHHTTPStubsSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,6 +168,8 @@
 			);
 			name = TimeCardClientIOSTests;
 			packageProductDependencies = (
+				CA8C83432F04E73700BB46FA /* OHHTTPStubs */,
+				CA8C83452F04E73700BB46FA /* OHHTTPStubsSwift */,
 			);
 			productName = TimeCardClientIOSTests;
 			productReference = CA56602D2EB2084E0020C944 /* TimeCardClientIOSTests.xctest */;
@@ -203,6 +209,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CA5660622EB2090F0020C944 /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */,
+				CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA5660212EB2084D0020C944 /* Products */;
@@ -581,6 +588,14 @@
 				version = 1.1.0;
 			};
 		};
+		CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AliSoftware/OHHTTPStubs?tab=readme-ov-file";
+			requirement = {
+				kind = exactVersion;
+				version = 9.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -588,6 +603,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA5660622EB2090F0020C944 /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */;
 			productName = SwiftJapaneseNationalHolidays;
+		};
+		CA8C83432F04E73700BB46FA /* OHHTTPStubs */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */;
+			productName = OHHTTPStubs;
+		};
+		CA8C83452F04E73700BB46FA /* OHHTTPStubsSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */;
+			productName = OHHTTPStubsSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

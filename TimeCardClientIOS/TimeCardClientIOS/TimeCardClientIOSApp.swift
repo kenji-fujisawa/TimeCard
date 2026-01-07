@@ -19,6 +19,8 @@ struct UITestApp: App {
     private let formatter: DateFormatter
     @State private var now: Date
     @State private var record: CalendarRecord
+    private let repository: FakeCalendarRecordRepository
+    @ObservedObject private var calendar: CalendarViewModel
     @StateObject private var toast = ToastViewModel()
     
     init() {
@@ -46,6 +48,9 @@ struct UITestApp: App {
                 )
             ]
         )
+        
+        repository = FakeCalendarRecordRepository()
+        calendar = CalendarViewModel(repository: repository)
     }
     
     var body: some Scene {
@@ -56,7 +61,25 @@ struct UITestApp: App {
                 CalendarRecordView(record: record)
             } else if CommandLine.arguments.contains("CalendarDetailViewTests") {
                 NavigationStack {
-                    CalendarDetailView(record: $record)
+                    Text(calendar.records.count, format:.number)
+                        .accessibilityIdentifier("calendar_count")
+                    if !calendar.records.isEmpty {
+                        Text(calendar.records[0].date, format: .dateTime.month().day())
+                            .accessibilityIdentifier("calendar_date")
+                        Text(calendar.records[0].records.count, format: .number)
+                            .accessibilityIdentifier("record_count")
+                        Text(calendar.records[0].records[0].checkIn ?? .now, format: .dateTime.hour().minute())
+                            .accessibilityIdentifier("record_check_in")
+                        Text(calendar.records[0].records[0].checkOut ?? .now, format: .dateTime.hour().minute())
+                            .accessibilityIdentifier("record_check_out")
+                        Text(calendar.records[0].records[0].breakTimes.count, format: .number)
+                            .accessibilityIdentifier("break_time_count")
+                    }
+                    NavigationLink {
+                        CalendarDetailView(record: record, model: calendar)
+                    } label: {
+                        Text("link")
+                    }
                 }
             } else if CommandLine.arguments.contains("ToastViewTests") {
                 ToastView(model: toast)
@@ -67,5 +90,15 @@ struct UITestApp: App {
                 .accessibilityIdentifier("button_show_toast")
             }
         }
+    }
+}
+
+private class FakeCalendarRecordRepository: CalendarRecordRepository {
+    func getRecords(year: Int, month: Int) async throws -> [CalendarRecord] {
+        []
+    }
+    
+    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws -> [CalendarRecord] {
+        [record]
     }
 }
