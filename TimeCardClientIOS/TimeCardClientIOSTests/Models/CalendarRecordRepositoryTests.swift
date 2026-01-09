@@ -13,32 +13,66 @@ import Testing
 struct CalendarRecordRepositoryTests {
 
     @Test func testGetRecords() async throws {
-        let source = FakeNetworkDataSource()
-        let repository = DefaultCalendarRecordRepository(networkDataSource: source)
-        let records = try await repository.getRecords(year: 2025, month: 12)
-        #expect(records.count == 31)
+        let network = FakeNetworkDataSource()
+        let local = FakeLocalDataSource()
+        let repository = DefaultCalendarRecordRepository(networkDataSource: network, localDataSource: local)
+        var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
+        var records = try await iterator.next()
+        #expect(records?.count == 31)
         
         for i in 0..<31 {
-            let record = records[i]
-            #expect(record.date.year == 2025)
-            #expect(record.date.month == 12)
-            #expect(record.date.day == i + 1)
+            let record = records?[i]
+            #expect(record?.date.year == 2025)
+            #expect(record?.date.month == 12)
+            #expect(record?.date.day == i + 1)
             
             switch i + 1 {
-            case 4:
-                #expect(record.records.count == 2)
-                #expect(record.records[0] == source.records[0])
-                #expect(record.records[1] == source.records[1])
-            case 5:
-                #expect(record.records.count == 1)
-                #expect(record.records[0] == source.records[2])
+            case 1:
+                #expect(record?.records.count == 2)
+                #expect(record?.records[0] == local.records[0])
+                #expect(record?.records[1] == local.records[1])
+            case 2:
+                #expect(record?.records.count == 1)
+                #expect(record?.records[0] == local.records[2])
             default:
-                #expect(record.records.count == 0)
+                #expect(record?.records.count == 0)
             }
         }
         
-        #expect(source.year == 2025)
-        #expect(source.month == 12)
+        #expect(local.getRecordsYear == 2025)
+        #expect(local.getRecordsMonth == 12)
+        
+        records = try await iterator.next()
+        
+        for i in 0..<31 {
+            let record = records?[i]
+            #expect(record?.date.year == 2025)
+            #expect(record?.date.month == 12)
+            #expect(record?.date.day == i + 1)
+            
+            switch i + 1 {
+            case 4:
+                #expect(record?.records.count == 2)
+                #expect(record?.records[0] == network.records[0])
+                #expect(record?.records[1] == network.records[1])
+            case 5:
+                #expect(record?.records.count == 1)
+                #expect(record?.records[0] == network.records[2])
+            default:
+                #expect(record?.records.count == 0)
+            }
+        }
+        
+        #expect(network.year == 2025)
+        #expect(network.month == 12)
+        
+        #expect(local.deleteRecordsYear == 2025)
+        #expect(local.deleteRecordsMonth == 12)
+        
+        #expect(local.inserted.count == 3)
+        #expect(local.inserted[0] == network.records[0])
+        #expect(local.inserted[1] == network.records[1])
+        #expect(local.inserted[2] == network.records[2])
     }
     
     @Test func testUpdateRecord() async throws {
@@ -127,43 +161,69 @@ struct CalendarRecordRepositoryTests {
             ]
         )
         
-        let source = FakeNetworkDataSource()
-        let repository = DefaultCalendarRecordRepository(networkDataSource: source)
-        let result = try await repository.updateRecord(source: records, record: record)
-        #expect(result.count == 31)
+        let network = FakeNetworkDataSource()
+        let local = FakeLocalDataSource()
+        let repository = DefaultCalendarRecordRepository(networkDataSource: network, localDataSource: local)
+        
+        // setup async stream
+        var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
+        var result = try await iterator.next()
+        #expect(result?.count == 31)
+        #expect(result?[0].records.count == 2)
+        #expect(result?[1].records.count == 1)
+        
+        result = try await iterator.next()
+        #expect(result?.count == 31)
+        #expect(result?[3].records.count == 2)
+        #expect(result?[4].records.count == 1)
+        
+        // cleanup
+        local.inserted.removeAll()
+        
+        // run tests
+        try await repository.updateRecord(source: records, record: record)
+        result = try await iterator.next()
+        #expect(result?.count == 31)
         
         for i in 0..<31 {
-            #expect(result[i].date == records[i].date)
+            #expect(result?[i].date == records[i].date)
             
             if i + 1 == 1 {
-                #expect(result[i].records.count == 3)
+                #expect(result?[i].records.count == 3)
                 
-                #expect(result[i].records[0] == record.records[0])
-                #expect(result[i].records[1] == record.records[1])
+                #expect(result?[i].records[0] == record.records[0])
+                #expect(result?[i].records[1] == record.records[1])
                 
-                #expect(result[i].records[2].id == source.insertedId.id)
-                #expect(result[i].records[2].year == record.records[2].year)
-                #expect(result[i].records[2].month == record.records[2].month)
-                #expect(result[i].records[2].checkIn == record.records[2].checkIn)
-                #expect(result[i].records[2].checkOut == record.records[2].checkOut)
+                #expect(result?[i].records[2].id == network.insertedId.id)
+                #expect(result?[i].records[2].year == record.records[2].year)
+                #expect(result?[i].records[2].month == record.records[2].month)
+                #expect(result?[i].records[2].checkIn == record.records[2].checkIn)
+                #expect(result?[i].records[2].checkOut == record.records[2].checkOut)
                 
-                #expect(result[i].records[2].breakTimes.count == 2)
-                #expect(result[i].records[2].breakTimes[0].id == source.insertedId.breakTimes[0].id)
-                #expect(result[i].records[2].breakTimes[0].start == record.records[2].breakTimes[0].start)
-                #expect(result[i].records[2].breakTimes[0].end == record.records[2].breakTimes[0].end)
-                #expect(result[i].records[2].breakTimes[1].start == record.records[2].breakTimes[1].start)
-                #expect(result[i].records[2].breakTimes[1].end == record.records[2].breakTimes[1].end)
+                #expect(result?[i].records[2].breakTimes.count == 2)
+                #expect(result?[i].records[2].breakTimes[0].id == network.insertedId.breakTimes[0].id)
+                #expect(result?[i].records[2].breakTimes[0].start == record.records[2].breakTimes[0].start)
+                #expect(result?[i].records[2].breakTimes[0].end == record.records[2].breakTimes[0].end)
+                #expect(result?[i].records[2].breakTimes[1].start == record.records[2].breakTimes[1].start)
+                #expect(result?[i].records[2].breakTimes[1].end == record.records[2].breakTimes[1].end)
             } else {
-                #expect(result[i].records == records[i].records)
+                #expect(result?[i].records == records[i].records)
             }
         }
         
-        #expect(source.inserted.count == 1)
-        #expect(source.inserted[0] == record.records[2])
-        #expect(source.updated.count == 1)
-        #expect(source.updated[0] == record.records[1])
-        #expect(source.deleted.count == 1)
-        #expect(source.deleted[0] == records[0].records[0])
+        #expect(network.inserted.count == 1)
+        #expect(network.inserted[0] == record.records[2])
+        #expect(network.updated.count == 1)
+        #expect(network.updated[0] == record.records[1])
+        #expect(network.deleted.count == 1)
+        #expect(network.deleted[0] == records[0].records[0])
+        
+        #expect(local.inserted.count == 1)
+        #expect(local.inserted[0] == result?[0].records[2])
+        #expect(local.updated.count == 1)
+        #expect(local.updated[0] == result?[0].records[1])
+        #expect(local.deleted.count == 1)
+        #expect(local.deleted[0] == records[0].records[0])
     }
 
     class FakeNetworkDataSource: NetworkDataSource {
@@ -272,6 +332,89 @@ struct CalendarRecordRepositoryTests {
         var deleted: [TimeRecord] = []
         func deleteRecord(record: TimeRecord) async throws {
             deleted.append(record)
+        }
+    }
+    
+    class FakeLocalDataSource: LocalDataSource {
+        let records: [TimeRecord]
+        
+        init() {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            
+            records = [
+                TimeRecord(
+                    id: UUID(),
+                    year: 2025,
+                    month: 12,
+                    checkIn: formatter.date(from: "2025-12-01 09:00:00"),
+                    checkOut: formatter.date(from: "2025-12-01 19:00:00"),
+                    breakTimes: [
+                        TimeRecord.BreakTime(
+                            id: UUID(),
+                            start: formatter.date(from: "2025-12-01 12:00:00"),
+                            end: formatter.date(from: "2025-12-01 12:45:00")
+                        ),
+                        TimeRecord.BreakTime(
+                            id: UUID(),
+                            start: formatter.date(from: "2025-12-01 17:30:00"),
+                            end: formatter.date(from: "2025-12-01 18:00:00")
+                        )
+                    ]
+                ),
+                TimeRecord(
+                    id: UUID(),
+                    year: 2025,
+                    month: 12,
+                    checkIn: formatter.date(from: "2025-12-01 22:00:00"),
+                    checkOut: formatter.date(from: "2025-12-02 01:00:00"),
+                    breakTimes: [
+                        TimeRecord.BreakTime(
+                            id: UUID(),
+                            start: formatter.date(from: "2025-12-01 23:00:00"),
+                            end: formatter.date(from: "2025-12-02 00:30:00")
+                        )
+                    ]
+                ),
+                TimeRecord(
+                    id: UUID(),
+                    year: 2025,
+                    month: 12,
+                    checkIn: formatter.date(from: "2025-12-02 08:30:00"),
+                    checkOut: formatter.date(from: "2025-12-02 17:30:00"),
+                    breakTimes: []
+                )
+            ]
+        }
+        
+        var getRecordsYear: Int = 0
+        var getRecordsMonth: Int = 0
+        func getRecords(year: Int, month: Int) throws -> [TimeRecord] {
+            getRecordsYear = year
+            getRecordsMonth = month
+            return records
+        }
+        
+        var inserted: [TimeRecord] = []
+        func insertRecord(record: TimeRecord) throws {
+            inserted.append(record)
+        }
+        
+        var updated: [TimeRecord] = []
+        func updateRecord(record: TimeRecord) throws {
+            updated.append(record)
+        }
+        
+        var deleted: [TimeRecord] = []
+        func deleteRecord(record: TimeRecord) throws {
+            deleted.append(record)
+        }
+        
+        var deleteRecordsYear: Int = 0
+        var deleteRecordsMonth: Int = 0
+        func deleteRecords(year: Int, month: Int) throws {
+            deleteRecordsYear = year
+            deleteRecordsMonth = month
         }
     }
 }

@@ -13,33 +13,36 @@ class CalendarViewModel: ObservableObject {
     @Published var loading: Bool = false
     @Published var message: String = ""
     private let repository: CalendarRecordRepository
+    private var fetchTask: Task<Void, Never>?
     
     init(repository: CalendarRecordRepository) {
         self.repository = repository
         fetchRecords()
     }
     
+    deinit {
+        fetchTask?.cancel()
+    }
+    
     func fetchRecords() {
         self.loading = true
         
-        Task {
-            let records: [CalendarRecord]
-            let message: String
-            
+        let stream = repository.getRecords(year: now.year, month: now.month)
+        
+        fetchTask?.cancel()
+        fetchTask = Task { [weak self] in
             do {
-                records = try await repository.getRecords(year: now.year, month: now.month)
-                message = ""
-            } catch {
-                records = Calendar.current.datesOf(year: now.year, month: now.month).map { date in
-                    CalendarRecord(date: date, records: [])
+                for try await records in stream {
+                    await MainActor.run { [weak self] in
+                        self?.records = records
+                        self?.loading = false
+                    }
                 }
-                message = "データを取得できませんでした"
-            }
-            
-            await MainActor.run {
-                self.records = records
-                self.message = message
-                self.loading = false
+            } catch {
+                await MainActor.run { [weak self] in
+                    self?.message = "データを取得できませんでした"
+                    self?.loading = false
+                }
             }
         }
     }
@@ -47,10 +50,7 @@ class CalendarViewModel: ObservableObject {
     func updateRecord(record: CalendarRecord) {
         Task {
             do {
-                let records = try await repository.updateRecord(source: records, record: record)
-                await MainActor.run {
-                    self.records = records
-                }
+                try await repository.updateRecord(source: records, record: record)
             } catch {
                 await MainActor.run {
                     self.message = "更新に失敗しました"

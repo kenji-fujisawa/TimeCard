@@ -43,5 +43,43 @@ struct TimeRecordTests {
         t7 = t8!
         #expect(t7 == t8)
     }
-
+    
+    @Test func testCodable() async throws {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let records = [
+            TimeRecord(
+                id: UUID(),
+                year: 2025,
+                month: 12,
+                checkIn: formatter.date(from: "2025-12-29 08:00:00"),
+                checkOut: formatter.date(from: "2025-12-29 18:00:00"),
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: formatter.date(from: "2025-12-29 12:00:00"),
+                        end: formatter.date(from: "2025-12-29 12:30:00")
+                    ),
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: formatter.date(from: "2025-12-29 15:00:00"),
+                        end: formatter.date(from: "2025-12-29 15:15:00")
+                    )
+                ]
+            ),
+            TimeRecord(
+                id: UUID(),
+                year: 2025,
+                month: 12,
+                checkIn: formatter.date(from: "2025-12-30 09:00:00"),
+                checkOut: nil,
+                breakTimes: []
+            )
+        ]
+        
+        let json = try JSONEncoder().encode(records)
+        
+        let results = try JSONDecoder().decode([TimeRecord].self, from: json)
+        #expect(results == records)
+    }
 }

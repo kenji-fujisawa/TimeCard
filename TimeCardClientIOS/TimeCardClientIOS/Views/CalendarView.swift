@@ -73,13 +73,15 @@ struct CalendarView: View {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecords(year: Int, month: Int) async throws -> [CalendarRecord] {
-        Calendar.current.datesOf(year: year, month: month).map { date in
-            CalendarRecord(date: date, records: [])
+    func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
+        AsyncThrowingStream { continuation in
+            let records = Calendar.current.datesOf(year: year, month: month).map { date in
+                CalendarRecord(date: date, records: [])
+            }
+            continuation.yield(records)
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws -> [CalendarRecord] {
-        []
+    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
     }
 }
