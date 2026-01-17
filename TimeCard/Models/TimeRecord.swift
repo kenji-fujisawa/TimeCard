@@ -22,8 +22,8 @@ extension TimeCardSchema_v1 {
             var end: Date?
             var parent: TimeRecord?
             
-            init(start: Date? = nil, end: Date? = nil, parent: TimeRecord? = nil) {
-                self.id = UUID()
+            init(id: UUID = UUID(), start: Date? = nil, end: Date? = nil, parent: TimeRecord? = nil) {
+                self.id = id
                 self.start = start
                 self.end = end
                 self.parent = parent
@@ -47,7 +47,7 @@ extension TimeCardSchema_v1 {
             case AtBreak
         }
         
-        #Index<TimeRecord>([\.year, \.month])
+        #Index<TimeRecord>([\.id], [\.year, \.month])
         
         var id: UUID
         var year: Int
@@ -93,8 +93,8 @@ extension TimeCardSchema_v1 {
             return interval
         }
         
-        init(year: Int, month: Int, checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
-            self.id = UUID()
+        init(id: UUID = UUID(), year: Int, month: Int, checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
+            self.id = id
             self.year = year
             self.month = month
             self.checkIn = checkIn
