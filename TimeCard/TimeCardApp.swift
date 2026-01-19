@@ -11,6 +11,8 @@ import SwiftUI
 struct TimeCardApp: App {
     private var container: ModelContainer
     private let terminationManager = AppTerminationManager()
+    private let timeRecord: TimeRecordViewModel
+    private let uptimeRecord: SystemUptimeRecordViewModel
     
     init() {
         #if DEBUG
@@ -25,11 +27,18 @@ struct TimeCardApp: App {
         } catch {
             fatalError(error.localizedDescription)
         }
+        
+        let source = DefaultLocalDataSource(context: container.mainContext)
+        let timeRepository = DefaultTimeRecordRepository(source: source)
+        timeRecord = TimeRecordViewModel(repository: timeRepository)
+        
+        let uptimeRepository = DefaultSystemUptimeRecordRepository(source: source)
+        uptimeRecord = SystemUptimeRecordViewModel(repository: uptimeRepository)
     }
     
     var body: some Scene {
         MenuBarExtra {
-            ContentView()
+            ContentView(timeRecord: timeRecord)
                 .modelContainer(container)
                 .onReceive(NotificationCenter.default.publisher(for: Notification.exitApp)) { _ in
                     Task {
@@ -39,11 +48,9 @@ struct TimeCardApp: App {
                 }
         } label: {
             Image(systemName: "clock.badge.checkmark")
-            SystemUptimeView()
-                .modelContainer(container)
+            SystemUptimeView(uptimeRecord: uptimeRecord)
                 .environmentObject(terminationManager)
-            SleepView()
-                .modelContainer(container)
+            SleepView(timeRecord: timeRecord)
             ServerView()
                 .modelContainer(container)
                 .environmentObject(terminationManager)
@@ -85,12 +92,33 @@ class AppTerminationManager: ObservableObject {
 
 #if DEBUG
 struct UITestApp: App {
+    private let container: ModelContainer
+    @StateObject private var timeRecord: TimeRecordViewModel
+    private let uptimeRecord: SystemUptimeRecordViewModel
     private let formatter: DateFormatter
     private let record: CalendarRecord
     @State private var recordToEdit: CalendarRecord? = nil
     @State private var now: Date
+    @State private var uptime: SystemUptimeRecord? = nil
+    private let terminationManager = AppTerminationManager()
     
     init() {
+        let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        do {
+            try container = ModelContainer(for: schema, configurations: [config])
+        } catch {
+            fatalError(error.localizedDescription)
+        }
+        
+        let source = DefaultLocalDataSource(context: container.mainContext)
+        let timeRepository = DefaultTimeRecordRepository(source: source)
+        let timeRecord = TimeRecordViewModel(repository: timeRepository)
+        _timeRecord = StateObject(wrappedValue: timeRecord)
+        
+        let uptimeRepository = DefaultSystemUptimeRecordRepository(source: source)
+        uptimeRecord = SystemUptimeRecordViewModel(repository: uptimeRepository)
+        
         formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         
@@ -133,8 +161,7 @@ struct UITestApp: App {
     var body: some Scene {
         WindowGroup {
             if CommandLine.arguments.contains("RecorderViewTests") {
-                RecorderView()
-                    .modelContainer(for: TimeRecord.self, inMemory: true)
+                RecorderView(model: timeRecord)
             }
             else if CommandLine.arguments.contains("CalendarRecordViewTests") {
                 CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
@@ -153,6 +180,53 @@ struct UITestApp: App {
             else if CommandLine.arguments.contains("SystemUptimeRecordEditViewTests") {
                 SystemUptimeRecordEditView(record: record)
                     .modelContainer(for: SystemUptimeRecord.self, inMemory: true)
+            }
+            else if CommandLine.arguments.contains("SleepViewTests") {
+                SleepView(timeRecord: timeRecord)
+                Text("\(String(describing: timeRecord.state))")
+                    .accessibilityIdentifier("state")
+                Button("checkIn") {
+                    timeRecord.checkIn()
+                }
+                Button("sleep") {
+                    NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.willSleepNotification, object: nil)
+                }
+                Button("wake") {
+                    NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+                }
+            }
+            else if CommandLine.arguments.contains("SystemUptimeViewTests") {
+                SystemUptimeView(uptimeRecord: uptimeRecord)
+                    .environmentObject(terminationManager)
+                if let uptime = self.uptime {
+                    Text(uptime.launch, format: .dateTime.hour().minute().second())
+                        .accessibilityIdentifier("launch")
+                    Text(uptime.shutdown, format: .dateTime.hour().minute().second())
+                        .accessibilityIdentifier("shutdown")
+                    if let sleep = uptime.sortedSleepRecords.first {
+                        Text(sleep.start, format: .dateTime.hour().minute().second())
+                            .accessibilityIdentifier("start")
+                        Text(sleep.end, format: .dateTime.hour().minute().second())
+                            .accessibilityIdentifier("end")
+                    }
+                }
+                Button("sleep") {
+                    NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.willSleepNotification, object: nil)
+                }
+                Button("wake") {
+                    NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+                }
+                Button("terminate") {
+                    Task {
+                        await terminationManager.performCleanup()
+                    }
+                }
+                Button("update") {
+                    let descriptor = FetchDescriptor<SystemUptimeRecord>(
+                        sortBy: [.init(\.launch)]
+                    )
+                    self.uptime = try? container.mainContext.fetch(descriptor).first
+                }
             }
         }
     }

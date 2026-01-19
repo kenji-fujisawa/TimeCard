@@ -9,45 +9,29 @@ import SwiftData
 import SwiftUI
 
 struct SleepView: View {
-    @Query private var records: [TimeRecord]
-    @State private var breakTime: TimeRecord.BreakTime? = nil
-    
-    init() {
-        let now = Date.now
-        let year = now.year
-        let month = now.month
-        _records = Query(filter: #Predicate<TimeRecord> { $0.year == year && $0.month == month }, sort: \.checkIn)
-    }
+    let timeRecord: TimeRecordViewModel
     
     var body: some View {
         EmptyView()
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.willSleepNotification)) { _ in
-                startBreak()
+                timeRecord.startBreak()
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
-                endBreak()
+                timeRecord.endBreak()
             }
-    }
-    
-    private func startBreak() {
-        if let record = records.last {
-            if record.state == .AtWork {
-                let now = Date.now
-                let breakTime = TimeRecord.BreakTime(start: now, end: now)
-                record.breakTimes.append(breakTime)
-                self.breakTime = breakTime
-            }
-        }
-    }
-    
-    private func endBreak() {
-        if let breakTime = self.breakTime {
-            breakTime.end = Date.now
-            self.breakTime = nil
-        }
     }
 }
 
 #Preview {
-    SleepView()
+    let repository = FakeTimeRecordRepository()
+    let timeRecord = TimeRecordViewModel(repository: repository)
+    SleepView(timeRecord: timeRecord)
+}
+
+private class FakeTimeRecordRepository: TimeRecordRepository {
+    func getState() -> WorkState { .OffWork }
+    func checkIn() throws {}
+    func checkOut() throws {}
+    func startBreak() throws {}
+    func endBreak() throws {}
 }
