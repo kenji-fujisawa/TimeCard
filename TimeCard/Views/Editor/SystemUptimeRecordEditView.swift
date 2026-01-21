@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
     @Environment(\.dismiss) private var dismiss
-    @State var record: CalendarRecord
+    @Binding var record: CalendarRecord
     @State private var selected: SystemUptimeRecord? = nil
     
     var body: some View {
@@ -163,11 +163,24 @@ struct SystemUptimeRecordEditView: View {
 }
 
 #Preview {
-    let break1 = TimeRecord.BreakTime(start: .now, end: .now)
-    let break2 = TimeRecord.BreakTime(start: .now)
-    let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [break1, break2])
-    let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
-    let uptime = SystemUptimeRecord(year: Date.now.year, month: Date.now.month, day: Date.now.day, launch: Date.now, shutdown: Date.now)
-    let record = CalendarRecord(date: .now, records: [rec1, rec2], systemUptimeRecords: [uptime])
-    SystemUptimeRecordEditView(record: record)
+    @Previewable @State var record = CalendarRecord(
+        date: .now,
+        records: [],
+        systemUptimeRecords: [
+            SystemUptimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                day: Date.now.day,
+                launch: .now,
+                shutdown: .now,
+                sleepRecords: [
+                    SystemUptimeRecord.SleepRecord(
+                        start: .now,
+                        end: .now
+                    )
+                ]
+            )
+        ]
+    )
+    SystemUptimeRecordEditView(record: $record)
 }

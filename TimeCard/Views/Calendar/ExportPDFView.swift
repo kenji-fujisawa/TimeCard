@@ -168,9 +168,45 @@ private struct PDFView: View {
 }
 
 #Preview {
-    let time = TimeRecord.BreakTime(start: .now, end: .now)
-    let rec = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [time, time])
-    let uptime = SystemUptimeRecord(year: Date.now.year, month: Date.now.month, day: Date.now.day, launch: Date.now, shutdown: Date.now)
-    let record = CalendarRecord(date: .now, records: [rec, rec], systemUptimeRecords: [uptime])
+    let record = CalendarRecord(
+        date: .now,
+        records: [
+            TimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                checkOut: Date(timeInterval: 26 * 60 * 60, since: .now),
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        start: .now,
+                        end: Date(timeInterval: 25 * 60 * 60, since: .now)
+                    ),
+                    TimeRecord.BreakTime(
+                        start: .now
+                    )
+                ]
+            ),
+            TimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        start: .now,
+                        end: Date(timeInterval: 25 * 60 * 60, since: .now)
+                    )
+                ]
+            )
+        ],
+        systemUptimeRecords: [
+            SystemUptimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                day: Date.now.day,
+                launch: .now,
+                shutdown: .now
+            )
+        ]
+    )
     PDFView(records: [record, record])
 }

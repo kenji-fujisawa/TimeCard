@@ -8,13 +8,16 @@
 import SwiftUI
 
 struct CalendarView: View {
-    @State private var now: Date = Date.now
+    @ObservedObject var calendar: CalendarViewModel
     
     var body: some View {
         VStack {
-            MonthSelectorView(now: $now)
+            MonthSelectorView(now: $calendar.now)
+                .onChange(of: calendar.now) { _, _ in
+                    calendar.fetchRecords()
+                }
             
-            CalendarBodyView(year: now.year, month: now.month)
+            CalendarBodyView(calendar: calendar)
         }
         .padding()
         .toolbar {
@@ -24,5 +27,20 @@ struct CalendarView: View {
 }
 
 #Preview {
-    CalendarView()
+    let repository = FakeCalendarRecordRepository()
+    let calendar = CalendarViewModel(repository: repository)
+    CalendarView(calendar: calendar)
+}
+
+private class FakeCalendarRecordRepository: CalendarRecordRepository {
+    func getRecords(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
+        AsyncStream { continuation in
+            let records = Calendar.current.datesOf(year: year, month: month).map { date in
+                CalendarRecord(date: date, records: [], systemUptimeRecords: [])
+            }
+            continuation.yield(records)
+        }
+    }
+    
+    func updateRecord(source: [CalendarRecord], record: CalendarRecord) throws {}
 }

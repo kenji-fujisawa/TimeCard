@@ -120,12 +120,46 @@ struct CalendarRecordView: View {
 
 #Preview {
     @Previewable @State var recordToEdit: CalendarRecord?
-    let break1 = TimeRecord.BreakTime(start: .now, end: Date(timeInterval: 25 * 60 * 60, since: .now))
-    let break2 = TimeRecord.BreakTime(start: .now)
-    let rec1 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: Date(timeInterval: 26 * 60 * 60, since: .now), breakTimes: [break1, break2])
-    let rec2 = TimeRecord(year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
-    let uptime = SystemUptimeRecord(year: Date.now.year, month: Date.now.month, day: Date.now.day, launch: Date.now, shutdown: Date.now)
-    let record = CalendarRecord(date: .now, records: [rec1, rec2], systemUptimeRecords: [uptime])
+    let record = CalendarRecord(
+        date: .now,
+        records: [
+            TimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                checkOut: Date(timeInterval: 26 * 60 * 60, since: .now),
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        start: .now,
+                        end: Date(timeInterval: 25 * 60 * 60, since: .now)
+                    ),
+                    TimeRecord.BreakTime(
+                        start: .now
+                    )
+                ]
+            ),
+            TimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        start: .now,
+                        end: Date(timeInterval: 25 * 60 * 60, since: .now)
+                    )
+                ]
+            )
+        ],
+        systemUptimeRecords: [
+            SystemUptimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                day: Date.now.day,
+                launch: .now,
+                shutdown: .now
+            )
+        ]
+    )
     Grid {
         CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
     }
