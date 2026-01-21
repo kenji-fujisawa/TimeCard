@@ -96,8 +96,8 @@ struct TimeCardServerTests {
             let dict = responseBody?[i]
             let record = records[i]
             #expect(dict?["id"] as? String == record.id.uuidString)
-            #expect(dict?["checkIn"] as? Double == record.checkIn?.timeIntervalSinceReferenceDate)
-            #expect(dict?["checkOut"] as? Double == record.checkOut?.timeIntervalSinceReferenceDate)
+            #expect(dict?["checkIn"] as? String == record.checkIn?.ISO8601Format())
+            #expect(dict?["checkOut"] as? String == record.checkOut?.ISO8601Format())
             
             let breakTimes = dict?["breakTimes"] as? [[String: Any]]
             #expect(breakTimes?.count == record.breakTimes.count)
@@ -105,8 +105,8 @@ struct TimeCardServerTests {
                 let dict = breakTimes?[i]
                 let breakTime = record.sortedBreakTimes[i]
                 #expect(dict?["id"] as? String == breakTime.id.uuidString)
-                #expect(dict?["start"] as? Double == breakTime.start?.timeIntervalSinceReferenceDate)
-                #expect(dict?["end"] as? Double == breakTime.end?.timeIntervalSinceReferenceDate)
+                #expect(dict?["start"] as? String == breakTime.start?.ISO8601Format())
+                #expect(dict?["end"] as? String == breakTime.end?.ISO8601Format())
             }
         }
     }
@@ -132,8 +132,8 @@ struct TimeCardServerTests {
         let dict = responseBody?[0]
         let record = records[1]
         #expect(dict?["id"] as? String == record.id.uuidString)
-        #expect(dict?["checkIn"] as? Double == record.checkIn?.timeIntervalSinceReferenceDate)
-        #expect(dict?["checkOut"] as? Double == record.checkOut?.timeIntervalSinceReferenceDate)
+        #expect(dict?["checkIn"] as? String == record.checkIn?.ISO8601Format())
+        #expect(dict?["checkOut"] as? String == record.checkOut?.ISO8601Format())
         
         let breakTimes = dict?["breakTimes"] as? [[String: Any]]
         #expect(breakTimes?.count == record.breakTimes.count)
@@ -141,8 +141,8 @@ struct TimeCardServerTests {
             let dict = breakTimes?[i]
             let breakTime = record.sortedBreakTimes[i]
             #expect(dict?["id"] as? String == breakTime.id.uuidString)
-            #expect(dict?["start"] as? Double == breakTime.start?.timeIntervalSinceReferenceDate)
-            #expect(dict?["end"] as? Double == breakTime.end?.timeIntervalSinceReferenceDate)
+            #expect(dict?["start"] as? String == breakTime.start?.ISO8601Format())
+            #expect(dict?["end"] as? String == breakTime.end?.ISO8601Format())
         }
     }
     
@@ -160,22 +160,22 @@ struct TimeCardServerTests {
     
     @Test mutating func testPostRecord() async throws {
         let uri = "/timecard/records"
-        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 20, 17, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start1 = date(2025, 10, 20, 12, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let end1 = date(2025, 10, 20, 13, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start2 = date(2025, 10, 20, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let end2 = date(2025, 10, 20, 15, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 20, 17, 0, 0)?.ISO8601Format() ?? ""
+        let start1 = date(2025, 10, 20, 12, 0, 0)?.ISO8601Format() ?? ""
+        let end1 = date(2025, 10, 20, 13, 0, 0)?.ISO8601Format() ?? ""
+        let start2 = date(2025, 10, 20, 15, 0, 0)?.ISO8601Format() ?? ""
+        let end2 = date(2025, 10, 20, 15, 30, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":      \(checkIn),
-                "checkOut":     \(checkOut),
+                "checkIn":      "\(checkIn)",
+                "checkOut":     "\(checkOut)",
                 "breakTimes": [{
-                    "start":    \(start1),
-                    "end":      \(end1)
+                    "start":    "\(start1)",
+                    "end":      "\(end1)"
                 }, {
-                    "start":    \(start2),
-                    "end":      \(end2)
+                    "start":    "\(start2)",
+                    "end":      "\(end2)"
                 }]
             }
             """
@@ -191,20 +191,20 @@ struct TimeCardServerTests {
         #expect(records.count == 3)
         #expect(records[0].checkIn?.day == 15)
         #expect(records[1].checkIn?.day == 18)
-        #expect(records[2].checkIn?.timeIntervalSinceReferenceDate == checkIn)
-        #expect(records[2].checkOut?.timeIntervalSinceReferenceDate == checkOut)
+        #expect(records[2].checkIn?.ISO8601Format() == checkIn)
+        #expect(records[2].checkOut?.ISO8601Format() == checkOut)
         #expect(records[2].breakTimes.count == 2)
-        #expect(records[2].sortedBreakTimes[0].start?.timeIntervalSinceReferenceDate == start1)
-        #expect(records[2].sortedBreakTimes[0].end?.timeIntervalSinceReferenceDate == end1)
-        #expect(records[2].sortedBreakTimes[1].start?.timeIntervalSinceReferenceDate == start2)
-        #expect(records[2].sortedBreakTimes[1].end?.timeIntervalSinceReferenceDate == end2)
+        #expect(records[2].sortedBreakTimes[0].start?.ISO8601Format() == start1)
+        #expect(records[2].sortedBreakTimes[0].end?.ISO8601Format() == end1)
+        #expect(records[2].sortedBreakTimes[1].start?.ISO8601Format() == start2)
+        #expect(records[2].sortedBreakTimes[1].end?.ISO8601Format() == end2)
         
         #expect(responseBody?.count == 1)
         
         let dict = responseBody?[0]
         #expect(dict?["id"] as? String != "")
-        #expect(dict?["checkIn"] as? Double == checkIn)
-        #expect(dict?["checkOut"] as? Double == checkOut)
+        #expect(dict?["checkIn"] as? String == checkIn)
+        #expect(dict?["checkOut"] as? String == checkOut)
         
         var breakTimes = dict?["breakTimes"] as? [[String: Any]]
         breakTimes?.sort(by: { $0["start"] as? Double ?? 0 < $1["start"] as? Double ?? 0 })
@@ -215,20 +215,20 @@ struct TimeCardServerTests {
             let dict = breakTimes?[i]
             let breakTime = record.sortedBreakTimes[i]
             #expect(dict?["id"] as? String == breakTime.id.uuidString)
-            #expect(dict?["start"] as? Double == breakTime.start?.timeIntervalSinceReferenceDate)
-            #expect(dict?["end"] as? Double == breakTime.end?.timeIntervalSinceReferenceDate)
+            #expect(dict?["start"] as? String == breakTime.start?.ISO8601Format())
+            #expect(dict?["end"] as? String == breakTime.end?.ISO8601Format())
         }
     }
     
     @Test mutating func testPostRecord_wrongBody() async throws {
         let uri = "/timecard/records"
-        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 20, 17, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 20, 17, 0, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":  \(checkIn),
-                "checkOut": \(checkOut),
-                wrongKey:   wrongValue
+                "checkIn":  "\(checkIn)",
+                "checkOut": "\(checkOut)",
+                "wrongKey": "wrongValue"
             }
             """
         try runTest(method: .POST, uri: uri, body: body)
@@ -246,10 +246,10 @@ struct TimeCardServerTests {
     
     @Test mutating func testPostRecord_missingParameter() async throws {
         let uri = "/timecard/records"
-        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":  \(checkIn)
+                "checkIn":  "\(checkIn)"
             }
             """
         try runTest(method: .POST, uri: uri, body: body)
@@ -267,22 +267,22 @@ struct TimeCardServerTests {
     
     @Test mutating func testPostRecord_tooManyPath() async throws {
         let uri = "/timecard/records/\(UUID().uuidString)"
-        let checkIn = date(2025, 10, 20, 9, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 20, 17, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start1 = date(2025, 10, 20, 12, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let end1 = date(2025, 10, 20, 13, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start2 = date(2025, 10, 20, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let end2 = date(2025, 10, 20, 15, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 20, 9, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 20, 17, 0, 0)?.ISO8601Format() ?? ""
+        let start1 = date(2025, 10, 20, 12, 0, 0)?.ISO8601Format() ?? ""
+        let end1 = date(2025, 10, 20, 13, 0, 0)?.ISO8601Format() ?? ""
+        let start2 = date(2025, 10, 20, 15, 0, 0)?.ISO8601Format() ?? ""
+        let end2 = date(2025, 10, 20, 15, 30, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":      \(checkIn),
-                "checkOut":     \(checkOut),
+                "checkIn":      "\(checkIn)",
+                "checkOut":     "\(checkOut)",
                 "breakTimes": [{
-                    "start":    \(start1),
-                    "end":      \(end1)
+                    "start":    "\(start1)",
+                    "end":      "\(end1)"
                 }, {
-                    "start":    \(start2),
-                    "end":      \(end2)
+                    "start":    "\(start2)",
+                    "end":      "\(end2)"
                 }]
             }
             """
@@ -301,17 +301,17 @@ struct TimeCardServerTests {
     
     @Test mutating func testPatchRecord() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
-        let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start = date(2025, 10, 18, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let end = date(2025, 10, 18, 15, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 18, 8, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 18, 19, 30, 0)?.ISO8601Format() ?? ""
+        let start = date(2025, 10, 18, 15, 0, 0)?.ISO8601Format() ?? ""
+        let end = date(2025, 10, 18, 15, 30, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":      \(checkIn),
-                "checkOut":     \(checkOut),
+                "checkIn":      "\(checkIn)",
+                "checkOut":     "\(checkOut)",
                 "breakTimes": [{
-                    "start":    \(start),
-                    "end":      \(end)
+                    "start":    "\(start)",
+                    "end":      "\(end)"
                 }]
             }
             """
@@ -326,19 +326,19 @@ struct TimeCardServerTests {
         let records = try context.fetch(descriptor)
         #expect(records[0].checkIn?.day == 15)
         #expect(records[0].checkOut?.day == 15)
-        #expect(records[1].checkIn?.timeIntervalSinceReferenceDate == checkIn)
-        #expect(records[1].checkOut?.timeIntervalSinceReferenceDate == checkOut)
+        #expect(records[1].checkIn?.ISO8601Format() == checkIn)
+        #expect(records[1].checkOut?.ISO8601Format() == checkOut)
         #expect(records[1].breakTimes.count == 1)
-        #expect(records[1].breakTimes[0].start?.timeIntervalSinceReferenceDate == start)
-        #expect(records[1].breakTimes[0].end?.timeIntervalSinceReferenceDate == end)
+        #expect(records[1].breakTimes[0].start?.ISO8601Format() == start)
+        #expect(records[1].breakTimes[0].end?.ISO8601Format() == end)
         
         #expect(responseBody?.count == 1)
         
         let dict = responseBody?[0]
         let record = records[1]
         #expect(dict?["id"] as? String == record.id.uuidString)
-        #expect(dict?["checkIn"] as? Double == record.checkIn?.timeIntervalSinceReferenceDate)
-        #expect(dict?["checkOut"] as? Double == record.checkOut?.timeIntervalSinceReferenceDate)
+        #expect(dict?["checkIn"] as? String == record.checkIn?.ISO8601Format())
+        #expect(dict?["checkOut"] as? String == record.checkOut?.ISO8601Format())
         
         let breakTimes = dict?["breakTimes"] as? [[String: Any]]
         #expect(breakTimes?.count == record.breakTimes.count)
@@ -346,20 +346,20 @@ struct TimeCardServerTests {
             let dict = breakTimes?[i]
             let breakTime = record.sortedBreakTimes[i]
             #expect(dict?["id"] as? String == breakTime.id.uuidString)
-            #expect(dict?["start"] as? Double == breakTime.start?.timeIntervalSinceReferenceDate)
-            #expect(dict?["end"] as? Double == breakTime.end?.timeIntervalSinceReferenceDate)
+            #expect(dict?["start"] as? String == breakTime.start?.ISO8601Format())
+            #expect(dict?["end"] as? String == breakTime.end?.ISO8601Format())
         }
     }
     
     @Test mutating func testPatchRecord_wrongBody() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
-        let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 18, 8, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 18, 19, 30, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":  \(checkIn),
-                "checkOut": \(checkOut),
-                wrongKey:   wrongValue
+                "checkIn":  "\(checkIn)",
+                "checkOut": "\(checkOut)",
+                "wrongKey": "wrongValue"
             }
             """
         try runTest(method: .PATCH, uri: uri, body: body)
@@ -376,15 +376,15 @@ struct TimeCardServerTests {
     
     @Test mutating func testPatchRecord_missingParameter() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
-        let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start = date(2025, 10, 18, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 18, 8, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 18, 19, 30, 0)?.ISO8601Format() ?? ""
+        let start = date(2025, 10, 18, 15, 0, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":      \(checkIn),
-                "checkOut":     \(checkOut),
+                "checkIn":      "\(checkIn)",
+                "checkOut":     "\(checkOut)",
                 "breakTimes": [{
-                    "start":    \(start)
+                    "start":    "\(start)"
                 }]
             }
             """
@@ -402,17 +402,17 @@ struct TimeCardServerTests {
     
     @Test mutating func testPatchRecord_wrongId() async throws {
         let uri = "/timecard/records/\(UUID().uuidString)"
-        let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start = date(2025, 10, 18, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let end = date(2025, 10, 18, 15, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 18, 8, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 18, 19, 30, 0)?.ISO8601Format() ?? ""
+        let start = date(2025, 10, 18, 15, 0, 0)?.ISO8601Format() ?? ""
+        let end = date(2025, 10, 18, 15, 30, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":      \(checkIn),
-                "checkOut":     \(checkOut),
+                "checkIn":      "\(checkIn)",
+                "checkOut":     "\(checkOut)",
                 "breakTimes": [{
-                    "start":    \(start),
-                    "end":      \(end)
+                    "start":    "\(start)",
+                    "end":      "\(end)"
                 }]
             }
             """
@@ -432,17 +432,17 @@ struct TimeCardServerTests {
     
     @Test mutating func testPatchRecord_missingId() async throws {
         let uri = "/timecard/records/"
-        let checkIn = date(2025, 10, 18, 8, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let checkOut = date(2025, 10, 18, 19, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let start = date(2025, 10, 18, 15, 0, 0)?.timeIntervalSinceReferenceDate ?? 0
-        let end = date(2025, 10, 18, 15, 30, 0)?.timeIntervalSinceReferenceDate ?? 0
+        let checkIn = date(2025, 10, 18, 8, 0, 0)?.ISO8601Format() ?? ""
+        let checkOut = date(2025, 10, 18, 19, 30, 0)?.ISO8601Format() ?? ""
+        let start = date(2025, 10, 18, 15, 0, 0)?.ISO8601Format() ?? ""
+        let end = date(2025, 10, 18, 15, 30, 0)?.ISO8601Format() ?? ""
         let body = """
             {
-                "checkIn":      \(checkIn),
-                "checkOut":     \(checkOut),
+                "checkIn":      "\(checkIn)",
+                "checkOut":     "\(checkOut)",
                 "breakTimes": [{
-                    "start":    \(start),
-                    "end":      \(end)
+                    "start":    "\(start)",
+                    "end":      "\(end)"
                 }]
             }
             """
@@ -518,8 +518,8 @@ struct TimeCardServerTests {
         let dict = responseBody?[0]
         let record = records[1].breakTimes[0]
         #expect(dict?["id"] as? String == record.id.uuidString)
-        #expect(dict?["start"] as? Double == record.start?.timeIntervalSinceReferenceDate)
-        #expect(dict?["end"] as? Double == record.end?.timeIntervalSinceReferenceDate)
+        #expect(dict?["start"] as? String == record.start?.ISO8601Format())
+        #expect(dict?["end"] as? String == record.end?.ISO8601Format())
     }
     
     @Test mutating func testGetBreakTime_wrongId() async throws {

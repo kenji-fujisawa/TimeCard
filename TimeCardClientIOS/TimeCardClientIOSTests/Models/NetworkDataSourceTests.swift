@@ -12,6 +12,7 @@ import Testing
 
 @testable import TimeCardClientIOS
 
+@Suite(.serialized)
 class NetworkDataSourceTests {
 
     private let responseBody = """
@@ -20,13 +21,13 @@ class NetworkDataSourceTests {
                 "id":"1B97D98D-A71E-4E57-B631-20F9AD492624",
                 "year":2025,
                 "month":12,
-                "checkIn":786242897.725608,
-                "checkOut":786277228.928412,
+                "checkIn":"2025-12-01T00:48:00Z",
+                "checkOut":"2025-12-01T10:20:00Z",
                 "breakTimes":[
                     {
                         "id":"A92129DB-92B8-4057-A5CC-D965D9664B35",
-                        "start":786252677.725608,
-                        "end":786255737.725608
+                        "start":"2025-12-01T03:31:00Z",
+                        "end":"2025-12-01T04:22:00Z"
                     }
                 ]
             },
@@ -34,13 +35,13 @@ class NetworkDataSourceTests {
                 "id":"4D1A3B51-D16F-486A-93FC-85C231DDACAD",
                 "year":2025,
                 "month":12,
-                "checkIn":786328648.080071,
-                "checkOut":786361916.853093,
+                "checkIn":"2025-12-02T00:37:00Z",
+                "checkOut":"2025-12-02T09:51:00Z",
                 "breakTimes":[
                     {
                         "id":"B85CDC50-C796-4A9D-AD95-46FFD1D8EA13",
-                        "start":786339206.024485,
-                        "end":786342090.21777
+                        "start":"2025-12-02T03:33:00Z",
+                        "end":"2025-12-02T04:21:00Z"
                     }
                 ]
             }
@@ -120,8 +121,15 @@ class NetworkDataSourceTests {
         #expect(request?.url?.path() == "/timecard/records")
         #expect(request?.httpMethod == "POST")
         
-        let rec = try? JSONDecoder().decode(TimeRecord.self, from: requestBody ?? Data())
-        #expect(rec == record)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let rec = try? decoder.decode(TimeRecord.self, from: requestBody ?? Data())
+        #expect(rec?.id == record.id)
+        #expect(rec?.year == record.year)
+        #expect(rec?.month == record.month)
+        #expect(rec?.checkIn?.ISO8601Format() == record.checkIn?.ISO8601Format())
+        #expect(rec?.checkOut?.ISO8601Format() == record.checkOut?.ISO8601Format())
+        #expect(rec?.breakTimes == record.breakTimes)
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -166,8 +174,15 @@ class NetworkDataSourceTests {
         #expect(request?.url?.path() == "/timecard/records/\(record.id.uuidString)")
         #expect(request?.httpMethod == "PATCH")
         
-        let rec = try? JSONDecoder().decode(TimeRecord.self, from: requestBody ?? Data())
-        #expect(rec == record)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let rec = try? decoder.decode(TimeRecord.self, from: requestBody ?? Data())
+        #expect(rec?.id == record.id)
+        #expect(rec?.year == record.year)
+        #expect(rec?.month == record.month)
+        #expect(rec?.checkIn?.ISO8601Format() == record.checkIn?.ISO8601Format())
+        #expect(rec?.checkOut?.ISO8601Format() == record.checkOut?.ISO8601Format())
+        #expect(rec?.breakTimes == record.breakTimes)
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"

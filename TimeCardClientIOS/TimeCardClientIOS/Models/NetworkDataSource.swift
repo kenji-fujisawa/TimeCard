@@ -34,14 +34,18 @@ class DefaultNetworkDataSource: NetworkDataSource {
             throw NetworkError(status: response.statusCode)
         }
         
-        return try JSONDecoder().decode([TimeRecord].self, from: data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode([TimeRecord].self, from: data)
     }
     
     func insertRecord(record: TimeRecord) async throws -> TimeRecord {
         let url = URL(string: "http://192.168.4.33:8080/timecard/records")
         guard let url = url else { throw NetworkError(status: nil) }
         
-        let json = try JSONEncoder().encode(record)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let json = try encoder.encode(record)
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -53,7 +57,9 @@ class DefaultNetworkDataSource: NetworkDataSource {
             throw NetworkError(status: response.statusCode)
         }
         
-        let records = try JSONDecoder().decode([TimeRecord].self, from: data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let records = try decoder.decode([TimeRecord].self, from: data)
         guard let record = records.first else {
             throw NetworkError(status: nil)
         }
@@ -66,7 +72,9 @@ class DefaultNetworkDataSource: NetworkDataSource {
         url = url?.appending(path: record.id.uuidString)
         guard let url = url else { throw NetworkError(status: nil) }
         
-        let json = try JSONEncoder().encode(record)
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        let json = try encoder.encode(record)
         
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
@@ -78,7 +86,9 @@ class DefaultNetworkDataSource: NetworkDataSource {
             throw NetworkError(status: response.statusCode)
         }
         
-        let records = try? JSONDecoder().decode([TimeRecord].self, from: data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let records = try? decoder.decode([TimeRecord].self, from: data)
         guard let record = records?.first else {
             throw NetworkError(status: nil)
         }

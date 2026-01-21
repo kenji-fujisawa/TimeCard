@@ -22,13 +22,13 @@ class RetrofitNetworkDataSourceTest {
                             "id":"1B97D98D-A71E-4E57-B631-20F9AD492624",
                             "year":2025,
                             "month":12,
-                            "checkIn":786242897.725608,
-                            "checkOut":786277228.928412,
+                            "checkIn":"2025-12-01T00:48:00Z",
+                            "checkOut":"2025-12-01T10:20:00Z",
                             "breakTimes":[
                                 {
                                     "id":"A92129DB-92B8-4057-A5CC-D965D9664B35",
-                                    "start":786252677.725608,
-                                    "end":786255737.725608
+                                    "start":"2025-12-01T03:31:00Z",
+                                    "end":"2025-12-01T04:22:00Z"
                                 }
                             ]
                         },
@@ -36,13 +36,13 @@ class RetrofitNetworkDataSourceTest {
                             "id":"4D1A3B51-D16F-486A-93FC-85C231DDACAD",
                             "year":2025,
                             "month":12,
-                            "checkIn":786328648.080071,
-                            "checkOut":786361916.853093,
+                            "checkIn":"2025-12-02T00:37:00Z",
+                            "checkOut":"2025-12-02T09:51:00Z",
                             "breakTimes":[
                                 {
                                     "id":"B85CDC50-C796-4A9D-AD95-46FFD1D8EA13",
-                                    "start":786339206.024485,
-                                    "end":786342090.21777
+                                    "start":"2025-12-02T03:33:00Z",
+                                    "end":"2025-12-02T04:21:00Z"
                                 }
                             ]
                         }

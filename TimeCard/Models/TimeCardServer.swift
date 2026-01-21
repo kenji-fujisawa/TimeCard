@@ -134,7 +134,9 @@ class TimeCardServer {
             )
             let records = try modelContext.fetch(descriptor)
             
-            let json = try JSONEncoder().encode(records)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let json = try encoder.encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
             handleResponse(buffer: buffer, context: context)
         }
@@ -148,36 +150,40 @@ class TimeCardServer {
             let records = try modelContext.fetch(descriptor)
             if records.isEmpty { throw HTTPError(status: .notFound) }
             
-            let json = try JSONEncoder().encode(records)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let json = try encoder.encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
             handleResponse(buffer: buffer, context: context)
         }
         
         private func insertRecord(context: ChannelHandlerContext) throws {
             guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
-            guard let checkIn = requestBody["checkIn"] as? Double else { throw HTTPError(status: .badRequest) }
-            guard let checkOut = requestBody["checkOut"] as? Double else { throw HTTPError(status: .badRequest) }
+            guard let checkIn = requestBody["checkIn"] as? String else { throw HTTPError(status: .badRequest) }
+            guard let checkOut = requestBody["checkOut"] as? String else { throw HTTPError(status: .badRequest) }
+            guard let checkInDate = try? Date(checkIn, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
+            guard let checkOutDate = try? Date(checkOut, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
             guard let breakTimes = requestBody["breakTimes"] as? [[String: Any]] else { throw HTTPError(status: .badRequest) }
             
             var breakTimeModels: [TimeRecord.BreakTime] = []
             for breakTime in breakTimes {
-                guard let start = breakTime["start"] as? Double else { throw HTTPError(status: .badRequest) }
-                guard let end = breakTime["end"] as? Double else { throw HTTPError(status: .badRequest) }
-                let startDate = Date(timeIntervalSinceReferenceDate: start)
-                let endDate = Date(timeIntervalSinceReferenceDate: end)
+                guard let start = breakTime["start"] as? String else { throw HTTPError(status: .badRequest) }
+                guard let end = breakTime["end"] as? String else { throw HTTPError(status: .badRequest) }
+                guard let startDate = try? Date(start, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
+                guard let endDate = try? Date(end, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
                 let breakTime = TimeRecord.BreakTime(start: startDate, end: endDate)
                 breakTimeModels.append(breakTime)
             }
             
-            let checkInDate = Date(timeIntervalSinceReferenceDate: checkIn)
-            let checkOutDate = Date(timeIntervalSinceReferenceDate: checkOut)
             let record = TimeRecord(year: checkInDate.year, month: checkInDate.month, checkIn: checkInDate, checkOut: checkOutDate)
             record.breakTimes.append(contentsOf: breakTimeModels)
             modelContext.insert(record)
             
             try modelContext.save()
             
-            let json = try JSONEncoder().encode([record])
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let json = try encoder.encode([record])
             let buffer = context.channel.allocator.buffer(data: json)
             handleResponse(buffer: buffer, context: context)
         }
@@ -185,16 +191,18 @@ class TimeCardServer {
         private func updateRecord(context: ChannelHandlerContext) throws {
             guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
-            guard let checkIn = requestBody["checkIn"] as? Double else { throw HTTPError(status: .badRequest) }
-            guard let checkOut = requestBody["checkOut"] as? Double else { throw HTTPError(status: .badRequest) }
+            guard let checkIn = requestBody["checkIn"] as? String else { throw HTTPError(status: .badRequest) }
+            guard let checkOut = requestBody["checkOut"] as? String else { throw HTTPError(status: .badRequest) }
+            guard let checkInDate = try? Date(checkIn, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
+            guard let checkOutDate = try? Date(checkOut, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
             guard let breakTimes = requestBody["breakTimes"] as? [[String: Any]] else { throw HTTPError(status: .badRequest) }
             
             var breakTimeModels: [TimeRecord.BreakTime] = []
             for breakTime in breakTimes {
-                guard let start = breakTime["start"] as? Double else { throw HTTPError(status: .badRequest) }
-                guard let end = breakTime["end"] as? Double else { throw HTTPError(status: .badRequest) }
-                let startDate = Date(timeIntervalSinceReferenceDate: start)
-                let endDate = Date(timeIntervalSinceReferenceDate: end)
+                guard let start = breakTime["start"] as? String else { throw HTTPError(status: .badRequest) }
+                guard let end = breakTime["end"] as? String else { throw HTTPError(status: .badRequest) }
+                guard let startDate = try? Date(start, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
+                guard let endDate = try? Date(end, strategy: .iso8601) else { throw HTTPError(status: .badRequest) }
                 let breakTime = TimeRecord.BreakTime(start: startDate, end: endDate)
                 breakTimeModels.append(breakTime)
             }
@@ -205,14 +213,16 @@ class TimeCardServer {
             let records = try modelContext.fetch(descriptor)
             
             guard let record = records.first else { throw HTTPError(status: .notFound) }
-            record.checkIn = Date(timeIntervalSinceReferenceDate: checkIn)
-            record.checkOut = Date(timeIntervalSinceReferenceDate: checkOut)
+            record.checkIn = checkInDate
+            record.checkOut = checkOutDate
             record.breakTimes.removeAll()
             record.breakTimes.append(contentsOf: breakTimeModels)
             
             try modelContext.save()
             
-            let json = try JSONEncoder().encode(records)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let json = try encoder.encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
             handleResponse(buffer: buffer, context: context)
         }
@@ -231,7 +241,9 @@ class TimeCardServer {
             
             try modelContext.save()
             
-            let json = try JSONEncoder().encode(records)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let json = try encoder.encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
             handleResponse(buffer: buffer, context: context)
         }
@@ -245,7 +257,9 @@ class TimeCardServer {
             let records = try modelContext.fetch(descriptor)
             if records.isEmpty { throw HTTPError(status: .notFound) }
             
-            let json = try JSONEncoder().encode(records)
+            let encoder = JSONEncoder()
+            encoder.dateEncodingStrategy = .iso8601
+            let json = try encoder.encode(records)
             let buffer = context.channel.allocator.buffer(data: json)
             handleResponse(buffer: buffer, context: context)
         }
