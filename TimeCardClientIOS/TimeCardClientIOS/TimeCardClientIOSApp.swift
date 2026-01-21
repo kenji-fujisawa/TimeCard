@@ -34,6 +34,7 @@ struct TimeCardClientIOSApp: App {
     }
 }
 
+#if DEBUG
 struct UITestApp: App {
     private let formatter: DateFormatter
     @State private var now: Date
@@ -175,3 +176,4 @@ private class FakeCalendarRecordRepositoryForContentView: CalendarRecordReposito
     func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
     }
 }
+#endif

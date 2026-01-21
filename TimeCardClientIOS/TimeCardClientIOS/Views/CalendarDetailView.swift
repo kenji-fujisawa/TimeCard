@@ -100,15 +100,44 @@ struct CalendarDetailView: View {
 }
 
 #Preview {
-    let record = CalendarRecord(date: .now, records: [
-        TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [
-            TimeRecord.BreakTime(id: UUID(), start: .now, end: .now),
-            TimeRecord.BreakTime(id: UUID(), start: .now, end: .now)
-        ]),
-        TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [
-            TimeRecord.BreakTime(id: UUID(), start: .now, end: .now),
-        ])
-    ])
+    let record = CalendarRecord(
+        date: .now,
+        records: [
+            TimeRecord(
+                id: UUID(),
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                checkOut: .now,
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: .now,
+                        end: .now
+                    ),
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: .now,
+                        end: .now
+                    )
+                ]
+            ),
+            TimeRecord(
+                id: UUID(),
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                checkOut: .now,
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: .now,
+                        end: .now
+                    ),
+                ]
+            )
+        ]
+    )
     let repository = FakeCalendarRecordRepository()
     let model = CalendarViewModel(repository: repository)
     NavigationStack {
