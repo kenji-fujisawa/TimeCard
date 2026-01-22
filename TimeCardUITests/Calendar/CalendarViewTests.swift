@@ -26,13 +26,13 @@ final class CalendarViewTests: XCTestCase {
         app.buttons["button_check_in"].tap()
         
         XCTAssertTrue(app.staticTexts["text_check_in"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["text_check_in"].value as! String, Date.now.formatted(.dateTime.hour().minute()))
+        XCTAssertEqual(app.staticTexts["text_check_in"].value as! String, Date.now.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()))
         
         XCTAssertTrue(app.buttons["button_check_out"].waitForExistence(timeout: 3))
         app.buttons["button_check_out"].tap()
         
         XCTAssertTrue(app.staticTexts["text_check_out"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["text_check_out"].value as! String, Date.now.formatted(.dateTime.hour().minute()))
+        XCTAssertEqual(app.staticTexts["text_check_out"].value as! String, Date.now.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute()))
     }
     
     func testEditButton() throws {
