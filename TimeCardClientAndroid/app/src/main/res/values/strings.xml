@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TimeCardClientAndroid</string>
+    <string name="app_name">Time Card</string>
     <string name="format_year_month">yyyy年MM月</string>
     <string name="format_day">dd(E)</string>
     <string name="format_hour_minute">HH:mm</string>
