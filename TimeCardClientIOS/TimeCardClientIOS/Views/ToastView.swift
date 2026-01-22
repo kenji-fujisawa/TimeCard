@@ -23,6 +23,7 @@ struct ToastView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.red)
                     Text(model.message)
+                        .accessibilityIdentifier("text_message")
                 }
                 .frame(maxWidth: .infinity)
                 .padding()

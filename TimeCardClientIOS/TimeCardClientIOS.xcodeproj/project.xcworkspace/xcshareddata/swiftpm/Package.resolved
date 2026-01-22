@@ -1,6 +1,15 @@
 {
-  "originHash" : "efb556400a7734a0f4b2c30b11383fc895c175702cd83954e18c61c2cfceb6eb",
+  "originHash" : "c1fa9829d63fdf514a726a2fb083fbb8fabd4df60957d0adaa3dbc37eff67345",
   "pins" : [
+    {
+      "identity" : "ohhttpstubs?tab=readme-ov-file",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/AliSoftware/OHHTTPStubs?tab=readme-ov-file",
+      "state" : {
+        "revision" : "12f19662426d0434d6c330c6974d53e2eb10ecd9",
+        "version" : "9.1.0"
+      }
+    },
     {
       "identity" : "swiftjapanesenationalholidays",
       "kind" : "remoteSourceControl",

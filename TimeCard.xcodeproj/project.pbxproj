@@ -27,6 +27,13 @@
 			remoteGlobalIDString = CA20F1812E84019000444640;
 			remoteInfo = TimeCard;
 		};
+		CA904CFC2EFE51B50035AF70 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CA20F17A2E84019000444640 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA20F1812E84019000444640;
+			remoteInfo = TimeCard;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -57,6 +64,7 @@
 /* Begin PBXFileReference section */
 		CA20F1822E84019000444640 /* TimeCard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeCard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA20F1902E84019100444640 /* TimeCardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeCardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA904CF62EFE51B50035AF70 /* TimeCardUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeCardUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -68,6 +76,11 @@
 		CA20F1932E84019100444640 /* TimeCardTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TimeCardTests;
+			sourceTree = "<group>";
+		};
+		CA904CF72EFE51B50035AF70 /* TimeCardUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeCardUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -95,6 +108,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA904CF32EFE51B50035AF70 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -103,6 +123,7 @@
 			children = (
 				CA20F1842E84019000444640 /* TimeCard */,
 				CA20F1932E84019100444640 /* TimeCardTests */,
+				CA904CF72EFE51B50035AF70 /* TimeCardUITests */,
 				CA824DC62E8E8920006325EF /* Frameworks */,
 				CA20F1832E84019000444640 /* Products */,
 			);
@@ -113,6 +134,7 @@
 			children = (
 				CA20F1822E84019000444640 /* TimeCard.app */,
 				CA20F1902E84019100444640 /* TimeCardTests.xctest */,
+				CA904CF62EFE51B50035AF70 /* TimeCardUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -182,6 +204,29 @@
 			productReference = CA20F1902E84019100444640 /* TimeCardTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		CA904CF52EFE51B50035AF70 /* TimeCardUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA904CFE2EFE51B50035AF70 /* Build configuration list for PBXNativeTarget "TimeCardUITests" */;
+			buildPhases = (
+				CA904CF22EFE51B50035AF70 /* Sources */,
+				CA904CF32EFE51B50035AF70 /* Frameworks */,
+				CA904CF42EFE51B50035AF70 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA904CFD2EFE51B50035AF70 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				CA904CF72EFE51B50035AF70 /* TimeCardUITests */,
+			);
+			name = TimeCardUITests;
+			packageProductDependencies = (
+			);
+			productName = TimeCardUITests;
+			productReference = CA904CF62EFE51B50035AF70 /* TimeCardUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -189,7 +234,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					CA20F1812E84019000444640 = {
@@ -197,6 +242,10 @@
 					};
 					CA20F18F2E84019100444640 = {
 						CreatedOnToolsVersion = 16.4;
+						TestTargetID = CA20F1812E84019000444640;
+					};
+					CA904CF52EFE51B50035AF70 = {
+						CreatedOnToolsVersion = 26.1;
 						TestTargetID = CA20F1812E84019000444640;
 					};
 				};
@@ -221,6 +270,7 @@
 			targets = (
 				CA20F1812E84019000444640 /* TimeCard */,
 				CA20F18F2E84019100444640 /* TimeCardTests */,
+				CA904CF52EFE51B50035AF70 /* TimeCardUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -234,6 +284,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		CA20F18E2E84019100444640 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA904CF42EFE51B50035AF70 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -257,6 +314,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CA904CF22EFE51B50035AF70 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -264,6 +328,11 @@
 			isa = PBXTargetDependency;
 			target = CA20F1812E84019000444640 /* TimeCard */;
 			targetProxy = CA20F1912E84019100444640 /* PBXContainerItemProxy */;
+		};
+		CA904CFD2EFE51B50035AF70 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA20F1812E84019000444640 /* TimeCard */;
+			targetProxy = CA904CFC2EFE51B50035AF70 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -518,6 +587,54 @@
 			};
 			name = Release;
 		};
+		CA904CFF2EFE51B50035AF70 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MACOSX_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.uhimania.TimeCardUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = TimeCard;
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		CA904D002EFE51B50035AF70 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MACOSX_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.uhimania.TimeCardUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = TimeCard;
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -544,6 +661,15 @@
 			buildConfigurations = (
 				CA20F1A82E84019100444640 /* Debug */,
 				CA20F1A92E84019100444640 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CA904CFE2EFE51B50035AF70 /* Build configuration list for PBXNativeTarget "TimeCardUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA904CFF2EFE51B50035AF70 /* Debug */,
+				CA904D002EFE51B50035AF70 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -8,9 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		CA5660642EB2090F0020C944 /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA5660632EB2090F0020C944 /* SwiftJapaneseNationalHolidays */; };
+		CA8C83442F04E73700BB46FA /* OHHTTPStubs in Frameworks */ = {isa = PBXBuildFile; productRef = CA8C83432F04E73700BB46FA /* OHHTTPStubs */; };
+		CA8C83462F04E73700BB46FA /* OHHTTPStubsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CA8C83452F04E73700BB46FA /* OHHTTPStubsSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		CA418FB92F037BDA0074B2E2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CA5660182EB2084D0020C944 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA56601F2EB2084D0020C944;
+			remoteInfo = TimeCardClientIOS;
+		};
 		CA56602E2EB2084E0020C944 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CA5660182EB2084D0020C944 /* Project object */;
@@ -21,11 +30,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CA418FB32F037BDA0074B2E2 /* TimeCardClientIOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeCardClientIOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA5660202EB2084D0020C944 /* TimeCardClientIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeCardClientIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA56602D2EB2084E0020C944 /* TimeCardClientIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeCardClientIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		CA418FB42F037BDA0074B2E2 /* TimeCardClientIOSUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeCardClientIOSUITests;
+			sourceTree = "<group>";
+		};
 		CA5660222EB2084D0020C944 /* TimeCardClientIOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TimeCardClientIOS;
@@ -39,6 +54,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CA418FB02F037BDA0074B2E2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA56601D2EB2084D0020C944 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -51,6 +73,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA8C83442F04E73700BB46FA /* OHHTTPStubs in Frameworks */,
+				CA8C83462F04E73700BB46FA /* OHHTTPStubsSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -62,6 +86,7 @@
 			children = (
 				CA5660222EB2084D0020C944 /* TimeCardClientIOS */,
 				CA5660302EB2084E0020C944 /* TimeCardClientIOSTests */,
+				CA418FB42F037BDA0074B2E2 /* TimeCardClientIOSUITests */,
 				CA5660212EB2084D0020C944 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -71,6 +96,7 @@
 			children = (
 				CA5660202EB2084D0020C944 /* TimeCardClientIOS.app */,
 				CA56602D2EB2084E0020C944 /* TimeCardClientIOSTests.xctest */,
+				CA418FB32F037BDA0074B2E2 /* TimeCardClientIOSUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -78,6 +104,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		CA418FB22F037BDA0074B2E2 /* TimeCardClientIOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA418FBD2F037BDA0074B2E2 /* Build configuration list for PBXNativeTarget "TimeCardClientIOSUITests" */;
+			buildPhases = (
+				CA418FAF2F037BDA0074B2E2 /* Sources */,
+				CA418FB02F037BDA0074B2E2 /* Frameworks */,
+				CA418FB12F037BDA0074B2E2 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA418FBA2F037BDA0074B2E2 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				CA418FB42F037BDA0074B2E2 /* TimeCardClientIOSUITests */,
+			);
+			name = TimeCardClientIOSUITests;
+			packageProductDependencies = (
+			);
+			productName = TimeCardClientIOSUITests;
+			productReference = CA418FB32F037BDA0074B2E2 /* TimeCardClientIOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		CA56601F2EB2084D0020C944 /* TimeCardClientIOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA5660412EB2084E0020C944 /* Build configuration list for PBXNativeTarget "TimeCardClientIOS" */;
@@ -119,6 +168,8 @@
 			);
 			name = TimeCardClientIOSTests;
 			packageProductDependencies = (
+				CA8C83432F04E73700BB46FA /* OHHTTPStubs */,
+				CA8C83452F04E73700BB46FA /* OHHTTPStubsSwift */,
 			);
 			productName = TimeCardClientIOSTests;
 			productReference = CA56602D2EB2084E0020C944 /* TimeCardClientIOSTests.xctest */;
@@ -131,9 +182,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
+					CA418FB22F037BDA0074B2E2 = {
+						CreatedOnToolsVersion = 26.1;
+						TestTargetID = CA56601F2EB2084D0020C944;
+					};
 					CA56601F2EB2084D0020C944 = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -154,6 +209,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CA5660622EB2090F0020C944 /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */,
+				CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA5660212EB2084D0020C944 /* Products */;
@@ -162,11 +218,19 @@
 			targets = (
 				CA56601F2EB2084D0020C944 /* TimeCardClientIOS */,
 				CA56602C2EB2084E0020C944 /* TimeCardClientIOSTests */,
+				CA418FB22F037BDA0074B2E2 /* TimeCardClientIOSUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		CA418FB12F037BDA0074B2E2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA56601E2EB2084D0020C944 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -184,6 +248,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CA418FAF2F037BDA0074B2E2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA56601C2EB2084D0020C944 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -201,6 +272,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		CA418FBA2F037BDA0074B2E2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA56601F2EB2084D0020C944 /* TimeCardClientIOS */;
+			targetProxy = CA418FB92F037BDA0074B2E2 /* PBXContainerItemProxy */;
+		};
 		CA56602F2EB2084E0020C944 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CA56601F2EB2084D0020C944 /* TimeCardClientIOS */;
@@ -209,6 +285,46 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		CA418FBB2F037BDA0074B2E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.uhimania.TimeCardClientIOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TimeCardClientIOS;
+			};
+			name = Debug;
+		};
+		CA418FBC2F037BDA0074B2E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = jp.uhimania.TimeCardClientIOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = TimeCardClientIOS;
+			};
+			name = Release;
+		};
 		CA56603F2EB2084E0020C944 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -339,6 +455,7 @@
 				CURRENT_PROJECT_VERSION = 2.4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Time Card";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -367,6 +484,7 @@
 				CURRENT_PROJECT_VERSION = 2.4;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Time Card";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -425,6 +543,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		CA418FBD2F037BDA0074B2E2 /* Build configuration list for PBXNativeTarget "TimeCardClientIOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA418FBB2F037BDA0074B2E2 /* Debug */,
+				CA418FBC2F037BDA0074B2E2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CA56601B2EB2084D0020C944 /* Build configuration list for PBXProject "TimeCardClientIOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -463,6 +590,14 @@
 				version = 1.1.0;
 			};
 		};
+		CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AliSoftware/OHHTTPStubs?tab=readme-ov-file";
+			requirement = {
+				kind = exactVersion;
+				version = 9.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -470,6 +605,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA5660622EB2090F0020C944 /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */;
 			productName = SwiftJapaneseNationalHolidays;
+		};
+		CA8C83432F04E73700BB46FA /* OHHTTPStubs */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */;
+			productName = OHHTTPStubs;
+		};
+		CA8C83452F04E73700BB46FA /* OHHTTPStubsSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */;
+			productName = OHHTTPStubsSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

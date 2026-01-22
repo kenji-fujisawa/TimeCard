@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Time Card</string>
+    <string name="format_year_month">yyyy年MM月</string>
+    <string name="format_day">dd(E)</string>
+    <string name="format_hour_minute">HH:mm</string>
+    <string name="header_check_in">出勤</string>
+    <string name="header_check_out">退勤</string>
+    <string name="header_break_start">休始</string>
+    <string name="header_break_end">休終</string>
+    <string name="caption_ok">OK</string>
+    <string name="caption_cancel">Cancel</string>
+    <string name="format_month_day">MM月dd日(E)</string>
+    <string name="caption_add_time_record">勤怠を追加</string>
+    <string name="caption_add_break_time">休憩を追加</string>
+    <string name="label_check_in">出勤</string>
+    <string name="label_check_out">退勤</string>
+    <string name="label_break_start">休憩開始</string>
+    <string name="label_break_end">休憩終了</string>
+    <string name="caption_done">Done</string>
+    <string name="caption_edit">Edit</string>
+    <string name="error_get_records_failed">データを取得できませんでした</string>
+    <string name="error_update_record_failed">データの更新に失敗しました</string>
+</resources>
