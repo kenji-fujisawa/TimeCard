@@ -31,7 +31,9 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         fetchTask = Task { [weak self] in
             let notifications = NotificationCenter.default.notifications(named: ModelContext.didSave)
             for await _ in notifications {
-                try? self?.publishRecords(year: year, month: month)
+                await MainActor.run { [weak self] in
+                    try? self?.publishRecords(year: year, month: month)
+                }
             }
         }
         
