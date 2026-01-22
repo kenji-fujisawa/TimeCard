@@ -14,11 +14,13 @@ struct CalendarRecordView: View {
         GridRow {
             Text(record.date, format: .dayWithWeekday)
                 .foregroundStyle(record.date.isHoliday() ? .red : .black)
+                .accessibilityIdentifier("text_date")
             
             VStack {
                 ForEach(record.records) { record in
                     if let checkIn = record.checkIn {
                         Text(checkIn, format: .dateTime.hour().minute())
+                            .accessibilityIdentifier("text_check_in")
                     }
                 }
             }
@@ -27,6 +29,7 @@ struct CalendarRecordView: View {
                 ForEach(record.records) { record in
                     if record.checkOut != nil {
                         Text(interval(record: record), format: .timeWorked)
+                            .accessibilityIdentifier("text_check_out")
                     }
                 }
             }
@@ -36,6 +39,7 @@ struct CalendarRecordView: View {
                     ForEach(record.breakTimes) { breakTime in
                         if let start = breakTime.start {
                             Text(start, format: .dateTime.hour().minute())
+                                .accessibilityIdentifier("text_break_start")
                         }
                     }
                 }
@@ -46,6 +50,7 @@ struct CalendarRecordView: View {
                     ForEach(record.breakTimes) { breakTime in
                         if breakTime.end != nil {
                             Text(interval(breakTime: breakTime), format: .timeWorked)
+                                .accessibilityIdentifier("text_break_end")
                         }
                     }
                 }
@@ -69,11 +74,42 @@ struct CalendarRecordView: View {
 }
 
 #Preview {
-    let break1 = TimeRecord.BreakTime(id: UUID(), start: .now, end: Date(timeInterval: 25 * 60 * 60, since: .now))
-    let break2 = TimeRecord.BreakTime(id: UUID(), start: .now)
-    let rec1 = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: Date(timeInterval: 26 * 60 * 60, since: .now), breakTimes: [break1, break2])
-    let rec2 = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, breakTimes: [break1])
-    let record = CalendarRecord(date: .now, records: [rec1, rec2])
+    let record = CalendarRecord(
+        date: .now,
+        records: [
+            TimeRecord(
+                id: UUID(),
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: .now,
+                        end: Date(timeIntervalSinceNow: 25 * 60 * 60)
+                    ),
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: .now
+                    )
+                ]
+            ),
+            TimeRecord(
+                id: UUID(),
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        id: UUID(),
+                        start: .now,
+                        end: Date(timeIntervalSinceNow: 25 * 60 * 60)
+                    )
+                ]
+            )
+        ]
+    )
     Grid {
         CalendarRecordView(record: record)
     }

@@ -6,8 +6,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.util.Calendar
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -29,17 +30,13 @@ data class TimeRecord @OptIn(ExperimentalUuidApi::class) constructor(
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(Date::class)
 class DateSerializer : KSerializer<Date> {
+    val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault())
+
     override fun serialize(encoder: Encoder, value: Date) {
-        val calendar = Calendar.getInstance()
-        calendar.time = value
-        calendar.add(Calendar.YEAR, 1970 - 2001)
-        encoder.encodeDouble(calendar.time.time.toDouble() / 1000)
+        encoder.encodeString(formatter.format(value))
     }
 
     override fun deserialize(decoder: Decoder): Date {
-        val calendar = Calendar.getInstance()
-        calendar.time = Date((decoder.decodeDouble() * 1000).toLong())
-        calendar.add(Calendar.YEAR, 2001 - 1970)
-        return calendar.time
+        return formatter.parse(decoder.decodeString()) ?: Date()
     }
 }
