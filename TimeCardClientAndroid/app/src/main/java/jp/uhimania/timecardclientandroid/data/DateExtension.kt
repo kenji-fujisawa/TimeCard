@@ -1,5 +1,6 @@
 package jp.uhimania.timecardclientandroid.data
 
+import jp.uhimania.japanholidays.Holidays
 import java.util.Calendar
 import java.util.Date
 
@@ -43,5 +44,5 @@ fun Date.isHoliday(): Boolean {
     val calendar = Calendar.getInstance()
     calendar.time = this
     val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-    return dayOfWeek == Calendar.SUNDAY || dayOfWeek == Calendar.SATURDAY
+    return dayOfWeek == Calendar.SUNDAY || dayOfWeek == Calendar.SATURDAY || Holidays.isHoliday(this)
 }

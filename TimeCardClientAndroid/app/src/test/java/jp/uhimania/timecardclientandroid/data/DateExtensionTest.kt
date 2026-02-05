@@ -28,5 +28,8 @@ class DateExtensionTest {
 
         val date3 = formatter.parse("2025-12-14")
         assertEquals(true, date3?.isHoliday())
+
+        val date4 = formatter.parse("2026-01-01")
+        assertEquals(true, date4?.isHoliday())
     }
 }
