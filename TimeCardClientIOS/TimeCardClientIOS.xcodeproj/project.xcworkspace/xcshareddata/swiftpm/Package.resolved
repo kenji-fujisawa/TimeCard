@@ -1,6 +1,15 @@
 {
-  "originHash" : "c1fa9829d63fdf514a726a2fb083fbb8fabd4df60957d0adaa3dbc37eff67345",
+  "originHash" : "18b54834fc8c96cb700becb1c9619941ff1d92d05bc5311b5209209db0e7d10c",
   "pins" : [
+    {
+      "identity" : "japanholidays_swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kenji-fujisawa/JapanHolidays_Swift",
+      "state" : {
+        "revision" : "2383bea67fbcfda9aa89321f0d414bbee3529e58",
+        "version" : "1.0.1"
+      }
+    },
     {
       "identity" : "ohhttpstubs?tab=readme-ov-file",
       "kind" : "remoteSourceControl",
@@ -8,15 +17,6 @@
       "state" : {
         "revision" : "12f19662426d0434d6c330c6974d53e2eb10ecd9",
         "version" : "9.1.0"
-      }
-    },
-    {
-      "identity" : "swiftjapanesenationalholidays",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/YOCKOW/SwiftJapaneseNationalHolidays",
-      "state" : {
-        "revision" : "9d575b13beeb076b0a3f8c4025cb87a9788e024f",
-        "version" : "1.1.0"
       }
     }
   ],
