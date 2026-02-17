@@ -34,10 +34,10 @@ struct SystemUptimeRecordEditView: View {
         
         var body: some View {
             List(selection: $selected) {
-                Section("起動時間") {
+                Section("稼働時間") {
                     ForEach(record.systemUptimeRecords) { record in
                         HStack {
-                            NavigationLink(record.launch.formatted(.dateTime.hour().minute())) {
+                            NavigationLink(record.uptimes.formatted(.timeWorked)) {
                                 DetailView(record: record)
                             }
                             .accessibilityIdentifier("nav_link")

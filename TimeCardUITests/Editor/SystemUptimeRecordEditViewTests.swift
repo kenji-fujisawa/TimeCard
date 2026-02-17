@@ -24,7 +24,7 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         
         // check initial value
         XCTAssertTrue(app.buttons["nav_link"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.buttons["nav_link"].label, "08:27")
+        XCTAssertEqual(app.buttons["nav_link"].label, "14:47")
         XCTAssertEqual(app.cells.containing(.button, identifier: "nav_link").element(boundBy: 0).isSelected, true)
         
         // add uptime record
@@ -32,7 +32,7 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         app.buttons["button_add_uptime_record"].tap()
         
         XCTAssertEqual(app.buttons.matching(identifier: "nav_link").count, 2)
-        XCTAssertEqual(app.buttons.matching(identifier: "nav_link").element(boundBy: 0).label, "08:27")
+        XCTAssertEqual(app.buttons.matching(identifier: "nav_link").element(boundBy: 0).label, "14:47")
         XCTAssertEqual(app.cells.containing(.button, identifier: "nav_link").element(boundBy: 0).isSelected, false)
         XCTAssertEqual(app.buttons.matching(identifier: "nav_link").element(boundBy: 1).label, "00:00")
         XCTAssertEqual(app.cells.containing(.button, identifier: "nav_link").element(boundBy: 1).isSelected, true)
@@ -54,7 +54,7 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         app.buttons["button_remove_uptime_record"].tap()
         
         XCTAssertEqual(app.buttons.matching(identifier: "nav_link").count, 1)
-        XCTAssertEqual(app.buttons.matching(identifier: "nav_link").element(boundBy: 0).label, "08:27")
+        XCTAssertEqual(app.buttons.matching(identifier: "nav_link").element(boundBy: 0).label, "14:47")
         XCTAssertEqual(app.cells.containing(.button, identifier: "nav_link").element(boundBy: 0).isSelected, true)
         
         // re-add and remove another record
@@ -78,7 +78,7 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         app.datePickers["date_launch"].tap()
         app.datePickers["date_launch"].typeText("29/15")
         
-        XCTAssertEqual(app.buttons.matching(identifier: "nav_link").element(boundBy: 0).label, "15:00")
+        XCTAssertEqual(app.buttons.matching(identifier: "nav_link").element(boundBy: 0).label, "-15:00")
         XCTAssertEqual(app.cells.containing(.button, identifier: "nav_link").element(boundBy: 0).isSelected, true)
     }
     

@@ -36,7 +36,12 @@ class DefaultNetworkDataSource: NetworkDataSource {
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode([TimeRecord].self, from: data)
+        var records = try decoder.decode([TimeRecord].self, from: data)
+        for i in records.indices {
+            records[i].breakTimes.sort { $0.start ?? .distantPast < $1.start ?? .distantPast }
+        }
+        
+        return records
     }
     
     func insertRecord(record: TimeRecord) async throws -> TimeRecord {
