@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CA5660642EB2090F0020C944 /* SwiftJapaneseNationalHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA5660632EB2090F0020C944 /* SwiftJapaneseNationalHolidays */; };
+		CA07B6A42F44378600656E80 /* JapanHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA07B6A32F44378600656E80 /* JapanHolidays */; };
 		CA8C83442F04E73700BB46FA /* OHHTTPStubs in Frameworks */ = {isa = PBXBuildFile; productRef = CA8C83432F04E73700BB46FA /* OHHTTPStubs */; };
 		CA8C83462F04E73700BB46FA /* OHHTTPStubsSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CA8C83452F04E73700BB46FA /* OHHTTPStubsSwift */; };
 /* End PBXBuildFile section */
@@ -65,7 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA5660642EB2090F0020C944 /* SwiftJapaneseNationalHolidays in Frameworks */,
+				CA07B6A42F44378600656E80 /* JapanHolidays in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,7 +144,7 @@
 			);
 			name = TimeCardClientIOS;
 			packageProductDependencies = (
-				CA5660632EB2090F0020C944 /* SwiftJapaneseNationalHolidays */,
+				CA07B6A32F44378600656E80 /* JapanHolidays */,
 			);
 			productName = TimeCardClientIOS;
 			productReference = CA5660202EB2084D0020C944 /* TimeCardClientIOS.app */;
@@ -208,8 +208,8 @@
 			mainGroup = CA5660172EB2084D0020C944;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				CA5660622EB2090F0020C944 /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */,
 				CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */,
+				CA07B6A22F44378600656E80 /* XCRemoteSwiftPackageReference "JapanHolidays_Swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA5660212EB2084D0020C944 /* Products */;
@@ -582,12 +582,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		CA5660622EB2090F0020C944 /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */ = {
+		CA07B6A22F44378600656E80 /* XCRemoteSwiftPackageReference "JapanHolidays_Swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/YOCKOW/SwiftJapaneseNationalHolidays";
+			repositoryURL = "https://github.com/kenji-fujisawa/JapanHolidays_Swift";
 			requirement = {
-				kind = exactVersion;
-				version = 1.1.0;
+				kind = upToNextMinorVersion;
+				minimumVersion = 1.0.1;
 			};
 		};
 		CA8C83422F04E73700BB46FA /* XCRemoteSwiftPackageReference "OHHTTPStubs" */ = {
@@ -601,10 +601,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CA5660632EB2090F0020C944 /* SwiftJapaneseNationalHolidays */ = {
+		CA07B6A32F44378600656E80 /* JapanHolidays */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CA5660622EB2090F0020C944 /* XCRemoteSwiftPackageReference "SwiftJapaneseNationalHolidays" */;
-			productName = SwiftJapaneseNationalHolidays;
+			package = CA07B6A22F44378600656E80 /* XCRemoteSwiftPackageReference "JapanHolidays_Swift" */;
+			productName = JapanHolidays;
 		};
 		CA8C83432F04E73700BB46FA /* OHHTTPStubs */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,6 +1,15 @@
 {
-  "originHash" : "29ca696f2e65d38a3b9f5b5fbc5929e2d88e575e4fbd99cc68ade80ba1909e0a",
+  "originHash" : "1a24111248542c6da77b3d5384d85948cc655ddb4c9e0eb72ee036983fb31260",
   "pins" : [
+    {
+      "identity" : "japanholidays_swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kenji-fujisawa/JapanHolidays_Swift",
+      "state" : {
+        "revision" : "2383bea67fbcfda9aa89321f0d414bbee3529e58",
+        "version" : "1.0.1"
+      }
+    },
     {
       "identity" : "swift-atomics",
       "kind" : "remoteSourceControl",
@@ -35,15 +44,6 @@
       "state" : {
         "revision" : "395a77f0aa927f0ff73941d7ac35f2b46d47c9db",
         "version" : "1.6.3"
-      }
-    },
-    {
-      "identity" : "swiftjapanesenationalholidays",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/YOCKOW/SwiftJapaneseNationalHolidays",
-      "state" : {
-        "revision" : "9d575b13beeb076b0a3f8c4025cb87a9788e024f",
-        "version" : "1.1.0"
       }
     }
   ],
