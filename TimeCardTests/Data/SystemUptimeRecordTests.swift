@@ -56,7 +56,7 @@ class SystemUptimeRecordTests {
     }
     
     @Test func testMigrateV1toV3() async throws {
-        var schema = Schema([TimeRecord.self, TimeCardSchema_v1.SystemUptimeRecord.self])
+        var schema = Schema([LocalTimeRecord.self, TimeCardSchema_v1.SystemUptimeRecord.self])
         var config = ModelConfiguration(schema: schema, url: urlV1)
         var container = try ModelContainer(for: schema, configurations: [config])
         var context = ModelContext(container)

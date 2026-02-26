@@ -47,7 +47,7 @@ struct CalendarRecordView: View {
             ZStack {
                 VStack {
                     ForEach(record.records) { record in
-                        ForEach(record.sortedBreakTimes) { breakTime in
+                        ForEach(record.breakTimes) { breakTime in
                             if let start = breakTime.start {
                                 Text(start, format: .dateTime.hour().minute())
                                     .accessibilityIdentifier("text_break_start")
@@ -62,7 +62,7 @@ struct CalendarRecordView: View {
             ZStack {
                 VStack {
                     ForEach(record.records) { record in
-                        ForEach(record.sortedBreakTimes) { breakTime in
+                        ForEach(record.breakTimes) { breakTime in
                             if breakTime.end != nil {
                                 Text(interval(breakTime: breakTime), format: .timeWorked)
                                     .accessibilityIdentifier("text_break_end")

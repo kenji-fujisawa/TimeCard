@@ -10,36 +10,35 @@ import SwiftUI
 struct TimeRecordEditView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var record: CalendarRecord
-    @State private var selected: TimeRecord? = nil
+    @State private var selectedId: TimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(record: $record, selected: $selected)
+            SidebarView(record: $record, selectedId: $selectedId)
         } detail: {
-            if let record = selected {
-                DetailView(record: record)
+            if let index = record.records.firstIndex(where: { $0.id == selectedId }) {
+                DetailView(record: $record.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
         .onAppear() {
-            selected = record.records.first
+            selectedId = record.records.first?.id
         }
     }
     
     private struct SidebarView: View {
-        @Environment(\.modelContext) private var context
         @Binding var record: CalendarRecord
-        @Binding var selected: TimeRecord?
+        @Binding var selectedId: TimeRecord.ID?
         @State private var recordToRemove: TimeRecord? = nil
         
         var body: some View {
-            List(selection: $selected) {
+            List(selection: $selectedId) {
                 Section("出勤時刻") {
-                    ForEach(record.records) { record in
+                    ForEach($record.records) { $record in
                         if let checkIn = record.checkIn {
                             HStack {
                                 NavigationLink(checkIn.formatted(.dateTime.hour().minute())) {
-                                    DetailView(record: record)
+                                    DetailView(record: $record)
                                 }
                                 .accessibilityIdentifier("nav_link")
                                 
@@ -62,7 +61,7 @@ struct TimeRecordEditView: View {
                                     .accessibilityIdentifier("button_remove_time_confirm")
                                 }
                             }
-                            .tag(record)
+                            .tag(record.id)
                         }
                     }
                 }
@@ -78,23 +77,21 @@ struct TimeRecordEditView: View {
         private func addRecord() {
             let date = record.date
             let record = TimeRecord(year: date.year, month: date.month, checkIn: date, checkOut: date)
-            context.insert(record)
             self.record.records.append(record)
-            selected = record
+            selectedId = record.id
         }
         
         private func removeRecord(record: TimeRecord) {
-            context.delete(record)
             self.record.records.removeAll(where: { $0 == record })
             recordToRemove = nil
-            if selected == record {
-                selected = self.record.records.first
+            if selectedId == record.id {
+                selectedId = self.record.records.first?.id
             }
         }
     }
     
     private struct DetailView: View {
-        @Bindable var record: TimeRecord
+        @Binding var record: TimeRecord
         @State private var recordToRemove: TimeRecord.BreakTime? = nil
         
         var body: some View {
@@ -108,9 +105,9 @@ struct TimeRecordEditView: View {
                 .padding()
                 
                 List {
-                    ForEach(record.sortedBreakTimes) { breakTime in
+                    ForEach($record.breakTimes) { $breakTime in
                         Section {
-                            BreakTimeView(breakTime: breakTime)
+                            BreakTimeView(breakTime: $breakTime)
                         } header: {
                             HStack {
                                 Text("休憩")
@@ -151,7 +148,7 @@ struct TimeRecordEditView: View {
     }
     
     private struct BreakTimeView: View {
-        @Bindable var breakTime: TimeRecord.BreakTime
+        @Binding var breakTime: TimeRecord.BreakTime
         
         var body: some View {
             Form {

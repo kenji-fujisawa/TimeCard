@@ -193,7 +193,7 @@ struct UITestApp: App {
                 }
             } else if CommandLine.arguments.contains("TimeRecordEditViewTests") {
                 TimeRecordEditView(record: $record)
-                    .modelContainer(for: TimeRecord.self, inMemory: true)
+                    .modelContainer(for: LocalTimeRecord.self, inMemory: true)
             } else if CommandLine.arguments.contains("SystemUptimeRecordEditViewTests") {
                 SystemUptimeRecordEditView(record: $record)
                     .modelContainer(for: SystemUptimeRecord.self, inMemory: true)

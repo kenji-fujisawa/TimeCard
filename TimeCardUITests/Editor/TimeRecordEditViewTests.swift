@@ -106,16 +106,16 @@ final class TimeRecordEditViewTests: XCTestCase {
         app.buttons["button_add_break_time"].tap()
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").count, 2)
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 14:48:12 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 14:48:12 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").count, 2)
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 16:33:48 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 16:33:48 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
         
         // remove break time
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_break_confirm").count, 2)
-        app.buttons.matching(identifier: "button_remove_break_confirm").element(boundBy: 0).tap()
+        app.buttons.matching(identifier: "button_remove_break_confirm").element(boundBy: 1).tap()
         
         XCTAssertTrue(app.buttons["button_remove_break_time"].waitForExistence(timeout: 3))
         app.buttons["button_remove_break_time"].tap()
@@ -131,7 +131,7 @@ final class TimeRecordEditViewTests: XCTestCase {
         app.buttons["button_add_break_time"].tap()
         
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_break_confirm").count, 2)
-        app.buttons.matching(identifier: "button_remove_break_confirm").element(boundBy: 0).tap()
+        app.buttons.matching(identifier: "button_remove_break_confirm").element(boundBy: 1).tap()
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_break_confirm").count, 1)
         app.buttons.matching(identifier: "button_remove_break_confirm").element(boundBy: 0).tap()
         

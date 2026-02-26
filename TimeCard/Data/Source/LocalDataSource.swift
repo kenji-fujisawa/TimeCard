@@ -28,38 +28,32 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {
-        let descriptor = FetchDescriptor<TimeRecord>(
+        let descriptor = FetchDescriptor<LocalTimeRecord>(
             predicate: #Predicate { $0.year == year && $0.month == month },
             sortBy: [.init(\.checkIn)]
         )
-        return try context.fetch(descriptor)
+        return try context.fetch(descriptor).map { $0.toTimeRecord() }
     }
     
-    private func getTimeRecord(id: UUID) throws -> TimeRecord? {
-        let descriptor = FetchDescriptor<TimeRecord>(
+    private func getTimeRecord(id: UUID) throws -> LocalTimeRecord? {
+        let descriptor = FetchDescriptor<LocalTimeRecord>(
             predicate: #Predicate { $0.id == id }
         )
         return try context.fetch(descriptor).first
     }
     
     func insertTimeRecord(record: TimeRecord) throws {
-        context.insert(record)
+        context.insert(record.toLocal())
         try context.save()
     }
     
     func updateTimeRecord(record: TimeRecord) throws {
         if let rec = try getTimeRecord(id: record.id) {
-            // records 側のオブジェクトが削除されてしまうのでコピーを渡す
-            let breakTimes = record.breakTimes.map { $0.copy() }
-            // "Illegal attempt to map a relationship containing temporary objects to its identifiers." エラーになるため事前に insert しておく
-            breakTimes.forEach { context.insert($0) }
-            try context.save()
-            
             rec.year = record.year
             rec.month = record.month
             rec.checkIn = record.checkIn
             rec.checkOut = record.checkOut
-            rec.breakTimes = breakTimes
+            rec.breakTimes = record.breakTimes.map { $0.toLocal() }
             try context.save()
         }
     }
@@ -117,29 +111,6 @@ class DefaultLocalDataSource: LocalDataSource {
     }
 }
 
-extension TimeRecord {
-    func copy() -> TimeRecord {
-        TimeRecord(
-            id: self.id,
-            year: self.year,
-            month: self.month,
-            checkIn: self.checkIn,
-            checkOut: self.checkOut,
-            breakTimes: self.breakTimes.map { $0.copy() }
-        )
-    }
-}
-
-extension TimeRecord.BreakTime {
-    func copy() -> TimeRecord.BreakTime {
-        TimeRecord.BreakTime(
-            id: self.id,
-            start: self.start,
-            end: self.end
-        )
-    }
-}
-
 extension SystemUptimeRecord {
     func copy() -> SystemUptimeRecord {
         SystemUptimeRecord(
@@ -157,6 +128,54 @@ extension SystemUptimeRecord {
 extension SystemUptimeRecord.SleepRecord {
     func copy() -> SystemUptimeRecord.SleepRecord {
         SystemUptimeRecord.SleepRecord(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
+extension TimeRecord {
+    func toLocal() -> LocalTimeRecord {
+        LocalTimeRecord(
+            id: self.id,
+            year: self.year,
+            month: self.month,
+            checkIn: self.checkIn,
+            checkOut: self.checkOut,
+            breakTimes: self.breakTimes.map { $0.toLocal() }
+        )
+    }
+}
+
+extension TimeRecord.BreakTime {
+    func toLocal() -> LocalTimeRecord.BreakTime {
+        LocalTimeRecord.BreakTime(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
+extension LocalTimeRecord {
+    func toTimeRecord() -> TimeRecord {
+        TimeRecord(
+            id: self.id,
+            year: self.year,
+            month: self.month,
+            checkIn: self.checkIn,
+            checkOut: self.checkOut,
+            breakTimes: self.breakTimes
+                .sorted { $0.start ?? .distantPast < $1.start ?? .distantPast }
+                .map { $0.toBreakTime() }
+        )
+    }
+}
+
+extension LocalTimeRecord.BreakTime {
+    func toBreakTime() -> TimeRecord.BreakTime {
+        TimeRecord.BreakTime(
             id: self.id,
             start: self.start,
             end: self.end

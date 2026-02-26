@@ -49,6 +49,29 @@ extension CalendarRecord {
     }
 }
 
+extension TimeRecord {
+    func copy() -> TimeRecord {
+        TimeRecord(
+            id: self.id,
+            year: self.year,
+            month: self.month,
+            checkIn: self.checkIn,
+            checkOut: self.checkOut,
+            breakTimes: self.breakTimes.map { $0.copy() }
+        )
+    }
+}
+
+extension TimeRecord.BreakTime {
+    func copy() -> TimeRecord.BreakTime {
+        TimeRecord.BreakTime(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
 #Preview {
     let record = CalendarRecord(
         date: .now,

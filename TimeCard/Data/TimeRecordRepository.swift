@@ -47,7 +47,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
             return .OffWork
         }
         
-        let latest = record.sortedBreakTimes.last
+        let latest = record.breakTimes.last
         if (latest?.start != nil && latest?.end == nil) {
             return .AtBreak
         }
@@ -79,7 +79,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         }
         
         let now = Date.now
-        if let record = try getRecords(year: now.year, month: now.month).last {
+        if var record = try getRecords(year: now.year, month: now.month).last {
             record.checkOut = now
             try source.updateTimeRecord(record: record)
         }
@@ -91,7 +91,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         }
         
         let now = Date.now
-        if let record = try getRecords(year: now.year, month: now.month).last {
+        if var record = try getRecords(year: now.year, month: now.month).last {
             record.breakTimes.append(TimeRecord.BreakTime(start: now))
             try source.updateTimeRecord(record: record)
         }
@@ -103,9 +103,10 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         }
         
         let now = Date.now
-        if let record = try getRecords(year: now.year, month: now.month).last,
-           let breakTime = record.sortedBreakTimes.last {
-            breakTime.end = now
+        if var record = try getRecords(year: now.year, month: now.month).last,
+           !record.breakTimes.isEmpty {
+            let index = record.breakTimes.count - 1
+            record.breakTimes[index].end = now
             try source.updateTimeRecord(record: record)
         }
     }

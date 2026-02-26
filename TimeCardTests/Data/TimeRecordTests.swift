@@ -12,27 +12,6 @@ import Testing
 
 struct TimeRecordTests {
 
-    @Test func testState() async throws {
-        let record = TimeRecord(year: 2025, month: 10)
-        #expect(record.state == .OffWork)
-        
-        record.checkIn = .now
-        #expect(record.state == .AtWork)
-        
-        let breakTime = TimeRecord.BreakTime()
-        record.breakTimes.append(breakTime)
-        #expect(record.state == .AtWork)
-        
-        breakTime.start = .now
-        #expect(record.state == .AtBreak)
-        
-        breakTime.end = .now
-        #expect(record.state == .AtWork)
-        
-        record.checkOut = .now
-        #expect(record.state == .OffWork)
-    }
-    
     @Test func testTimeWorked() async throws {
         let checkIn = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 9, minute: 0, second: 0))
         let checkOut = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 18, minute: 0, second: 0))
@@ -43,7 +22,7 @@ struct TimeRecordTests {
         let breakStart3 = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 17, minute: 0, second: 0))
         let breakEnd3 = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 17, minute: 0, second: 30))
         
-        let record = TimeRecord(year: 2025, month: 10)
+        var record = TimeRecord(year: 2025, month: 10)
         #expect(record.timeWorked == 0)
         
         record.checkIn = checkIn
@@ -57,10 +36,10 @@ struct TimeRecordTests {
         record.breakTimes.append(break1)
         #expect(record.timeWorked == hour9)
         
-        break1.start = breakStart1
+        record.breakTimes[0].start = breakStart1
         #expect(record.timeWorked == hour9)
         
-        break1.end = breakEnd1
+        record.breakTimes[0].end = breakEnd1
         let hour8: TimeInterval = 8 * 60 * 60
         #expect(record.timeWorked == hour8)
         
