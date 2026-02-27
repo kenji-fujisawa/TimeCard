@@ -36,6 +36,6 @@ class CalendarViewModel: ObservableObject {
     }
     
     func update(record: CalendarRecord) {
-        try? repository.updateRecord(source: records, record: record)
+        try? repository.updateRecord(record)
     }
 }

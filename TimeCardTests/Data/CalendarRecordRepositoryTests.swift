@@ -15,6 +15,8 @@ struct CalendarRecordRepositoryTests {
 
     @Test func testGetRecords() async throws {
         let source = FakeLocalDataSource()
+        source.initForGet()
+        
         let repository = DefaultCalendarRecordRepository(source: source)
         var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
         let records = await iterator.next()
@@ -66,107 +68,26 @@ struct CalendarRecordRepositoryTests {
     }
     
     @Test func testUpdateRecord() async throws {
-        let records = Calendar.current.datesOf(year: 2025, month: 12).map { date in
-            CalendarRecord(
-                date: date,
-                timeRecords: [
-                    TimeRecord(
-                        year: date.year,
-                        month: date.month,
-                        checkIn: date,
-                        checkOut: date,
-                        breakTimes: [
-                            TimeRecord.BreakTime(
-                                start: date,
-                                end: date
-                            )
-                        ]
-                    ),
-                    TimeRecord(
-                        year: date.year,
-                        month: date.month,
-                        checkIn: date,
-                        checkOut: date,
-                        breakTimes: [
-                            TimeRecord.BreakTime(
-                                start: date,
-                                end: date
-                            )
-                        ]
-                    ),
-                    TimeRecord(
-                        year: date.year,
-                        month: date.month,
-                        checkIn: date,
-                        checkOut: date,
-                        breakTimes: [
-                            TimeRecord.BreakTime(
-                                start: date,
-                                end: date
-                            )
-                        ]
-                    )
-                ],
-                uptimeRecords: [
-                    SystemUptimeRecord(
-                        year: date.year,
-                        month: date.month,
-                        day: date.day,
-                        launch: date,
-                        shutdown: date,
-                        sleepRecords: [
-                            SystemUptimeRecord.SleepRecord(
-                                start: date,
-                                end: date
-                            )
-                        ]
-                    ),
-                    SystemUptimeRecord(
-                        year: date.year,
-                        month: date.month,
-                        day: date.day,
-                        launch: date,
-                        shutdown: date,
-                        sleepRecords: [
-                            SystemUptimeRecord.SleepRecord(
-                                start: date,
-                                end: date
-                            )
-                        ]
-                    ),
-                    SystemUptimeRecord(
-                        year: date.year,
-                        month: date.month,
-                        day: date.day,
-                        launch: date,
-                        shutdown: date,
-                        sleepRecords: [
-                            SystemUptimeRecord.SleepRecord(
-                                start: date,
-                                end: date
-                            )
-                        ]
-                    )
-                ]
-            )
-        }
+        let source = FakeLocalDataSource()
+        source.initForUpdate()
+        
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let record = CalendarRecord(
-            date: records[0].date,
+            date: formatter.date(from: "2025-12-01 00:00:00") ?? .now,
             timeRecords: [
-                records[0].timeRecords[1],
+                source.timeRecords[1],
                 TimeRecord(
-                    id: records[0].timeRecords[2].id,
-                    year: records[0].timeRecords[2].year,
-                    month: records[0].timeRecords[2].month,
+                    id: source.timeRecords[2].id,
+                    year: 2025,
+                    month: 12,
                     checkIn: formatter.date(from: "2025-12-01 12:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 13:00:00"),
-                    breakTimes: records[0].timeRecords[2].breakTimes
+                    breakTimes: source.timeRecords[2].breakTimes
                 ),
                 TimeRecord(
-                    year: records[0].date.year,
-                    month: records[0].date.month,
+                    year: 2025,
+                    month: 12,
                     checkIn: formatter.date(from: "2025-12-01 17:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 18:00:00"),
                     breakTimes: [
@@ -182,20 +103,20 @@ struct CalendarRecordRepositoryTests {
                 )
             ],
             uptimeRecords: [
-                records[0].uptimeRecords[1],
+                source.uptimeRecords[1],
                 SystemUptimeRecord(
-                    id: records[0].uptimeRecords[2].id,
-                    year: records[0].uptimeRecords[2].year,
-                    month: records[0].uptimeRecords[2].month,
-                    day: records[0].uptimeRecords[2].day,
+                    id: source.uptimeRecords[2].id,
+                    year: 2025,
+                    month: 12,
+                    day: 1,
                     launch: formatter.date(from: "2025-12-01 12:00:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-01 13:00:00") ?? .now,
-                    sleepRecords: records[0].uptimeRecords[2].sleepRecords
+                    sleepRecords: source.uptimeRecords[2].sleepRecords
                 ),
                 SystemUptimeRecord(
-                    year: records[0].date.year,
-                    month: records[0].date.month,
-                    day: records[0].date.day,
+                    year: 2025,
+                    month: 12,
+                    day: 1,
                     launch: formatter.date(from: "2025-12-01 17:00:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-01 18:00:00") ?? .now,
                     sleepRecords: [
@@ -212,31 +133,29 @@ struct CalendarRecordRepositoryTests {
             ]
         )
         
-        let source = FakeLocalDataSource()
         let repository = DefaultCalendarRecordRepository(source: source)
-        
-        try repository.updateRecord(source: records, record: record)
+        try repository.updateRecord(record)
         
         #expect(source.timeInserted.count == 1)
         #expect(source.timeInserted[0] == record.timeRecords[2])
         #expect(source.timeUpdated.count == 1)
         #expect(source.timeUpdated[0] == record.timeRecords[1])
         #expect(source.timeDeleted.count == 1)
-        #expect(source.timeDeleted[0] == records[0].timeRecords[0])
+        #expect(source.timeDeleted[0] == source.timeRecords[0])
         
         #expect(source.uptimeInserted.count == 1)
         #expect(source.uptimeInserted[0] == record.uptimeRecords[2])
         #expect(source.uptimeUpdated.count == 1)
         #expect(source.uptimeUpdated[0] == record.uptimeRecords[1])
         #expect(source.uptimeDeleted.count == 1)
-        #expect(source.uptimeDeleted[0] == records[0].uptimeRecords[0])
+        #expect(source.uptimeDeleted[0] == source.uptimeRecords[0])
     }
     
     class FakeLocalDataSource: LocalDataSource {
-        let timeRecords: [TimeRecord]
-        let uptimeRecords: [SystemUptimeRecord]
+        var timeRecords: [TimeRecord] = []
+        var uptimeRecords: [SystemUptimeRecord] = []
         
-        init() {
+        func initForGet() {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
             
@@ -318,6 +237,45 @@ struct CalendarRecordRepositoryTests {
                     sleepRecords: []
                 )
             ]
+        }
+        
+        func initForUpdate() {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            let date = formatter.date(from: "2025-12-01 00:00:00") ?? .now
+            
+            for _ in 1...3 {
+                timeRecords.append(
+                    TimeRecord(
+                        year: date.year,
+                        month: date.month,
+                        checkIn: date,
+                        checkOut: date,
+                        breakTimes: [
+                            TimeRecord.BreakTime(
+                                start: date,
+                                end: date
+                            )
+                        ]
+                    )
+                )
+                
+                uptimeRecords.append(
+                    SystemUptimeRecord(
+                        year: date.year,
+                        month: date.month,
+                        day: date.day,
+                        launch: date,
+                        shutdown: date,
+                        sleepRecords: [
+                            SystemUptimeRecord.SleepRecord(
+                                start: date,
+                                end: date
+                            )
+                        ]
+                    )
+                )
+            }
         }
         
         func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {

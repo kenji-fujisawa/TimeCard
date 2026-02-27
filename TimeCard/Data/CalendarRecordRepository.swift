@@ -10,7 +10,7 @@ import SwiftData
 
 protocol CalendarRecordRepository {
     func getRecords(year: Int, month: Int) -> AsyncStream<[CalendarRecord]>
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) throws
+    func updateRecord(_ record: CalendarRecord) throws
 }
 
 class DefaultCalendarRecordRepository: CalendarRecordRepository {
@@ -78,17 +78,21 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         publish?(results)
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) throws {
-        guard let original = source.first(where: { $0.date == record.date }) else { return }
+    func updateRecord(_ record: CalendarRecord) throws {
+        let year = record.date.year
+        let month = record.date.month
+        let day = record.date.day
+        let orgTimes = try source.getTimeRecords(year: year, month: month).filter { $0.checkIn?.day ?? 0 == day }
+        let orgUptimes = try source.getUptimeRecords(year: year, month: month).filter { $0.launch.day == day }
         
         let timeInserted = record.timeRecords.filter { rec in
-            !original.timeRecords.contains { $0.id == rec.id }
+            !orgTimes.contains { $0.id == rec.id }
         }
         let timeUpdated = record.timeRecords.filter { rec in
-            let before = original.timeRecords.first { $0.id == rec.id }
+            let before = orgTimes.first { $0.id == rec.id }
             return before != nil && before != rec
         }
-        let timeDeleted = original.timeRecords.filter { rec in
+        let timeDeleted = orgTimes.filter { rec in
             !record.timeRecords.contains { $0.id == rec.id }
         }
         
@@ -97,13 +101,13 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         try timeDeleted.forEach { try self.source.deleteTimeRecord(record: $0) }
         
         let uptimeInserted = record.uptimeRecords.filter { rec in
-            !original.uptimeRecords.contains { $0.id == rec.id }
+            !orgUptimes.contains { $0.id == rec.id }
         }
         let uptimeUpdated = record.uptimeRecords.filter { rec in
-            let before = original.uptimeRecords.first { $0.id == rec.id }
+            let before = orgUptimes.first { $0.id == rec.id }
             return before != nil && before != rec
         }
-        let uptimeDeleted = original.uptimeRecords.filter { rec in
+        let uptimeDeleted = orgUptimes.filter { rec in
             !record.uptimeRecords.contains { $0.id == rec.id }
         }
         

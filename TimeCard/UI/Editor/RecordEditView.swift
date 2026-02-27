@@ -85,5 +85,5 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         AsyncStream { _ in }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) throws {}
+    func updateRecord(_ record: CalendarRecord) throws {}
 }

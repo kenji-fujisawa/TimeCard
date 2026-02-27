@@ -86,5 +86,5 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) throws {}
+    func updateRecord(_ record: CalendarRecord) throws {}
 }
