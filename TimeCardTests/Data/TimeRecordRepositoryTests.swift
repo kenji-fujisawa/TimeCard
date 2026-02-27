@@ -28,45 +28,45 @@ struct TimeRecordRepositoryTests {
         let repository = DefaultTimeRecordRepository(source: source)
         
         var state = repository.getState()
-        #expect(state == .OffWork)
+        #expect(state == .offWork)
         
         let now = Date.now
         var record = LocalTimeRecord(year: now.year, month: now.month)
         context.insert(record)
         
         state = repository.getState()
-        #expect(state == .OffWork)
+        #expect(state == .offWork)
         
         record.checkIn = now
         
         state = repository.getState()
-        #expect(state == .AtWork)
+        #expect(state == .atWork)
         
         record.breakTimes.append(LocalTimeRecord.BreakTime())
         
         state = repository.getState()
-        #expect(state == .AtWork)
+        #expect(state == .atWork)
         
         record.breakTimes[0].start = now
         
         state = repository.getState()
-        #expect(state == .AtBreak)
+        #expect(state == .atBreak)
         
         record.breakTimes[0].end = now
         
         state = repository.getState()
-        #expect(state == .AtWork)
+        #expect(state == .atWork)
         
         record.checkOut = now
         
         state = repository.getState()
-        #expect(state == .OffWork)
+        #expect(state == .offWork)
         
         record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now.addingTimeInterval(1))
         context.insert(record)
         
         state = repository.getState()
-        #expect(state == .AtWork)
+        #expect(state == .atWork)
     }
     
     @Test func testCheckIn() async throws {

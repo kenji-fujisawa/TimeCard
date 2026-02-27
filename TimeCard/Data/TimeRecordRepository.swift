@@ -8,9 +8,9 @@
 import Foundation
 
 enum WorkState {
-    case OffWork
-    case AtWork
-    case AtBreak
+    case offWork
+    case atWork
+    case atBreak
 }
 
 protocol TimeRecordRepository {
@@ -40,27 +40,27 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         let now = Date.now
         let records = try? getRecords(year: now.year, month: now.month)
         guard let record = records?.last else {
-            return .OffWork
+            return .offWork
         }
         
         if record.checkIn == nil {
-            return .OffWork
+            return .offWork
         }
         
         let latest = record.breakTimes.last
         if (latest?.start != nil && latest?.end == nil) {
-            return .AtBreak
+            return .atBreak
         }
         
         if record.checkOut == nil {
-            return .AtWork
+            return .atWork
         }
         
-        return .OffWork
+        return .offWork
     }
     
     func checkIn() throws {
-        guard getState() == .OffWork else {
+        guard getState() == .offWork else {
             throw TimeRecordError.stateMismatch
         }
         
@@ -74,7 +74,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
     }
     
     func checkOut() throws {
-        guard getState() == .AtWork else {
+        guard getState() == .atWork else {
             throw TimeRecordError.stateMismatch
         }
         
@@ -86,7 +86,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
     }
     
     func startBreak() throws {
-        guard getState() == .AtWork else {
+        guard getState() == .atWork else {
             throw TimeRecordError.stateMismatch
         }
         
@@ -98,7 +98,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
     }
     
     func endBreak() throws {
-        guard getState() == .AtBreak else {
+        guard getState() == .atBreak else {
             throw TimeRecordError.stateMismatch
         }
         

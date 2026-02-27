@@ -94,24 +94,24 @@ extension PrimitiveButtonStyle where Self == PreActionButtonStyle {
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {
-    var state = WorkState.OffWork
+    var state = WorkState.offWork
     func getState() -> WorkState {
         state
     }
     
     func checkIn() throws {
-        state = .AtWork
+        state = .atWork
     }
     
     func checkOut() throws {
-        state = .OffWork
+        state = .offWork
     }
     
     func startBreak() throws {
-        state = .AtBreak
+        state = .atBreak
     }
     
     func endBreak() throws {
-        state = .AtWork
+        state = .atWork
     }
 }

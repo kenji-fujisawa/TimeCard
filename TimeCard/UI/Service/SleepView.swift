@@ -29,7 +29,7 @@ struct SleepView: View {
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {
-    func getState() -> WorkState { .OffWork }
+    func getState() -> WorkState { .offWork }
     func checkIn() throws {}
     func checkOut() throws {}
     func startBreak() throws {}

@@ -14,7 +14,7 @@ struct RecorderView: View {
         VStack {
             ClockView()
             
-            if model.state == .OffWork {
+            if model.state == .offWork {
                 Button {
                     model.checkIn()
                 } label: {
@@ -29,7 +29,7 @@ struct RecorderView: View {
                     .frame(width: 50, height: 50)
                 }
                 .accessibilityIdentifier("button_check_in")
-            } else if model.state == .AtBreak {
+            } else if model.state == .atBreak {
                 Button {
                     model.endBreak()
                 } label: {
@@ -44,7 +44,7 @@ struct RecorderView: View {
                     .frame(width: 50, height: 50)
                 }
                 .accessibilityIdentifier("button_break_end")
-            } else if model.state == .AtWork {
+            } else if model.state == .atWork {
                 HStack {
                     Button {
                         model.checkOut()
@@ -88,24 +88,24 @@ struct RecorderView: View {
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {
-    var state = WorkState.OffWork
+    var state = WorkState.offWork
     func getState() -> WorkState {
         state
     }
     
     func checkIn() throws {
-        state = .AtWork
+        state = .atWork
     }
     
     func checkOut() throws {
-        state = .OffWork
+        state = .offWork
     }
     
     func startBreak() throws {
-        state = .AtBreak
+        state = .atBreak
     }
     
     func endBreak() throws {
-        state = .AtWork
+        state = .atWork
     }
 }
