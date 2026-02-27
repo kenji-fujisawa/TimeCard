@@ -43,7 +43,7 @@ struct SystemUptimeView: View {
 #Preview {
     let terminationManager = AppTerminationManager()
     let repository = FakeUptimeRepository()
-    let uptimeRecord = SystemUptimeRecordViewModel(repository: repository)
+    let uptimeRecord = SystemUptimeRecordViewModel(repository)
     SystemUptimeView(uptimeRecord: uptimeRecord)
         .environmentObject(terminationManager)
 }

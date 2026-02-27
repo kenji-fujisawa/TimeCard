@@ -89,7 +89,7 @@ extension PrimitiveButtonStyle where Self == PreActionButtonStyle {
 
 #Preview {
     let repository = FakeTimeRecordRepository()
-    let timeRecord = TimeRecordViewModel(repository: repository)
+    let timeRecord = TimeRecordViewModel(repository)
     ContentView(timeRecord: timeRecord)
 }
 

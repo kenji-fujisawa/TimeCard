@@ -76,7 +76,7 @@ struct RecordEditView: View {
         ]
     )
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository: repository)
+    let calendar = CalendarViewModel(repository)
     RecordEditView(record: record, calendar: calendar)
 }
 

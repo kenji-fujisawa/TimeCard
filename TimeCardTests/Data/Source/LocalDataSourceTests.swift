@@ -111,7 +111,7 @@ struct LocalDataSourceTests {
     @Test func testGetTimeRecord() async throws {
         timeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         var result = try source.getTimeRecord(id: timeRecords[0].id)
         #expect(result == timeRecords[0])
         
@@ -125,7 +125,7 @@ struct LocalDataSourceTests {
     @Test func testGetBreakTime() async throws {
         timeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         var result = try source.getBreakTime(id: timeRecords[0].breakTimes[1].id)
         #expect(result == timeRecords[0].breakTimes[1])
         
@@ -139,7 +139,7 @@ struct LocalDataSourceTests {
     @Test func testGetTimeRecords() async throws {
         timeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         var results = try source.getTimeRecords(year: 2025, month: 12)
         #expect(results.count == 2)
         #expect(results[0] == timeRecords[0])
@@ -154,7 +154,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testInsertTimeRecord() async throws {
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         try timeRecords.forEach { try source.insertTimeRecord($0) }
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -170,7 +170,7 @@ struct LocalDataSourceTests {
     @Test func testUpdateTimeRecord() async throws {
         timeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         var records = try source.getTimeRecords(year: 2025, month: 12)
         
         records[1].checkOut = formatter.date(from: "2025-12-30 19:30:00")
@@ -213,7 +213,7 @@ struct LocalDataSourceTests {
     @Test func testDeleteTimeRecord() async throws {
         timeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         let records = try source.getTimeRecords(year: 2025, month: 12)
         
         try source.deleteTimeRecord(records[0])
@@ -234,7 +234,7 @@ struct LocalDataSourceTests {
     @Test func testGetUptimeRecords() async throws {
         uptimeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         var results = try source.getUptimeRecords(year: 2025, month: 12)
         #expect(results.count == 2)
         #expect(results[0] == uptimeRecords[0])
@@ -249,7 +249,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testInsertUptimeRecord() async throws {
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         try uptimeRecords.forEach { try source.insertUptimeRecord($0) }
         
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
@@ -265,7 +265,7 @@ struct LocalDataSourceTests {
     @Test func testUpdateUptimeRecord() async throws {
         uptimeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         var records = try source.getUptimeRecords(year: 2025, month: 12)
         
         records[1].shutdown = formatter.date(from: "2025-12-30 19:30:00") ?? .now
@@ -309,7 +309,7 @@ struct LocalDataSourceTests {
     @Test func testDeleteUptimeRecord() async throws {
         uptimeRecords.forEach { context.insert($0.toLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         let records = try source.getUptimeRecords(year: 2025, month: 12)
         
         try source.deleteUptimeRecord(records[0])

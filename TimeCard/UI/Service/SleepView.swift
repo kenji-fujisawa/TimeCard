@@ -23,7 +23,7 @@ struct SleepView: View {
 
 #Preview {
     let repository = FakeTimeRecordRepository()
-    let timeRecord = TimeRecordViewModel(repository: repository)
+    let timeRecord = TimeRecordViewModel(repository)
     SleepView(timeRecord: timeRecord)
 }
 

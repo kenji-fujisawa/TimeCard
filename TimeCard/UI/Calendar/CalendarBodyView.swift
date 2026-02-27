@@ -71,7 +71,7 @@ struct CalendarBodyView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository: repository)
+    let calendar = CalendarViewModel(repository)
     CalendarBodyView(calendar: calendar)
 }
 

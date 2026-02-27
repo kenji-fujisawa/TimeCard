@@ -10,7 +10,7 @@ import Foundation
 class SystemUptimeRecordViewModel {
     private let repository: SystemUptimeRecordRepository
     
-    init(repository: SystemUptimeRecordRepository) {
+    init(_ repository: SystemUptimeRecordRepository) {
         self.repository = repository
     }
     

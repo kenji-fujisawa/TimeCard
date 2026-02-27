@@ -16,13 +16,13 @@ class TimeCardServer {
     private let eventLoopGroup: MultiThreadedEventLoopGroup
     private let bootstrap: ServerBootstrap
     
-    init(repository: TimeRecordRepository) {
+    init(_ repository: TimeRecordRepository) {
         eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(.backlog, value: 256)
             .childChannelInitializer({ channel in
                 channel.pipeline.configureHTTPServerPipeline(withErrorHandling: true).flatMap {
-                    channel.pipeline.addHandler(TimeCardServerHandler(repository: repository))
+                    channel.pipeline.addHandler(TimeCardServerHandler(repository))
                 }
             })
             .childChannelOption(.socketOption(.so_reuseaddr), value: 1)
@@ -65,7 +65,7 @@ class TimeCardServer {
         private var requestParams: [String: String] = [:]
         private var requestBody: [String: Any]? = nil
         
-        init(repository: TimeRecordRepository) {
+        init(_ repository: TimeRecordRepository) {
             self.repository = repository
             setupRoutes()
         }

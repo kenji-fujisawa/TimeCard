@@ -24,8 +24,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testLaunch() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         
@@ -41,8 +41,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testLaunch_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         
@@ -58,8 +58,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testShutdown() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         
@@ -81,8 +81,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testShutdown_inSleep() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         try repository.sleep()
@@ -102,8 +102,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testShutdown_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notRecording) {
             try repository.shutdown()
@@ -118,8 +118,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testSleep() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         try repository.sleep()
@@ -133,8 +133,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testSleep_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.self) {
             try repository.sleep()
@@ -149,8 +149,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testWake() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         try repository.sleep()
@@ -172,8 +172,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testWake_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notSleeping) {
             try repository.wake()
@@ -194,8 +194,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testUpdate() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         
@@ -212,8 +212,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testUpdate_inSleep() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         try repository.sleep()
@@ -233,8 +233,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testUpdate_dateChanged() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         
@@ -263,8 +263,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testUpdate_dateChanged_InSleep() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         try repository.launch()
         try repository.sleep()
@@ -298,8 +298,8 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testUpdate_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultSystemUptimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultSystemUptimeRecordRepository(source)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notRecording) {
             try repository.update()

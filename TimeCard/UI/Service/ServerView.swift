@@ -34,7 +34,7 @@ struct ServerView: View {
 #Preview {
     let terminationManager = AppTerminationManager()
     let repository = FakeTimeRecordRepository()
-    let server = TimeCardServer(repository: repository)
+    let server = TimeCardServer(repository)
     ServerView(server: server)
         .environmentObject(terminationManager)
 }

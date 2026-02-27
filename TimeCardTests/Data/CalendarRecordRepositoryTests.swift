@@ -17,7 +17,7 @@ struct CalendarRecordRepositoryTests {
         let source = FakeLocalDataSource()
         source.initForGet()
         
-        let repository = DefaultCalendarRecordRepository(source: source)
+        let repository = DefaultCalendarRecordRepository(source)
         var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
         let records = await iterator.next()
         #expect(records?.count == 31)
@@ -133,7 +133,7 @@ struct CalendarRecordRepositoryTests {
             ]
         )
         
-        let repository = DefaultCalendarRecordRepository(source: source)
+        let repository = DefaultCalendarRecordRepository(source)
         try repository.updateRecord(record)
         
         #expect(source.timeInserted.count == 1)

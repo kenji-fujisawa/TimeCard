@@ -36,7 +36,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
     
     private let source: LocalDataSource
     
-    init(source: LocalDataSource) {
+    init(_ source: LocalDataSource) {
         self.source = source
     }
     

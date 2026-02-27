@@ -12,7 +12,7 @@ class TimeRecordViewModel: ObservableObject {
     
     @Published var state: WorkState
     
-    init(repository: TimeRecordRepository) {
+    init(_ repository: TimeRecordRepository) {
         self.repository = repository
         self.state = repository.getState()
     }

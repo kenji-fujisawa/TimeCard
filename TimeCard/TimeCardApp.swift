@@ -30,17 +30,17 @@ struct TimeCardApp: App {
             fatalError(error.localizedDescription)
         }
         
-        let source = DefaultLocalDataSource(context: container.mainContext)
-        let timeRepository = DefaultTimeRecordRepository(source: source)
-        timeRecord = TimeRecordViewModel(repository: timeRepository)
+        let source = DefaultLocalDataSource(container.mainContext)
+        let timeRepository = DefaultTimeRecordRepository(source)
+        timeRecord = TimeRecordViewModel(timeRepository)
         
-        let uptimeRepository = DefaultSystemUptimeRecordRepository(source: source)
-        uptimeRecord = SystemUptimeRecordViewModel(repository: uptimeRepository)
+        let uptimeRepository = DefaultSystemUptimeRecordRepository(source)
+        uptimeRecord = SystemUptimeRecordViewModel(uptimeRepository)
         
-        let calendarRepository = DefaultCalendarRecordRepository(source: source)
-        calendar = CalendarViewModel(repository: calendarRepository)
+        let calendarRepository = DefaultCalendarRecordRepository(source)
+        calendar = CalendarViewModel(calendarRepository)
         
-        server = TimeCardServer(repository: timeRepository)
+        server = TimeCardServer(timeRepository)
     }
     
     var body: some Scene {
@@ -116,16 +116,16 @@ struct UITestApp: App {
             fatalError(error.localizedDescription)
         }
         
-        let source = DefaultLocalDataSource(context: container.mainContext)
-        let timeRepository = DefaultTimeRecordRepository(source: source)
-        let timeRecord = TimeRecordViewModel(repository: timeRepository)
+        let source = DefaultLocalDataSource(container.mainContext)
+        let timeRepository = DefaultTimeRecordRepository(source)
+        let timeRecord = TimeRecordViewModel(timeRepository)
         _timeRecord = StateObject(wrappedValue: timeRecord)
         
-        let uptimeRepository = DefaultSystemUptimeRecordRepository(source: source)
-        uptimeRecord = SystemUptimeRecordViewModel(repository: uptimeRepository)
+        let uptimeRepository = DefaultSystemUptimeRecordRepository(source)
+        uptimeRecord = SystemUptimeRecordViewModel(uptimeRepository)
         
-        let calendarRepository = DefaultCalendarRecordRepository(source: source)
-        let calendar = CalendarViewModel(repository: calendarRepository)
+        let calendarRepository = DefaultCalendarRecordRepository(source)
+        let calendar = CalendarViewModel(calendarRepository)
         _calendar = StateObject(wrappedValue: calendar)
         
         formatter = DateFormatter()

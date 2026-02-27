@@ -18,7 +18,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
     private var publish: (([CalendarRecord]) -> Void)? = nil
     private var fetchTask: Task<Void, Never>? = nil
     
-    init(source: LocalDataSource) {
+    init(_ source: LocalDataSource) {
         self.source = source
     }
     

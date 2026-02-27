@@ -32,7 +32,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
     private let source: LocalDataSource
     private var state: State = .shutdown
     
-    init(source: LocalDataSource) {
+    init(_ source: LocalDataSource) {
         self.source = source
     }
     

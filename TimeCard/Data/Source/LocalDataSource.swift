@@ -26,7 +26,7 @@ protocol LocalDataSource {
 class DefaultLocalDataSource: LocalDataSource {
     private let context: ModelContext
     
-    init(context: ModelContext) {
+    init(_ context: ModelContext) {
         self.context = context
     }
     

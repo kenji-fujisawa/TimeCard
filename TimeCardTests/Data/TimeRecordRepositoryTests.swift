@@ -25,28 +25,28 @@ struct TimeRecordRepositoryTests {
     
     @Test func testGetRecords() async throws {
         let source = FakeLocalDataSource()
-        let repository = DefaultTimeRecordRepository(source: source)
+        let repository = DefaultTimeRecordRepository(source)
         let result = try repository.getRecords(year: Date.now.year, month: Date.now.month)
         #expect(result == source.records)
     }
     
     @Test func testGetRecord() async throws {
         let source = FakeLocalDataSource()
-        let repository = DefaultTimeRecordRepository(source: source)
+        let repository = DefaultTimeRecordRepository(source)
         let result = try repository.getRecord(id: UUID())
         #expect(result == source.records[0])
     }
     
     @Test func testGetBreakTime() async throws {
         let source = FakeLocalDataSource()
-        let repository = DefaultTimeRecordRepository(source: source)
+        let repository = DefaultTimeRecordRepository(source)
         let result = try repository.getBreakTime(id: UUID())
         #expect(result == source.records[0].breakTimes[0])
     }
     
     @Test func testInsert() async throws {
         let source = FakeLocalDataSource()
-        let repository = DefaultTimeRecordRepository(source: source)
+        let repository = DefaultTimeRecordRepository(source)
         
         let record = TimeRecord(year: Date.now.year, month: Date.now.month)
         try repository.insert(record)
@@ -55,7 +55,7 @@ struct TimeRecordRepositoryTests {
     
     @Test func testUpdate() async throws {
         let source = FakeLocalDataSource()
-        let repository = DefaultTimeRecordRepository(source: source)
+        let repository = DefaultTimeRecordRepository(source)
         
         let record = TimeRecord(year: Date.now.year, month: Date.now.month)
         try repository.update(record)
@@ -64,7 +64,7 @@ struct TimeRecordRepositoryTests {
     
     @Test func testDelete() async throws {
         let source = FakeLocalDataSource()
-        let repository = DefaultTimeRecordRepository(source: source)
+        let repository = DefaultTimeRecordRepository(source)
         
         let record = TimeRecord(year: Date.now.year, month: Date.now.month)
         try repository.delete(record)
@@ -72,8 +72,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testGetState() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         var state = repository.getState()
         #expect(state == .offWork)
@@ -118,8 +118,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testCheckIn() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         try repository.checkIn()
         
@@ -134,8 +134,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testCheckIn_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         let now = Date.now
         let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
@@ -153,8 +153,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testCheckOut() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         let now = Date.now
         let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
@@ -173,8 +173,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testCheckOut_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         #expect(throws: DefaultTimeRecordRepository.TimeRecordError.stateMismatch) {
             try repository.checkOut()
@@ -191,8 +191,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testStartBreak() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         let now = Date.now
         let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
@@ -209,8 +209,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testStartBreak_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         #expect(throws: DefaultTimeRecordRepository.TimeRecordError.stateMismatch) {
             try repository.startBreak()
@@ -227,8 +227,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testEndBreak() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         let now = Date.now
         let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
@@ -246,8 +246,8 @@ struct TimeRecordRepositoryTests {
     }
     
     @Test func testEndBreak_fail() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        let repository = DefaultTimeRecordRepository(source: source)
+        let source = DefaultLocalDataSource(context)
+        let repository = DefaultTimeRecordRepository(source)
         
         #expect(throws: DefaultTimeRecordRepository.TimeRecordError.stateMismatch) {
             try repository.endBreak()

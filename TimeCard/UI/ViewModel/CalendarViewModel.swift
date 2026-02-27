@@ -14,7 +14,7 @@ class CalendarViewModel: ObservableObject {
     @Published var date: Date = .now
     @Published var records: [CalendarRecord] = []
     
-    init(repository: CalendarRecordRepository) {
+    init(_ repository: CalendarRecordRepository) {
         self.repository = repository
         self.fetchRecords()
     }
