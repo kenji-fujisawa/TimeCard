@@ -70,7 +70,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
             month: now.month,
             checkIn: now
         )
-        try source.insertTimeRecord(record: record)
+        try source.insertTimeRecord(record)
     }
     
     func checkOut() throws {
@@ -81,7 +81,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         let now = Date.now
         if var record = try getRecords(year: now.year, month: now.month).last {
             record.checkOut = now
-            try source.updateTimeRecord(record: record)
+            try source.updateTimeRecord(record)
         }
     }
     
@@ -93,7 +93,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         let now = Date.now
         if var record = try getRecords(year: now.year, month: now.month).last {
             record.breakTimes.append(TimeRecord.BreakTime(start: now))
-            try source.updateTimeRecord(record: record)
+            try source.updateTimeRecord(record)
         }
     }
     
@@ -107,7 +107,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
            !record.breakTimes.isEmpty {
             let index = record.breakTimes.count - 1
             record.breakTimes[index].end = now
-            try source.updateTimeRecord(record: record)
+            try source.updateTimeRecord(record)
         }
     }
 }

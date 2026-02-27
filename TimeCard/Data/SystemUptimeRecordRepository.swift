@@ -55,7 +55,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
             shutdown: now,
             sleepRecords: []
         )
-        try source.insertUptimeRecord(record: record)
+        try source.insertUptimeRecord(record)
         
         state = .running
     }
@@ -75,7 +75,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
             record.sleepRecords[index].end = .now
         }
         
-        try source.updateUptimeRecord(record: record)
+        try source.updateUptimeRecord(record)
         
         state = .shutdown
     }
@@ -91,7 +91,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         let now = Date.now
         let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
         record.sleepRecords.append(sleep)
-        try source.updateUptimeRecord(record: record)
+        try source.updateUptimeRecord(record)
         
         state = .sleep
     }
@@ -106,7 +106,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         
         let index = record.sleepRecords.count - 1
         record.sleepRecords[index].end = .now
-        try source.updateUptimeRecord(record: record)
+        try source.updateUptimeRecord(record)
         
         state = .running
     }
@@ -124,7 +124,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
             record.sleepRecords[index].end = now
         }
         
-        try source.updateUptimeRecord(record: record)
+        try source.updateUptimeRecord(record)
         
         if record.day != now.day {
             var record = SystemUptimeRecord(
@@ -140,7 +140,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
                 record.sleepRecords.append(sleep)
             }
             
-            try source.insertUptimeRecord(record: record)
+            try source.insertUptimeRecord(record)
         }
     }
 }

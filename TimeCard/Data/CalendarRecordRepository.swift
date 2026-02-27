@@ -96,9 +96,9 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
             !record.timeRecords.contains { $0.id == rec.id }
         }
         
-        try timeInserted.forEach { try self.source.insertTimeRecord(record: $0) }
-        try timeUpdated.forEach { try self.source.updateTimeRecord(record: $0) }
-        try timeDeleted.forEach { try self.source.deleteTimeRecord(record: $0) }
+        try timeInserted.forEach { try self.source.insertTimeRecord($0) }
+        try timeUpdated.forEach { try self.source.updateTimeRecord($0) }
+        try timeDeleted.forEach { try self.source.deleteTimeRecord($0) }
         
         let uptimeInserted = record.uptimeRecords.filter { rec in
             !orgUptimes.contains { $0.id == rec.id }
@@ -111,8 +111,8 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
             !record.uptimeRecords.contains { $0.id == rec.id }
         }
         
-        try uptimeInserted.forEach { try self.source.insertUptimeRecord(record: $0) }
-        try uptimeUpdated.forEach { try self.source.updateUptimeRecord(record: $0) }
-        try uptimeDeleted.forEach { try self.source.deleteUptimeRecord(record: $0) }
+        try uptimeInserted.forEach { try self.source.insertUptimeRecord($0) }
+        try uptimeUpdated.forEach { try self.source.updateUptimeRecord($0) }
+        try uptimeDeleted.forEach { try self.source.deleteUptimeRecord($0) }
     }
 }

@@ -127,7 +127,7 @@ struct LocalDataSourceTests {
     
     @Test func testInsertTimeRecord() async throws {
         let source = DefaultLocalDataSource(context: context)
-        try timeRecords.forEach { try source.insertTimeRecord(record: $0) }
+        try timeRecords.forEach { try source.insertTimeRecord($0) }
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             sortBy: [.init(\.checkIn)]
@@ -161,8 +161,8 @@ struct LocalDataSourceTests {
         #expect(results[0] != records[0])
         #expect(results[1] != records[1])
         
-        try source.updateTimeRecord(record: records[0])
-        try source.updateTimeRecord(record: records[1])
+        try source.updateTimeRecord(records[0])
+        try source.updateTimeRecord(records[1])
         
         results = try context.fetch(descriptor).map { $0.toTimeRecord() }
         #expect(results.count == 2)
@@ -188,7 +188,7 @@ struct LocalDataSourceTests {
         let source = DefaultLocalDataSource(context: context)
         let records = try source.getTimeRecords(year: 2025, month: 12)
         
-        try source.deleteTimeRecord(record: records[0])
+        try source.deleteTimeRecord(records[0])
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             sortBy: [.init(\.checkIn)]
@@ -222,7 +222,7 @@ struct LocalDataSourceTests {
     
     @Test func testInsertUptimeRecord() async throws {
         let source = DefaultLocalDataSource(context: context)
-        try uptimeRecords.forEach { try source.insertUptimeRecord(record: $0) }
+        try uptimeRecords.forEach { try source.insertUptimeRecord($0) }
         
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.launch)]
@@ -257,8 +257,8 @@ struct LocalDataSourceTests {
         #expect(results[0] != records[0])
         #expect(results[1] != records[1])
         
-        try source.updateUptimeRecord(record: records[0])
-        try source.updateUptimeRecord(record: records[1])
+        try source.updateUptimeRecord(records[0])
+        try source.updateUptimeRecord(records[1])
         
         results = try context.fetch(descriptor).map { $0.toUptimeRecord() }
         #expect(results.count == 2)
@@ -284,7 +284,7 @@ struct LocalDataSourceTests {
         let source = DefaultLocalDataSource(context: context)
         let records = try source.getUptimeRecords(year: 2025, month: 12)
         
-        try source.deleteUptimeRecord(record: records[0])
+        try source.deleteUptimeRecord(records[0])
         
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.launch)]

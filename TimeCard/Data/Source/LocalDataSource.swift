@@ -10,14 +10,14 @@ import SwiftData
 
 protocol LocalDataSource {
     func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord]
-    func insertTimeRecord(record: TimeRecord) throws
-    func updateTimeRecord(record: TimeRecord) throws
-    func deleteTimeRecord(record: TimeRecord) throws
+    func insertTimeRecord(_ record: TimeRecord) throws
+    func updateTimeRecord(_ record: TimeRecord) throws
+    func deleteTimeRecord(_ record: TimeRecord) throws
     
     func getUptimeRecords(year: Int, month: Int) throws -> [SystemUptimeRecord]
-    func insertUptimeRecord(record: SystemUptimeRecord) throws
-    func updateUptimeRecord(record: SystemUptimeRecord) throws
-    func deleteUptimeRecord(record: SystemUptimeRecord) throws
+    func insertUptimeRecord(_ record: SystemUptimeRecord) throws
+    func updateUptimeRecord(_ record: SystemUptimeRecord) throws
+    func deleteUptimeRecord(_ record: SystemUptimeRecord) throws
 }
 
 class DefaultLocalDataSource: LocalDataSource {
@@ -42,12 +42,12 @@ class DefaultLocalDataSource: LocalDataSource {
         return try context.fetch(descriptor).first
     }
     
-    func insertTimeRecord(record: TimeRecord) throws {
+    func insertTimeRecord(_ record: TimeRecord) throws {
         context.insert(record.toLocal())
         try context.save()
     }
     
-    func updateTimeRecord(record: TimeRecord) throws {
+    func updateTimeRecord(_ record: TimeRecord) throws {
         if let rec = try getTimeRecord(id: record.id) {
             rec.year = record.year
             rec.month = record.month
@@ -58,7 +58,7 @@ class DefaultLocalDataSource: LocalDataSource {
         }
     }
     
-    func deleteTimeRecord(record: TimeRecord) throws {
+    func deleteTimeRecord(_ record: TimeRecord) throws {
         if let rec = try getTimeRecord(id: record.id) {
             context.delete(rec)
             try context.save()
@@ -80,12 +80,12 @@ class DefaultLocalDataSource: LocalDataSource {
         return try context.fetch(descriptor).first
     }
     
-    func insertUptimeRecord(record: SystemUptimeRecord) throws {
+    func insertUptimeRecord(_ record: SystemUptimeRecord) throws {
         context.insert(record.toLocal())
         try context.save()
     }
     
-    func updateUptimeRecord(record: SystemUptimeRecord) throws {
+    func updateUptimeRecord(_ record: SystemUptimeRecord) throws {
         if let rec = try getUptimeRecord(id: record.id) {
             rec.year = record.year
             rec.month = record.month
@@ -97,7 +97,7 @@ class DefaultLocalDataSource: LocalDataSource {
         }
     }
     
-    func deleteUptimeRecord(record: SystemUptimeRecord) throws {
+    func deleteUptimeRecord(_ record: SystemUptimeRecord) throws {
         if let rec = try getUptimeRecord(id: record.id) {
             context.delete(rec)
             try context.save()

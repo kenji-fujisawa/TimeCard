@@ -283,17 +283,17 @@ struct CalendarRecordRepositoryTests {
         }
         
         var timeInserted: [TimeRecord] = []
-        func insertTimeRecord(record: TimeRecord) throws {
+        func insertTimeRecord(_ record: TimeRecord) throws {
             timeInserted.append(record)
         }
         
         var timeUpdated: [TimeRecord] = []
-        func updateTimeRecord(record: TimeRecord) throws {
+        func updateTimeRecord(_ record: TimeRecord) throws {
             timeUpdated.append(record)
         }
         
         var timeDeleted: [TimeRecord] = []
-        func deleteTimeRecord(record: TimeRecord) throws {
+        func deleteTimeRecord(_ record: TimeRecord) throws {
             timeDeleted.append(record)
         }
         
@@ -302,17 +302,17 @@ struct CalendarRecordRepositoryTests {
         }
         
         var uptimeInserted: [SystemUptimeRecord] = []
-        func insertUptimeRecord(record: SystemUptimeRecord) throws {
+        func insertUptimeRecord(_ record: SystemUptimeRecord) throws {
             uptimeInserted.append(record)
         }
         
         var uptimeUpdated: [SystemUptimeRecord] = []
-        func updateUptimeRecord(record: SystemUptimeRecord) throws {
+        func updateUptimeRecord(_ record: SystemUptimeRecord) throws {
             uptimeUpdated.append(record)
         }
         
         var uptimeDeleted: [SystemUptimeRecord] = []
-        func deleteUptimeRecord(record: SystemUptimeRecord) throws {
+        func deleteUptimeRecord(_ record: SystemUptimeRecord) throws {
             uptimeDeleted.append(record)
         }
     }
