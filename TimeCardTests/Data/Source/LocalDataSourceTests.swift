@@ -108,6 +108,34 @@ struct LocalDataSourceTests {
         ]
     }
     
+    @Test func testGetTimeRecord() async throws {
+        timeRecords.forEach { context.insert($0.toLocal()) }
+        
+        let source = DefaultLocalDataSource(context: context)
+        var result = try source.getTimeRecord(id: timeRecords[0].id)
+        #expect(result == timeRecords[0])
+        
+        result = try source.getTimeRecord(id: timeRecords[2].id)
+        #expect(result == timeRecords[2])
+        
+        result = try source.getTimeRecord(id: UUID())
+        #expect(result == nil)
+    }
+    
+    @Test func testGetBreakTime() async throws {
+        timeRecords.forEach { context.insert($0.toLocal()) }
+        
+        let source = DefaultLocalDataSource(context: context)
+        var result = try source.getBreakTime(id: timeRecords[0].breakTimes[1].id)
+        #expect(result == timeRecords[0].breakTimes[1])
+        
+        result = try source.getBreakTime(id: timeRecords[2].breakTimes[0].id)
+        #expect(result == timeRecords[2].breakTimes[0])
+        
+        result = try source.getBreakTime(id: UUID())
+        #expect(result == nil)
+    }
+    
     @Test func testGetTimeRecords() async throws {
         timeRecords.forEach { context.insert($0.toLocal()) }
         

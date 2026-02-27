@@ -14,6 +14,7 @@ struct TimeCardApp: App {
     private let timeRecord: TimeRecordViewModel
     private let uptimeRecord: SystemUptimeRecordViewModel
     private let calendar: CalendarViewModel
+    private let server: TimeCardServer
     
     init() {
         #if DEBUG
@@ -38,6 +39,8 @@ struct TimeCardApp: App {
         
         let calendarRepository = DefaultCalendarRecordRepository(source: source)
         calendar = CalendarViewModel(repository: calendarRepository)
+        
+        server = TimeCardServer(repository: timeRepository)
     }
     
     var body: some Scene {
@@ -54,8 +57,7 @@ struct TimeCardApp: App {
             SystemUptimeView(uptimeRecord: uptimeRecord)
                 .environmentObject(terminationManager)
             SleepView(timeRecord: timeRecord)
-            ServerView()
-                .modelContainer(container)
+            ServerView(server: server)
                 .environmentObject(terminationManager)
         }
         .menuBarExtraStyle(.window)

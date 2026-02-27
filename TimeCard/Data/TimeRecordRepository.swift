@@ -14,6 +14,14 @@ enum WorkState {
 }
 
 protocol TimeRecordRepository {
+    func getRecords(year: Int, month: Int) throws -> [TimeRecord]
+    func getRecord(id: UUID) throws -> TimeRecord?
+    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime?
+    
+    func insert(_ record: TimeRecord) throws
+    func update(_ record: TimeRecord) throws
+    func delete(_ record: TimeRecord) throws
+    
     func getState() -> WorkState
     func checkIn() throws
     func checkOut() throws
@@ -32,8 +40,28 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         self.source = source
     }
     
-    private func getRecords(year: Int, month: Int) throws -> [TimeRecord] {
+    func getRecords(year: Int, month: Int) throws -> [TimeRecord] {
         try source.getTimeRecords(year: year, month: month)
+    }
+    
+    func getRecord(id: UUID) throws -> TimeRecord? {
+        try source.getTimeRecord(id: id)
+    }
+    
+    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? {
+        try source.getBreakTime(id: id)
+    }
+    
+    func insert(_ record: TimeRecord) throws {
+        try source.insertTimeRecord(record)
+    }
+    
+    func update(_ record: TimeRecord) throws {
+        try source.updateTimeRecord(record)
+    }
+    
+    func delete(_ record: TimeRecord) throws {
+        try source.deleteTimeRecord(record)
     }
     
     func getState() -> WorkState {

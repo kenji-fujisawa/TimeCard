@@ -75,7 +75,9 @@ struct TimeCardServerTests {
     }
     
     private mutating func setupChannel() async throws {
-        let handler = TimeCardServer.TimeCardServerHandler(context: context)
+        let source = DefaultLocalDataSource(context: context)
+        let repository = DefaultTimeRecordRepository(source: source)
+        let handler = TimeCardServer.TimeCardServerHandler(repository: repository)
         channel = EmbeddedChannel()
         try await channel.pipeline.addHandler(handler)
     }

@@ -10,7 +10,7 @@ import SwiftUI
 struct ServerView: View {
     @Environment(\.modelContext) private var context
     @EnvironmentObject private var terminationManager: AppTerminationManager
-    @State private var server: TimeCardServer!
+    let server: TimeCardServer
     @State private var becomeActive = false
     
     var body: some View {
@@ -22,7 +22,6 @@ struct ServerView: View {
                     }
                     
                     Task {
-                        server = TimeCardServer(context: context)
                         try await server.run()
                     }
                     
@@ -34,6 +33,22 @@ struct ServerView: View {
 
 #Preview {
     let terminationManager = AppTerminationManager()
-    ServerView()
+    let repository = FakeTimeRecordRepository()
+    let server = TimeCardServer(repository: repository)
+    ServerView(server: server)
         .environmentObject(terminationManager)
+}
+
+private class FakeTimeRecordRepository: TimeRecordRepository {
+    func getRecords(year: Int, month: Int) throws -> [TimeRecord] { [] }
+    func getRecord(id: UUID) throws -> TimeRecord? { nil }
+    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? { nil }
+    func insert(_ record: TimeRecord) throws {}
+    func update(_ record: TimeRecord) throws {}
+    func delete(_ record: TimeRecord) throws {}
+    func getState() -> WorkState { .offWork }
+    func checkIn() throws {}
+    func checkOut() throws {}
+    func startBreak() throws {}
+    func endBreak() throws {}
 }

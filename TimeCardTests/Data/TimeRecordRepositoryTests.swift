@@ -23,6 +23,54 @@ struct TimeRecordRepositoryTests {
         self.context = ModelContext(container)
     }
     
+    @Test func testGetRecords() async throws {
+        let source = FakeLocalDataSource()
+        let repository = DefaultTimeRecordRepository(source: source)
+        let result = try repository.getRecords(year: Date.now.year, month: Date.now.month)
+        #expect(result == source.records)
+    }
+    
+    @Test func testGetRecord() async throws {
+        let source = FakeLocalDataSource()
+        let repository = DefaultTimeRecordRepository(source: source)
+        let result = try repository.getRecord(id: UUID())
+        #expect(result == source.records[0])
+    }
+    
+    @Test func testGetBreakTime() async throws {
+        let source = FakeLocalDataSource()
+        let repository = DefaultTimeRecordRepository(source: source)
+        let result = try repository.getBreakTime(id: UUID())
+        #expect(result == source.records[0].breakTimes[0])
+    }
+    
+    @Test func testInsert() async throws {
+        let source = FakeLocalDataSource()
+        let repository = DefaultTimeRecordRepository(source: source)
+        
+        let record = TimeRecord(year: Date.now.year, month: Date.now.month)
+        try repository.insert(record)
+        #expect(source.inserted == record)
+    }
+    
+    @Test func testUpdate() async throws {
+        let source = FakeLocalDataSource()
+        let repository = DefaultTimeRecordRepository(source: source)
+        
+        let record = TimeRecord(year: Date.now.year, month: Date.now.month)
+        try repository.update(record)
+        #expect(source.updated == record)
+    }
+    
+    @Test func testDelete() async throws {
+        let source = FakeLocalDataSource()
+        let repository = DefaultTimeRecordRepository(source: source)
+        
+        let record = TimeRecord(year: Date.now.year, month: Date.now.month)
+        try repository.delete(record)
+        #expect(source.deleted == record)
+    }
+    
     @Test func testGetState() async throws {
         let source = DefaultLocalDataSource(context: context)
         let repository = DefaultTimeRecordRepository(source: source)
@@ -212,6 +260,55 @@ struct TimeRecordRepositoryTests {
         #expect(throws: DefaultTimeRecordRepository.TimeRecordError.stateMismatch) {
             try repository.endBreak()
         }
+    }
+    
+    class FakeLocalDataSource: LocalDataSource {
+        let records = [
+            TimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                checkIn: .now,
+                checkOut: .now,
+                breakTimes: [
+                    TimeRecord.BreakTime(
+                        start: .now,
+                        end: .now
+                    )
+                ]
+            )
+        ]
+        
+        func getTimeRecord(id: UUID) throws -> TimeRecord? {
+            records[0]
+        }
+        
+        func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? {
+            records[0].breakTimes[0]
+        }
+        
+        func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {
+            records
+        }
+        
+        var inserted: TimeRecord? = nil
+        func insertTimeRecord(_ record: TimeRecord) throws {
+            inserted = record
+        }
+        
+        var updated: TimeRecord? = nil
+        func updateTimeRecord(_ record: TimeRecord) throws {
+            updated = record
+        }
+        
+        var deleted: TimeRecord? = nil
+        func deleteTimeRecord(_ record: TimeRecord) throws {
+            deleted = record
+        }
+        
+        func getUptimeRecords(year: Int, month: Int) throws -> [SystemUptimeRecord] { [] }
+        func insertUptimeRecord(_ record: SystemUptimeRecord) throws {}
+        func updateUptimeRecord(_ record: SystemUptimeRecord) throws {}
+        func deleteUptimeRecord(_ record: SystemUptimeRecord) throws {}
     }
 }
 

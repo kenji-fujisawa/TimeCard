@@ -94,6 +94,13 @@ extension PrimitiveButtonStyle where Self == PreActionButtonStyle {
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {
+    func getRecords(year: Int, month: Int) throws -> [TimeRecord] { [] }
+    func getRecord(id: UUID) throws -> TimeRecord? { nil }
+    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? { nil }
+    func insert(_ record: TimeRecord) throws {}
+    func update(_ record: TimeRecord) throws {}
+    func delete(_ record: TimeRecord) throws {}
+    
     var state = WorkState.offWork
     func getState() -> WorkState {
         state

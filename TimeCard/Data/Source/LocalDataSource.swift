@@ -9,6 +9,9 @@ import Foundation
 import SwiftData
 
 protocol LocalDataSource {
+    func getTimeRecord(id: UUID) throws -> TimeRecord?
+    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime?
+    
     func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord]
     func insertTimeRecord(_ record: TimeRecord) throws
     func updateTimeRecord(_ record: TimeRecord) throws
@@ -27,6 +30,20 @@ class DefaultLocalDataSource: LocalDataSource {
         self.context = context
     }
     
+    func getTimeRecord(id: UUID) throws -> TimeRecord? {
+        let descriptor = FetchDescriptor<LocalTimeRecord>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try context.fetch(descriptor).first?.toTimeRecord()
+    }
+    
+    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? {
+        let descriptor = FetchDescriptor<LocalTimeRecord.BreakTime>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try context.fetch(descriptor).first?.toBreakTime()
+    }
+    
     func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             predicate: #Predicate { $0.year == year && $0.month == month },
@@ -35,7 +52,7 @@ class DefaultLocalDataSource: LocalDataSource {
         return try context.fetch(descriptor).map { $0.toTimeRecord() }
     }
     
-    private func getTimeRecord(id: UUID) throws -> LocalTimeRecord? {
+    private func getLocalTimeRecord(id: UUID) throws -> LocalTimeRecord? {
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             predicate: #Predicate { $0.id == id }
         )
@@ -48,7 +65,7 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func updateTimeRecord(_ record: TimeRecord) throws {
-        if let rec = try getTimeRecord(id: record.id) {
+        if let rec = try getLocalTimeRecord(id: record.id) {
             rec.year = record.year
             rec.month = record.month
             rec.checkIn = record.checkIn
@@ -59,7 +76,7 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func deleteTimeRecord(_ record: TimeRecord) throws {
-        if let rec = try getTimeRecord(id: record.id) {
+        if let rec = try getLocalTimeRecord(id: record.id) {
             context.delete(rec)
             try context.save()
         }
@@ -73,7 +90,7 @@ class DefaultLocalDataSource: LocalDataSource {
         return try context.fetch(descriptor).map { $0.toUptimeRecord() }
     }
     
-    private func getUptimeRecord(id: UUID) throws -> LocalUptimeRecord? {
+    private func getLocalUptimeRecord(id: UUID) throws -> LocalUptimeRecord? {
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
             predicate: #Predicate { $0.id == id }
         )
@@ -86,7 +103,7 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func updateUptimeRecord(_ record: SystemUptimeRecord) throws {
-        if let rec = try getUptimeRecord(id: record.id) {
+        if let rec = try getLocalUptimeRecord(id: record.id) {
             rec.year = record.year
             rec.month = record.month
             rec.day = record.day
@@ -98,7 +115,7 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func deleteUptimeRecord(_ record: SystemUptimeRecord) throws {
-        if let rec = try getUptimeRecord(id: record.id) {
+        if let rec = try getLocalUptimeRecord(id: record.id) {
             context.delete(rec)
             try context.save()
         }
