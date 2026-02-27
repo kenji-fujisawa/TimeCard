@@ -16,13 +16,13 @@ struct TimeRecordEditView: View {
         NavigationSplitView {
             SidebarView(record: $record, selectedId: $selectedId)
         } detail: {
-            if let index = record.records.firstIndex(where: { $0.id == selectedId }) {
-                DetailView(record: $record.records[index])
+            if let index = record.timeRecords.firstIndex(where: { $0.id == selectedId }) {
+                DetailView(record: $record.timeRecords[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
         .onAppear() {
-            selectedId = record.records.first?.id
+            selectedId = record.timeRecords.first?.id
         }
     }
     
@@ -34,7 +34,7 @@ struct TimeRecordEditView: View {
         var body: some View {
             List(selection: $selectedId) {
                 Section("出勤時刻") {
-                    ForEach($record.records) { $record in
+                    ForEach($record.timeRecords) { $record in
                         if let checkIn = record.checkIn {
                             HStack {
                                 NavigationLink(checkIn.formatted(.dateTime.hour().minute())) {
@@ -77,15 +77,15 @@ struct TimeRecordEditView: View {
         private func addRecord() {
             let date = record.date
             let record = TimeRecord(year: date.year, month: date.month, checkIn: date, checkOut: date)
-            self.record.records.append(record)
+            self.record.timeRecords.append(record)
             selectedId = record.id
         }
         
         private func removeRecord(record: TimeRecord) {
-            self.record.records.removeAll(where: { $0 == record })
+            self.record.timeRecords.removeAll(where: { $0 == record })
             recordToRemove = nil
             if selectedId == record.id {
-                selectedId = self.record.records.first?.id
+                selectedId = self.record.timeRecords.first?.id
             }
         }
     }
@@ -164,7 +164,7 @@ struct TimeRecordEditView: View {
 #Preview {
     @Previewable @State var record = CalendarRecord(
         date: .now,
-        records: [
+        timeRecords: [
             TimeRecord(
                 year: Date.now.year,
                 month: Date.now.month,
@@ -192,7 +192,7 @@ struct TimeRecordEditView: View {
                 ]
             )
         ],
-        systemUptimeRecords: []
+        uptimeRecords: []
     )
     TimeRecordEditView(record: $record)
 }

@@ -80,10 +80,10 @@ struct ExportPDFView: View {
         
         for record in action.records {
             var lines = 0
-            if record.records.isEmpty {
+            if record.timeRecords.isEmpty {
                 lines += 1
             } else {
-                for rec in record.records {
+                for rec in record.timeRecords {
                     lines += max(rec.breakTimes.count, 1)
                 }
             }
@@ -170,7 +170,7 @@ private struct PDFView: View {
 #Preview {
     let record = CalendarRecord(
         date: .now,
-        records: [
+        timeRecords: [
             TimeRecord(
                 year: Date.now.year,
                 month: Date.now.month,
@@ -198,7 +198,7 @@ private struct PDFView: View {
                 ]
             )
         ],
-        systemUptimeRecords: [
+        uptimeRecords: [
             SystemUptimeRecord(
                 year: Date.now.year,
                 month: Date.now.month,

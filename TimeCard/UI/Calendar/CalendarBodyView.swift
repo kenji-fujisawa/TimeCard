@@ -62,7 +62,7 @@ struct CalendarBodyView: View {
     private func isFixed(record: CalendarRecord) -> Bool {
         let now = Date.now
         if record.date.year == now.year && record.date.month == now.month && record.date.day == now.day {
-            let latest = record.records.last
+            let latest = record.timeRecords.last
             return latest != nil && latest?.checkIn != nil && latest?.checkOut != nil
         }
         
@@ -80,7 +80,7 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
     func getRecords(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
         AsyncStream { continuation in
             let records = Calendar.current.datesOf(year: year, month: month).map { date in
-                CalendarRecord(date: date, records: [], systemUptimeRecords: [])
+                CalendarRecord(date: date, timeRecords: [], uptimeRecords: [])
             }
             continuation.yield(records)
         }

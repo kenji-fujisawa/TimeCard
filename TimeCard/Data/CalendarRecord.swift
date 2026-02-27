@@ -11,18 +11,18 @@ struct CalendarRecord: Identifiable {
     var id = UUID()
     
     var date: Date
-    var records: [TimeRecord]
-    var systemUptimeRecords: [SystemUptimeRecord]
+    var timeRecords: [TimeRecord]
+    var uptimeRecords: [SystemUptimeRecord]
     
     var timeWorked: TimeInterval {
-        records.reduce(0) { partialResult, record in
+        timeRecords.reduce(0) { partialResult, record in
             partialResult + record.timeWorked
         }
     }
     
     var systemUptime: TimeInterval {
-        systemUptimeRecords.reduce(0) { partialResult, record in
-            partialResult + record.uptimes
+        uptimeRecords.reduce(0) { partialResult, record in
+            partialResult + record.uptime
         }
     }
 }

@@ -37,7 +37,7 @@ struct RecordEditView: View {
 #Preview {
     let record = CalendarRecord(
         date: .now,
-        records: [
+        timeRecords: [
             TimeRecord(
                 year: Date.now.year,
                 month: Date.now.month,
@@ -65,7 +65,7 @@ struct RecordEditView: View {
                 ]
             )
         ],
-        systemUptimeRecords: [
+        uptimeRecords: [
             SystemUptimeRecord(
                 year: Date.now.year,
                 month: Date.now.month,

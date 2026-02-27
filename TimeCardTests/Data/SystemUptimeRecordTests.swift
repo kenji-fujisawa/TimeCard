@@ -24,20 +24,20 @@ struct SystemUptimeRecordTests {
         
         var record = SystemUptimeRecord(year: 2025, month: 11, day: 13, launch: launch1!, shutdown: shutdown1!)
         let hour9: TimeInterval = 9 * 60 * 60
-        #expect(record.uptimes == hour9)
+        #expect(record.uptime == hour9)
         
         let sleep1 = SystemUptimeRecord.SleepRecord(start: sleepStart1_1!, end: sleepEnd1_1!)
         record.sleepRecords.append(sleep1)
         let hour8: TimeInterval = 8 * 60 * 60
-        #expect(record.uptimes == hour8)
+        #expect(record.uptime == hour8)
         
         let sleep2 = SystemUptimeRecord.SleepRecord(start: sleepStart1_2!, end: sleepEnd1_2!)
         record.sleepRecords.append(sleep2)
         let hour7_5: TimeInterval = hour8 - 30 * 60
-        #expect(record.uptimes == hour7_5)
+        #expect(record.uptime == hour7_5)
         
         let sleep3 = SystemUptimeRecord.SleepRecord(start: sleepStart1_3!, end: sleepEnd1_3!)
         record.sleepRecords.append(sleep3)
-        #expect(record.uptimes == hour7_5 - 30)
+        #expect(record.uptime == hour7_5 - 30)
     }
 }

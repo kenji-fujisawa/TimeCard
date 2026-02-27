@@ -20,7 +20,7 @@ struct CalendarRecordView: View {
             
             ZStack {
                 VStack {
-                    ForEach(record.records) { record in
+                    ForEach(record.timeRecords) { record in
                         if let checkIn = record.checkIn {
                             Text(checkIn, format: .dateTime.hour().minute())
                                 .accessibilityIdentifier("text_check_in")
@@ -33,7 +33,7 @@ struct CalendarRecordView: View {
             
             ZStack {
                 VStack {
-                    ForEach(record.records) { record in
+                    ForEach(record.timeRecords) { record in
                         if record.checkOut != nil {
                             Text(interval(record: record), format: .timeWorked)
                                 .accessibilityIdentifier("text_check_out")
@@ -46,7 +46,7 @@ struct CalendarRecordView: View {
             
             ZStack {
                 VStack {
-                    ForEach(record.records) { record in
+                    ForEach(record.timeRecords) { record in
                         ForEach(record.breakTimes) { breakTime in
                             if let start = breakTime.start {
                                 Text(start, format: .dateTime.hour().minute())
@@ -61,7 +61,7 @@ struct CalendarRecordView: View {
             
             ZStack {
                 VStack {
-                    ForEach(record.records) { record in
+                    ForEach(record.timeRecords) { record in
                         ForEach(record.breakTimes) { breakTime in
                             if breakTime.end != nil {
                                 Text(interval(breakTime: breakTime), format: .timeWorked)
@@ -122,7 +122,7 @@ struct CalendarRecordView: View {
     @Previewable @State var recordToEdit: CalendarRecord?
     let record = CalendarRecord(
         date: .now,
-        records: [
+        timeRecords: [
             TimeRecord(
                 year: Date.now.year,
                 month: Date.now.month,
@@ -150,7 +150,7 @@ struct CalendarRecordView: View {
                 ]
             )
         ],
-        systemUptimeRecords: [
+        uptimeRecords: [
             SystemUptimeRecord(
                 year: Date.now.year,
                 month: Date.now.month,

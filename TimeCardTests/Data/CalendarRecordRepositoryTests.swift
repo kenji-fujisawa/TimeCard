@@ -28,28 +28,28 @@ struct CalendarRecordRepositoryTests {
             
             switch i + 1 {
             case 4:
-                #expect(record?.records.count == 2)
-                #expect(record?.records[0] == source.timeRecords[0])
-                #expect(record?.records[1] == source.timeRecords[1])
+                #expect(record?.timeRecords.count == 2)
+                #expect(record?.timeRecords[0] == source.timeRecords[0])
+                #expect(record?.timeRecords[1] == source.timeRecords[1])
                 #expect(record?.timeWorked == source.timeRecords[0].timeWorked + source.timeRecords[1].timeWorked)
                 
-                #expect(record?.systemUptimeRecords.count == 2)
-                #expect(record?.systemUptimeRecords[0] == source.uptimeRecords[0])
-                #expect(record?.systemUptimeRecords[1] == source.uptimeRecords[1])
-                #expect(record?.systemUptime == source.uptimeRecords[0].uptimes + source.uptimeRecords[1].uptimes)
+                #expect(record?.uptimeRecords.count == 2)
+                #expect(record?.uptimeRecords[0] == source.uptimeRecords[0])
+                #expect(record?.uptimeRecords[1] == source.uptimeRecords[1])
+                #expect(record?.systemUptime == source.uptimeRecords[0].uptime + source.uptimeRecords[1].uptime)
             case 5:
-                #expect(record?.records.count == 1)
-                #expect(record?.records[0] == source.timeRecords[2])
+                #expect(record?.timeRecords.count == 1)
+                #expect(record?.timeRecords[0] == source.timeRecords[2])
                 #expect(record?.timeWorked == source.timeRecords[2].timeWorked)
                 
-                #expect(record?.systemUptimeRecords.count == 1)
-                #expect(record?.systemUptimeRecords[0] == source.uptimeRecords[2])
-                #expect(record?.systemUptime == source.uptimeRecords[2].uptimes)
+                #expect(record?.uptimeRecords.count == 1)
+                #expect(record?.uptimeRecords[0] == source.uptimeRecords[2])
+                #expect(record?.systemUptime == source.uptimeRecords[2].uptime)
             default:
-                #expect(record?.records.count == 0)
+                #expect(record?.timeRecords.count == 0)
                 #expect(record?.timeWorked == 0)
                 
-                #expect(record?.systemUptimeRecords.count == 0)
+                #expect(record?.uptimeRecords.count == 0)
                 #expect(record?.systemUptime == 0)
             }
         }
@@ -60,8 +60,8 @@ struct CalendarRecordRepositoryTests {
         #expect(records?.count == records2?.count)
         
         for i in 0..<31 {
-            #expect(records?[i].records == records2?[i].records)
-            #expect(records?[i].systemUptimeRecords == records2?[i].systemUptimeRecords)
+            #expect(records?[i].timeRecords == records2?[i].timeRecords)
+            #expect(records?[i].uptimeRecords == records2?[i].uptimeRecords)
         }
     }
     
@@ -69,7 +69,7 @@ struct CalendarRecordRepositoryTests {
         let records = Calendar.current.datesOf(year: 2025, month: 12).map { date in
             CalendarRecord(
                 date: date,
-                records: [
+                timeRecords: [
                     TimeRecord(
                         year: date.year,
                         month: date.month,
@@ -107,7 +107,7 @@ struct CalendarRecordRepositoryTests {
                         ]
                     )
                 ],
-                systemUptimeRecords: [
+                uptimeRecords: [
                     SystemUptimeRecord(
                         year: date.year,
                         month: date.month,
@@ -154,15 +154,15 @@ struct CalendarRecordRepositoryTests {
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let record = CalendarRecord(
             date: records[0].date,
-            records: [
-                records[0].records[1],
+            timeRecords: [
+                records[0].timeRecords[1],
                 TimeRecord(
-                    id: records[0].records[2].id,
-                    year: records[0].records[2].year,
-                    month: records[0].records[2].month,
+                    id: records[0].timeRecords[2].id,
+                    year: records[0].timeRecords[2].year,
+                    month: records[0].timeRecords[2].month,
                     checkIn: formatter.date(from: "2025-12-01 12:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 13:00:00"),
-                    breakTimes: records[0].records[2].breakTimes
+                    breakTimes: records[0].timeRecords[2].breakTimes
                 ),
                 TimeRecord(
                     year: records[0].date.year,
@@ -181,16 +181,16 @@ struct CalendarRecordRepositoryTests {
                     ]
                 )
             ],
-            systemUptimeRecords: [
-                records[0].systemUptimeRecords[1],
+            uptimeRecords: [
+                records[0].uptimeRecords[1],
                 SystemUptimeRecord(
-                    id: records[0].systemUptimeRecords[2].id,
-                    year: records[0].systemUptimeRecords[2].year,
-                    month: records[0].systemUptimeRecords[2].month,
-                    day: records[0].systemUptimeRecords[2].day,
+                    id: records[0].uptimeRecords[2].id,
+                    year: records[0].uptimeRecords[2].year,
+                    month: records[0].uptimeRecords[2].month,
+                    day: records[0].uptimeRecords[2].day,
                     launch: formatter.date(from: "2025-12-01 12:00:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-01 13:00:00") ?? .now,
-                    sleepRecords: records[0].systemUptimeRecords[2].sleepRecords
+                    sleepRecords: records[0].uptimeRecords[2].sleepRecords
                 ),
                 SystemUptimeRecord(
                     year: records[0].date.year,
@@ -218,18 +218,18 @@ struct CalendarRecordRepositoryTests {
         try repository.updateRecord(source: records, record: record)
         
         #expect(source.timeInserted.count == 1)
-        #expect(source.timeInserted[0] == record.records[2])
+        #expect(source.timeInserted[0] == record.timeRecords[2])
         #expect(source.timeUpdated.count == 1)
-        #expect(source.timeUpdated[0] == record.records[1])
+        #expect(source.timeUpdated[0] == record.timeRecords[1])
         #expect(source.timeDeleted.count == 1)
-        #expect(source.timeDeleted[0] == records[0].records[0])
+        #expect(source.timeDeleted[0] == records[0].timeRecords[0])
         
         #expect(source.uptimeInserted.count == 1)
-        #expect(source.uptimeInserted[0] == record.systemUptimeRecords[2])
+        #expect(source.uptimeInserted[0] == record.uptimeRecords[2])
         #expect(source.uptimeUpdated.count == 1)
-        #expect(source.uptimeUpdated[0] == record.systemUptimeRecords[1])
+        #expect(source.uptimeUpdated[0] == record.uptimeRecords[1])
         #expect(source.uptimeDeleted.count == 1)
-        #expect(source.uptimeDeleted[0] == records[0].systemUptimeRecords[0])
+        #expect(source.uptimeDeleted[0] == records[0].uptimeRecords[0])
     }
     
     class FakeLocalDataSource: LocalDataSource {

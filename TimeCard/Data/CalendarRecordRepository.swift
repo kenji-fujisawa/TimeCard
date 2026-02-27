@@ -70,8 +70,8 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         Calendar.current.datesOf(year: year, month: month).forEach { date in
             results.append(CalendarRecord(
                 date: date,
-                records: timeRecords[date.day] ?? [],
-                systemUptimeRecords: uptimes[date.day] ?? []
+                timeRecords: timeRecords[date.day] ?? [],
+                uptimeRecords: uptimes[date.day] ?? []
             ))
         }
         
@@ -81,30 +81,30 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
     func updateRecord(source: [CalendarRecord], record: CalendarRecord) throws {
         guard let original = source.first(where: { $0.date == record.date }) else { return }
         
-        let timeInserted = record.records.filter { rec in
-            !original.records.contains { $0.id == rec.id }
+        let timeInserted = record.timeRecords.filter { rec in
+            !original.timeRecords.contains { $0.id == rec.id }
         }
-        let timeUpdated = record.records.filter { rec in
-            let before = original.records.first { $0.id == rec.id }
+        let timeUpdated = record.timeRecords.filter { rec in
+            let before = original.timeRecords.first { $0.id == rec.id }
             return before != nil && before != rec
         }
-        let timeDeleted = original.records.filter { rec in
-            !record.records.contains { $0.id == rec.id }
+        let timeDeleted = original.timeRecords.filter { rec in
+            !record.timeRecords.contains { $0.id == rec.id }
         }
         
         try timeInserted.forEach { try self.source.insertTimeRecord(record: $0) }
         try timeUpdated.forEach { try self.source.updateTimeRecord(record: $0) }
         try timeDeleted.forEach { try self.source.deleteTimeRecord(record: $0) }
         
-        let uptimeInserted = record.systemUptimeRecords.filter { rec in
-            !original.systemUptimeRecords.contains { $0.id == rec.id }
+        let uptimeInserted = record.uptimeRecords.filter { rec in
+            !original.uptimeRecords.contains { $0.id == rec.id }
         }
-        let uptimeUpdated = record.systemUptimeRecords.filter { rec in
-            let before = original.systemUptimeRecords.first { $0.id == rec.id }
+        let uptimeUpdated = record.uptimeRecords.filter { rec in
+            let before = original.uptimeRecords.first { $0.id == rec.id }
             return before != nil && before != rec
         }
-        let uptimeDeleted = original.systemUptimeRecords.filter { rec in
-            !record.systemUptimeRecords.contains { $0.id == rec.id }
+        let uptimeDeleted = original.uptimeRecords.filter { rec in
+            !record.uptimeRecords.contains { $0.id == rec.id }
         }
         
         try uptimeInserted.forEach { try self.source.insertUptimeRecord(record: $0) }

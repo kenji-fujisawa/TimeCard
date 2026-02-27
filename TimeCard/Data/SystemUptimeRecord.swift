@@ -28,7 +28,7 @@ struct SystemUptimeRecord: Identifiable, Hashable, Equatable {
     var shutdown: Date
     var sleepRecords: [SleepRecord]
     
-    var uptimes: TimeInterval {
+    var uptime: TimeInterval {
         var interval = shutdown.timeIntervalSince(launch)
         for sleep in self.sleepRecords {
             interval -= sleep.end.timeIntervalSince(sleep.start)

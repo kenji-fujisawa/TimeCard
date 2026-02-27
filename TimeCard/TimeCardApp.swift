@@ -131,7 +131,7 @@ struct UITestApp: App {
         
         record = CalendarRecord(
             date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
-            records: [
+            timeRecords: [
                 TimeRecord(
                     year: 2025,
                     month: 12,
@@ -145,7 +145,7 @@ struct UITestApp: App {
                     ]
                 )
             ],
-            systemUptimeRecords: [
+            uptimeRecords: [
                 SystemUptimeRecord(
                     year: 2025,
                     month: 12,
@@ -181,9 +181,9 @@ struct UITestApp: App {
             } else if CommandLine.arguments.contains("MonthSelectorViewTests") {
                 MonthSelectorView(now: $now)
             } else if CommandLine.arguments.contains("RecordEditViewTests") {
-                Text("\(calendar.records.first?.records.count ?? 0)")
+                Text("\(calendar.records.first?.timeRecords.count ?? 0)")
                     .accessibilityIdentifier("time_record_count")
-                Text("\(calendar.records.first?.systemUptimeRecords.count ?? 0)")
+                Text("\(calendar.records.first?.uptimeRecords.count ?? 0)")
                     .accessibilityIdentifier("uptime_record_count")
                 Button("show") {
                     recordToEdit = calendar.records.first
