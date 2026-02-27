@@ -12,8 +12,8 @@ struct CalendarView: View {
     
     var body: some View {
         VStack {
-            MonthSelectorView(now: $calendar.now)
-                .onChange(of: calendar.now) { _, _ in
+            MonthSelectorView(date: $calendar.date)
+                .onChange(of: calendar.date) { _, _ in
                     calendar.fetchRecords()
                 }
             

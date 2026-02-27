@@ -168,9 +168,9 @@ struct UITestApp: App {
     var body: some Scene {
         WindowGroup {
             if CommandLine.arguments.contains("RecorderViewTests") {
-                RecorderView(model: timeRecord)
+                RecorderView(timeRecord: timeRecord)
             } else if CommandLine.arguments.contains("CalendarViewTests") {
-                RecorderView(model: timeRecord)
+                RecorderView(timeRecord: timeRecord)
                 CalendarView(calendar: calendar)
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
                 CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
@@ -179,7 +179,7 @@ struct UITestApp: App {
                         .accessibilityIdentifier("text_rec_to_edit")
                 }
             } else if CommandLine.arguments.contains("MonthSelectorViewTests") {
-                MonthSelectorView(now: $now)
+                MonthSelectorView(date: $now)
             } else if CommandLine.arguments.contains("RecordEditViewTests") {
                 Text("\(calendar.records.first?.timeRecords.count ?? 0)")
                     .accessibilityIdentifier("time_record_count")

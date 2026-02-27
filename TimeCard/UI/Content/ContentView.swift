@@ -14,7 +14,7 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            RecorderView(model: timeRecord)
+            RecorderView(timeRecord: timeRecord)
             
             Divider()
             

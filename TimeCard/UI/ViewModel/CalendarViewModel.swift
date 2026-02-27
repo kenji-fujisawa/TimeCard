@@ -8,10 +8,11 @@
 import Foundation
 
 class CalendarViewModel: ObservableObject {
-    @Published var now: Date = .now
-    @Published var records: [CalendarRecord] = []
     private let repository: CalendarRecordRepository
     private var fetchTask: Task<Void, Never>? = nil
+    
+    @Published var date: Date = .now
+    @Published var records: [CalendarRecord] = []
     
     init(repository: CalendarRecordRepository) {
         self.repository = repository
@@ -23,7 +24,7 @@ class CalendarViewModel: ObservableObject {
     }
     
     func fetchRecords() {
-        let stream = repository.getRecords(year: now.year, month: now.month)
+        let stream = repository.getRecords(year: date.year, month: date.month)
         
         fetchTask?.cancel()
         fetchTask = Task { [weak self] in
