@@ -5,7 +5,6 @@
 //  Created by uhimania on 2025/10/14.
 //
 
-import SwiftData
 import SwiftUI
 import UniformTypeIdentifiers
 

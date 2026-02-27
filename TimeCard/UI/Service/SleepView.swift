@@ -5,7 +5,6 @@
 //  Created by uhimania on 2025/10/25.
 //
 
-import SwiftData
 import SwiftUI
 
 struct SleepView: View {
