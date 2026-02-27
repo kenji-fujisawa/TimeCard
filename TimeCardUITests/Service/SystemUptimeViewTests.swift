@@ -35,6 +35,9 @@ final class SystemUptimeViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["sleep"].waitForExistence(timeout: 3))
         app.buttons["sleep"].tap()
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         sleep(3)
         
         XCTAssertEqual(app.staticTexts["launch"].value as! String, launch)
@@ -50,6 +53,9 @@ final class SystemUptimeViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["wake"].waitForExistence(timeout: 3))
         app.buttons["wake"].tap()
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         sleep(3)
         
         XCTAssertEqual(app.staticTexts["launch"].value as! String, launch)
@@ -64,6 +70,9 @@ final class SystemUptimeViewTests: XCTestCase {
         
         XCTAssertTrue(app.buttons["terminate"].waitForExistence(timeout: 3))
         app.buttons["terminate"].tap()
+        
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
         
         sleep(3)
         

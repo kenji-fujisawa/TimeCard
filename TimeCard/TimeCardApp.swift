@@ -196,7 +196,7 @@ struct UITestApp: App {
                     .modelContainer(for: LocalTimeRecord.self, inMemory: true)
             } else if CommandLine.arguments.contains("SystemUptimeRecordEditViewTests") {
                 SystemUptimeRecordEditView(record: $record)
-                    .modelContainer(for: SystemUptimeRecord.self, inMemory: true)
+                    .modelContainer(for: LocalUptimeRecord.self, inMemory: true)
             } else if CommandLine.arguments.contains("SleepViewTests") {
                 SleepView(timeRecord: timeRecord)
                 Text("\(String(describing: timeRecord.state))")
@@ -218,7 +218,7 @@ struct UITestApp: App {
                         .accessibilityIdentifier("launch")
                     Text(uptime.shutdown, format: .dateTime.hour().minute().second())
                         .accessibilityIdentifier("shutdown")
-                    if let sleep = uptime.sortedSleepRecords.first {
+                    if let sleep = uptime.sleepRecords.first {
                         Text(sleep.start, format: .dateTime.hour().minute().second())
                             .accessibilityIdentifier("start")
                         Text(sleep.end, format: .dateTime.hour().minute().second())
@@ -237,10 +237,10 @@ struct UITestApp: App {
                     }
                 }
                 Button("update") {
-                    let descriptor = FetchDescriptor<SystemUptimeRecord>(
+                    let descriptor = FetchDescriptor<LocalUptimeRecord>(
                         sortBy: [.init(\.launch)]
                     )
-                    self.uptime = try? container.mainContext.fetch(descriptor).first
+                    self.uptime = try? container.mainContext.fetch(descriptor).first?.toUptimeRecord()
                 }
             }
         }

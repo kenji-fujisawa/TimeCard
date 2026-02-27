@@ -66,39 +66,33 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func getUptimeRecords(year: Int, month: Int) throws -> [SystemUptimeRecord] {
-        let descriptor = FetchDescriptor<SystemUptimeRecord>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             predicate: #Predicate { $0.year == year && $0.month == month },
             sortBy: [.init(\.launch)]
         )
-        return try context.fetch(descriptor)
+        return try context.fetch(descriptor).map { $0.toUptimeRecord() }
     }
     
-    private func getUptimeRecord(id: UUID) throws -> SystemUptimeRecord? {
-        let descriptor = FetchDescriptor<SystemUptimeRecord>(
+    private func getUptimeRecord(id: UUID) throws -> LocalUptimeRecord? {
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             predicate: #Predicate { $0.id == id }
         )
         return try context.fetch(descriptor).first
     }
     
     func insertUptimeRecord(record: SystemUptimeRecord) throws {
-        context.insert(record)
+        context.insert(record.toLocal())
         try context.save()
     }
     
     func updateUptimeRecord(record: SystemUptimeRecord) throws {
         if let rec = try getUptimeRecord(id: record.id) {
-            // records 側のオブジェクトが削除されてしまうのでコピーを渡す
-            let sleepRecords = record.sleepRecords.map { $0.copy() }
-            // "Illegal attempt to map a relationship containing temporary objects to its identifiers." エラーになるため事前に insert しておく
-            sleepRecords.forEach { context.insert($0) }
-            try context.save()
-            
             rec.year = record.year
             rec.month = record.month
             rec.day = record.day
             rec.launch = record.launch
             rec.shutdown = record.shutdown
-            rec.sleepRecords = sleepRecords
+            rec.sleepRecords = record.sleepRecords.map { $0.toLocal() }
             try context.save()
         }
     }
@@ -108,30 +102,6 @@ class DefaultLocalDataSource: LocalDataSource {
             context.delete(rec)
             try context.save()
         }
-    }
-}
-
-extension SystemUptimeRecord {
-    func copy() -> SystemUptimeRecord {
-        SystemUptimeRecord(
-            id: self.id,
-            year: self.year,
-            month: self.month,
-            day: self.day,
-            launch: self.launch,
-            shutdown: self.shutdown,
-            sleepRecords: self.sleepRecords.map { $0.copy() }
-        )
-    }
-}
-
-extension SystemUptimeRecord.SleepRecord {
-    func copy() -> SystemUptimeRecord.SleepRecord {
-        SystemUptimeRecord.SleepRecord(
-            id: self.id,
-            start: self.start,
-            end: self.end
-        )
     }
 }
 
@@ -158,6 +128,30 @@ extension TimeRecord.BreakTime {
     }
 }
 
+extension SystemUptimeRecord {
+    func toLocal() -> LocalUptimeRecord {
+        LocalUptimeRecord(
+            id: self.id,
+            year: self.year,
+            month: self.month,
+            day: self.day,
+            launch: self.launch,
+            shutdown: self.shutdown,
+            sleepRecords: self.sleepRecords.map { $0.toLocal() }
+        )
+    }
+}
+
+extension SystemUptimeRecord.SleepRecord {
+    func toLocal() -> LocalUptimeRecord.SleepRecord {
+        LocalUptimeRecord.SleepRecord(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
 extension LocalTimeRecord {
     func toTimeRecord() -> TimeRecord {
         TimeRecord(
@@ -176,6 +170,32 @@ extension LocalTimeRecord {
 extension LocalTimeRecord.BreakTime {
     func toBreakTime() -> TimeRecord.BreakTime {
         TimeRecord.BreakTime(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
+extension LocalUptimeRecord {
+    func toUptimeRecord() -> SystemUptimeRecord {
+        SystemUptimeRecord(
+            id: self.id,
+            year: self.year,
+            month: self.month,
+            day: self.day,
+            launch: self.launch,
+            shutdown: self.shutdown,
+            sleepRecords: self.sleepRecords
+                .sorted { $0.start < $1.start }
+                .map { $0.toSleepRecord() }
+        )
+    }
+}
+
+extension LocalUptimeRecord.SleepRecord {
+    func toSleepRecord() -> SystemUptimeRecord.SleepRecord {
+        SystemUptimeRecord.SleepRecord(
             id: self.id,
             start: self.start,
             end: self.end

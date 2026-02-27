@@ -29,7 +29,7 @@ struct SystemUptimeRecordRepositoryTests {
         
         try repository.launch()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>()
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
         let results = try context.fetch(descriptor)
         #expect(results.count == 1)
         #expect(results[0].year == Date.now.year)
@@ -63,7 +63,7 @@ struct SystemUptimeRecordRepositoryTests {
         
         try repository.launch()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>()
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
         guard let record = try context.fetch(descriptor).first else {
             Issue.record()
             return
@@ -87,7 +87,7 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.launch()
         try repository.sleep()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>()
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
         guard let record = try context.fetch(descriptor).first else {
             Issue.record()
             return
@@ -124,7 +124,7 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.launch()
         try repository.sleep()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>()
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
         let results = try context.fetch(descriptor)
         #expect(results.count == 1)
         #expect(results[0].sleepRecords.count == 1)
@@ -155,7 +155,7 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.launch()
         try repository.sleep()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>()
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
         guard let record = try context.fetch(descriptor).first else {
             Issue.record()
             return
@@ -175,7 +175,7 @@ struct SystemUptimeRecordRepositoryTests {
         let source = DefaultLocalDataSource(context: context)
         let repository = DefaultSystemUptimeRecordRepository(source: source)
         
-        #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notRecording) {
+        #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notSleeping) {
             try repository.wake()
         }
         
@@ -199,7 +199,7 @@ struct SystemUptimeRecordRepositoryTests {
         
         try repository.launch()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>()
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
         guard let record = try context.fetch(descriptor).first else {
             Issue.record()
             return
@@ -218,7 +218,7 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.launch()
         try repository.sleep()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>()
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
         guard let record = try context.fetch(descriptor).first else {
             Issue.record()
             return
@@ -238,7 +238,7 @@ struct SystemUptimeRecordRepositoryTests {
         
         try repository.launch()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.day)]
         )
         guard let record = try context.fetch(descriptor).first else {
@@ -269,7 +269,7 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.launch()
         try repository.sleep()
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.day)]
         )
         guard let record = try context.fetch(descriptor).first else {

@@ -23,16 +23,26 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         case alreadySleeping
     }
     
+    private enum State {
+        case shutdown
+        case running
+        case sleep
+    }
+    
     private let source: LocalDataSource
-    private var record: SystemUptimeRecord? = nil
-    private var sleepRecord: SystemUptimeRecord.SleepRecord? = nil
+    private var state: State = .shutdown
     
     init(source: LocalDataSource) {
         self.source = source
     }
     
+    private func getRecord() throws -> SystemUptimeRecord? {
+        let now = Date.now
+        return try source.getUptimeRecords(year: now.year, month: now.month).last
+    }
+    
     func launch() throws {
-        guard record == nil else {
+        guard state == .shutdown else {
             throw SystemUptimeRecordError.alreadyRecording
         }
         
@@ -46,72 +56,91 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
             sleepRecords: []
         )
         try source.insertUptimeRecord(record: record)
-        self.record = record
+        
+        state = .running
     }
     
     func shutdown() throws {
-        guard let record = self.record else {
+        guard state == .running || state == .sleep else {
+            throw SystemUptimeRecordError.notRecording
+        }
+        guard var record = try getRecord() else {
             throw SystemUptimeRecordError.notRecording
         }
         
         record.shutdown = .now
-        self.record = nil
         
-        self.sleepRecord?.end = .now
-        self.sleepRecord = nil
+        if state == .sleep {
+            let index = record.sleepRecords.count - 1
+            record.sleepRecords[index].end = .now
+        }
+        
+        try source.updateUptimeRecord(record: record)
+        
+        state = .shutdown
     }
     
     func sleep() throws {
-        guard let record = self.record else {
-            throw SystemUptimeRecordError.notRecording
-        }
-        guard sleepRecord == nil else {
+        guard state == .running else {
             throw SystemUptimeRecordError.alreadySleeping
+        }
+        guard var record = try getRecord() else {
+            throw SystemUptimeRecordError.notRecording
         }
         
         let now = Date.now
         let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
         record.sleepRecords.append(sleep)
-        self.sleepRecord = sleep
+        try source.updateUptimeRecord(record: record)
+        
+        state = .sleep
     }
     
     func wake() throws {
-        guard record != nil else {
-            throw SystemUptimeRecordError.notRecording
-        }
-        guard let sleep = self.sleepRecord else {
+        guard state == .sleep else {
             throw SystemUptimeRecordError.notSleeping
         }
+        guard var record = try getRecord() else {
+            throw SystemUptimeRecordError.notRecording
+        }
         
-        sleep.end = .now
-        self.sleepRecord = nil
+        let index = record.sleepRecords.count - 1
+        record.sleepRecords[index].end = .now
+        try source.updateUptimeRecord(record: record)
+        
+        state = .running
     }
     
     func update() throws {
-        guard let record = self.record else {
+        guard var record = try getRecord() else {
             throw SystemUptimeRecordError.notRecording
         }
         
         let now = Date.now
         record.shutdown = now
-        self.sleepRecord?.end = now
+        
+        if state == .sleep {
+            let index = record.sleepRecords.count - 1
+            record.sleepRecords[index].end = now
+        }
+        
+        try source.updateUptimeRecord(record: record)
         
         if record.day != now.day {
-            let record = SystemUptimeRecord(
+            var record = SystemUptimeRecord(
                 year: now.year,
                 month: now.month,
                 day: now.day,
                 launch: now,
                 shutdown: now
             )
-            try source.insertUptimeRecord(record: record)
-            self.record = record
             
-            if self.sleepRecord != nil {
+            if state == .sleep {
                 let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
                 record.sleepRecords.append(sleep)
-                self.sleepRecord = sleep
             }
+            
+            try source.insertUptimeRecord(record: record)
         }
     }
 }

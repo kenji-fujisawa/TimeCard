@@ -204,7 +204,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testGetUptimeRecords() async throws {
-        uptimeRecords.forEach { context.insert($0) }
+        uptimeRecords.forEach { context.insert($0.toLocal()) }
         
         let source = DefaultLocalDataSource(context: context)
         var results = try source.getUptimeRecords(year: 2025, month: 12)
@@ -224,10 +224,10 @@ struct LocalDataSourceTests {
         let source = DefaultLocalDataSource(context: context)
         try uptimeRecords.forEach { try source.insertUptimeRecord(record: $0) }
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.launch)]
         )
-        let results = try context.fetch(descriptor)
+        let results = try context.fetch(descriptor).map { $0.toUptimeRecord() }
         #expect(results.count == 3)
         #expect(results[0] == uptimeRecords[0])
         #expect(results[1] == uptimeRecords[1])
@@ -235,10 +235,10 @@ struct LocalDataSourceTests {
     }
     
     @Test func testUpdateUptimeRecord() async throws {
-        uptimeRecords.forEach { context.insert($0) }
+        uptimeRecords.forEach { context.insert($0.toLocal()) }
         
         let source = DefaultLocalDataSource(context: context)
-        let records = try source.getUptimeRecords(year: 2025, month: 12).map { $0.copy() }
+        var records = try source.getUptimeRecords(year: 2025, month: 12)
         
         records[1].shutdown = formatter.date(from: "2025-12-30 19:30:00") ?? .now
         records[1].sleepRecords.append(SystemUptimeRecord.SleepRecord(
@@ -246,13 +246,13 @@ struct LocalDataSourceTests {
             end: formatter.date(from: "2025-12-30 13:30:00") ?? .now
         ))
         
-        records[0].sortedSleepRecords[1].end = formatter.date(from: "2025-12-29 16:00:00") ?? .now
+        records[0].sleepRecords[1].end = formatter.date(from: "2025-12-29 16:00:00") ?? .now
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             predicate: #Predicate { $0.year == 2025 && $0.month == 12 },
             sortBy: [.init(\.launch)]
         )
-        let results = try context.fetch(descriptor)
+        var results = try context.fetch(descriptor).map { $0.toUptimeRecord() }
         #expect(results.count == 2)
         #expect(results[0] != records[0])
         #expect(results[1] != records[1])
@@ -260,6 +260,8 @@ struct LocalDataSourceTests {
         try source.updateUptimeRecord(record: records[0])
         try source.updateUptimeRecord(record: records[1])
         
+        results = try context.fetch(descriptor).map { $0.toUptimeRecord() }
+        #expect(results.count == 2)
         #expect(results[0] == records[0])
         #expect(results[1] == records[1])
         
@@ -270,58 +272,30 @@ struct LocalDataSourceTests {
         #expect(results[1].sleepRecords[0].end == formatter.date(from: "2025-12-30 13:30:00"))
         
         #expect(results[0].sleepRecords.count == 2)
-        #expect(results[0].sortedSleepRecords[0].start == formatter.date(from: "2025-12-29 12:00:00"))
-        #expect(results[0].sortedSleepRecords[0].end == formatter.date(from: "2025-12-29 13:00:00"))
-        #expect(results[0].sortedSleepRecords[1].start == formatter.date(from: "2025-12-29 15:00:00"))
-        #expect(results[0].sortedSleepRecords[1].end == formatter.date(from: "2025-12-29 16:00:00"))
+        #expect(results[0].sleepRecords[0].start == formatter.date(from: "2025-12-29 12:00:00"))
+        #expect(results[0].sleepRecords[0].end == formatter.date(from: "2025-12-29 13:00:00"))
+        #expect(results[0].sleepRecords[1].start == formatter.date(from: "2025-12-29 15:00:00"))
+        #expect(results[0].sleepRecords[1].end == formatter.date(from: "2025-12-29 16:00:00"))
     }
     
     @Test func testDeleteUptimeRecord() async throws {
-        uptimeRecords.forEach { context.insert($0) }
+        uptimeRecords.forEach { context.insert($0.toLocal()) }
         
         let source = DefaultLocalDataSource(context: context)
-        let records = try source.getUptimeRecords(year: 2025, month: 12).map { $0.copy() }
+        let records = try source.getUptimeRecords(year: 2025, month: 12)
         
         try source.deleteUptimeRecord(record: records[0])
         
-        let descriptor = FetchDescriptor<SystemUptimeRecord>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.launch)]
         )
-        let uptimeRecords = try context.fetch(descriptor)
+        let uptimeRecords = try context.fetch(descriptor).map { $0.toUptimeRecord() }
         #expect(uptimeRecords.count == 2)
         #expect(uptimeRecords[0] == self.uptimeRecords[1])
         #expect(uptimeRecords[1] == self.uptimeRecords[2])
         
-        let sleepRecords = try context.fetch(FetchDescriptor<SystemUptimeRecord.SleepRecord>())
+        let sleepRecords = try context.fetch(FetchDescriptor<LocalUptimeRecord.SleepRecord>()).map { $0.toSleepRecord() }
         #expect(sleepRecords.count == 1)
         #expect(sleepRecords[0] == self.uptimeRecords[2].sleepRecords[0])
-    }
-}
-
-private extension SystemUptimeRecord {
-    static func == (lhs: SystemUptimeRecord, rhs: SystemUptimeRecord) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.year == rhs.year &&
-        lhs.month == rhs.month &&
-        lhs.day == rhs.day &&
-        lhs.launch == rhs.launch &&
-        lhs.shutdown == rhs.shutdown &&
-        lhs.sortedSleepRecords.elementsEqual(rhs.sortedSleepRecords, by: { $0 == $1 })
-    }
-    
-    static func != (lhs: SystemUptimeRecord, rhs: SystemUptimeRecord) -> Bool {
-        !(lhs == rhs)
-    }
-}
-
-private extension SystemUptimeRecord.SleepRecord {
-    static func == (lhs: SystemUptimeRecord.SleepRecord, rhs: SystemUptimeRecord.SleepRecord) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.start == rhs.start &&
-        lhs.end == rhs.end
-    }
-    
-    static func != (lhs: SystemUptimeRecord.SleepRecord, rhs: SystemUptimeRecord.SleepRecord) -> Bool {
-        !(lhs == rhs)
     }
 }

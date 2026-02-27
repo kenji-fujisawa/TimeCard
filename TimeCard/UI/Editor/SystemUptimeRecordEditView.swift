@@ -10,35 +10,34 @@ import SwiftUI
 struct SystemUptimeRecordEditView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var record: CalendarRecord
-    @State private var selected: SystemUptimeRecord? = nil
+    @State private var selectedId: SystemUptimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(record: $record, selected: $selected)
+            SidebarView(record: $record, selectedId: $selectedId)
         } detail: {
-            if let record = selected {
-                DetailView(record: record)
+            if let index = record.systemUptimeRecords.firstIndex(where: { $0.id == selectedId }) {
+                DetailView(record: $record.systemUptimeRecords[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
         .onAppear() {
-            selected = record.systemUptimeRecords.first
+            selectedId = record.systemUptimeRecords.first?.id
         }
     }
     
     private struct SidebarView: View {
-        @Environment(\.modelContext) private var context
         @Binding var record: CalendarRecord
-        @Binding var selected: SystemUptimeRecord?
+        @Binding var selectedId: SystemUptimeRecord.ID?
         @State private var recordToRemove: SystemUptimeRecord? = nil
         
         var body: some View {
-            List(selection: $selected) {
+            List(selection: $selectedId) {
                 Section("稼働時間") {
-                    ForEach(record.systemUptimeRecords) { record in
+                    ForEach($record.systemUptimeRecords) { $record in
                         HStack {
                             NavigationLink(record.uptimes.formatted(.timeWorked)) {
-                                DetailView(record: record)
+                                DetailView(record: $record)
                             }
                             .accessibilityIdentifier("nav_link")
                             
@@ -61,7 +60,7 @@ struct SystemUptimeRecordEditView: View {
                                 .accessibilityIdentifier("button_remove_uptime_confirm")
                             }
                         }
-                        .tag(record)
+                        .tag(record.id)
                     }
                 }
                 
@@ -76,23 +75,21 @@ struct SystemUptimeRecordEditView: View {
         private func addRecord() {
             let date = record.date
             let record = SystemUptimeRecord(year: date.year, month: date.month, day: date.day, launch: date, shutdown: date)
-            context.insert(record)
             self.record.systemUptimeRecords.append(record)
-            selected = record
+            selectedId = record.id
         }
         
         private func removeRecord(record: SystemUptimeRecord) {
-            context.delete(record)
             self.record.systemUptimeRecords.removeAll(where: { $0 == record })
             recordToRemove = nil
-            if selected == record {
-                selected = self.record.systemUptimeRecords.first
+            if selectedId == record.id {
+                selectedId = self.record.systemUptimeRecords.first?.id
             }
         }
     }
     
     private struct DetailView: View {
-        @Bindable var record: SystemUptimeRecord
+        @Binding var record: SystemUptimeRecord
         @State private var recordToRemove: SystemUptimeRecord.SleepRecord? = nil
         
         var body: some View {
@@ -106,9 +103,9 @@ struct SystemUptimeRecordEditView: View {
                 .padding()
                 
                 List {
-                    ForEach(record.sortedSleepRecords) { sleepRecord in
+                    ForEach($record.sleepRecords) { $sleepRecord in
                         Section {
-                            SleepRecordView(sleepRecord: sleepRecord)
+                            SleepRecordView(sleepRecord: $sleepRecord)
                         } header: {
                             HStack {
                                 Text("スリープ")
@@ -149,7 +146,7 @@ struct SystemUptimeRecordEditView: View {
     }
     
     private struct SleepRecordView: View {
-        @Bindable var sleepRecord: SystemUptimeRecord.SleepRecord
+        @Binding var sleepRecord: SystemUptimeRecord.SleepRecord
         
         var body: some View {
             Form {

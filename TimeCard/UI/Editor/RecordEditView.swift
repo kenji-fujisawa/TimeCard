@@ -12,11 +12,6 @@ struct RecordEditView: View {
     @State var record: CalendarRecord
     @ObservedObject var calendar: CalendarViewModel
     
-    init(record: CalendarRecord, calendar: CalendarViewModel) {
-        self.record = record.copy()
-        self.calendar = calendar
-    }
-    
     var body: some View {
         TabView {
             Tab("労働時間", systemImage: "person.circle.fill") {
@@ -36,39 +31,6 @@ struct RecordEditView: View {
                 .accessibilityIdentifier("button_close")
             }
         }
-    }
-}
-
-extension CalendarRecord {
-    func copy() -> CalendarRecord {
-        CalendarRecord(
-            date: self.date,
-            records: self.records.map { $0.copy() },
-            systemUptimeRecords: self.systemUptimeRecords.map { $0.copy() }
-        )
-    }
-}
-
-extension TimeRecord {
-    func copy() -> TimeRecord {
-        TimeRecord(
-            id: self.id,
-            year: self.year,
-            month: self.month,
-            checkIn: self.checkIn,
-            checkOut: self.checkOut,
-            breakTimes: self.breakTimes.map { $0.copy() }
-        )
-    }
-}
-
-extension TimeRecord.BreakTime {
-    func copy() -> TimeRecord.BreakTime {
-        TimeRecord.BreakTime(
-            id: self.id,
-            start: self.start,
-            end: self.end
-        )
     }
 }
 
