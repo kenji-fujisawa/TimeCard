@@ -36,9 +36,7 @@ struct SystemUptimeRecordEditView: View {
                 Section("稼働時間") {
                     ForEach($record.uptimeRecords) { $record in
                         HStack {
-                            NavigationLink(record.uptime.formatted(.timeWorked)) {
-                                DetailView(record: $record)
-                            }
+                            Text(record.uptime.formatted(.timeWorked))
                             .accessibilityIdentifier("nav_link")
                             
                             Spacer()

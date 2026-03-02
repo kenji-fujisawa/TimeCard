@@ -37,9 +37,7 @@ struct TimeRecordEditView: View {
                     ForEach($record.timeRecords) { $record in
                         if let checkIn = record.checkIn {
                             HStack {
-                                NavigationLink(checkIn.formatted(.dateTime.hour().minute())) {
-                                    DetailView(record: $record)
-                                }
+                                Text(checkIn.formatted(.dateTime.hour().minute()))
                                 .accessibilityIdentifier("nav_link")
                                 
                                 Spacer()
