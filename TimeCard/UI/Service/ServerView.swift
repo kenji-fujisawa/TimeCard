@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ServerView: View {
-    @Environment(\.modelContext) private var context
     @EnvironmentObject private var terminationManager: AppTerminationManager
     let server: TimeCardServer
     @State private var becomeActive = false
