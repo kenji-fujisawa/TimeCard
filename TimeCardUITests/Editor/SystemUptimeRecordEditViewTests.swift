@@ -106,16 +106,16 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         app.buttons["button_add_sleep_record"].tap()
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_start").count, 2)
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_start").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-28 23:27:32 +0000'")
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_start").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 03:30:20 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_start").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 03:30:20 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_start").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-28 23:27:32 +0000'")
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_end").count, 2)
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_end").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-28 23:27:32 +0000'")
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_end").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 04:15:18 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_end").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 04:15:18 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_sleep_end").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-28 23:27:32 +0000'")
         
         // remove sleep record
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_sleep_confirm").count, 2)
-        app.buttons.matching(identifier: "button_remove_sleep_confirm").element(boundBy: 0).tap()
+        app.buttons.matching(identifier: "button_remove_sleep_confirm").element(boundBy: 1).tap()
         
         XCTAssertTrue(app.buttons["button_remove_sleep_record"].waitForExistence(timeout: 3))
         app.buttons["button_remove_sleep_record"].tap()
@@ -131,7 +131,7 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         app.buttons["button_add_sleep_record"].tap()
         
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_sleep_confirm").count, 2)
-        app.buttons.matching(identifier: "button_remove_sleep_confirm").element(boundBy: 0).tap()
+        app.buttons.matching(identifier: "button_remove_sleep_confirm").element(boundBy: 1).tap()
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_sleep_confirm").count, 1)
         app.buttons.matching(identifier: "button_remove_sleep_confirm").element(boundBy: 0).tap()
         

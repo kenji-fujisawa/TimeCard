@@ -1,0 +1,183 @@
+//
+//  SystemUptimeRecordEditView.swift
+//  TimeCard
+//
+//  Created by uhimania on 2025/12/08.
+//
+
+import SwiftUI
+
+struct SystemUptimeRecordEditView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var record: CalendarRecord
+    @State private var selectedId: SystemUptimeRecord.ID? = nil
+    
+    var body: some View {
+        NavigationSplitView {
+            SidebarView(record: $record, selectedId: $selectedId)
+        } detail: {
+            if let index = record.uptimeRecords.firstIndex(where: { $0.id == selectedId }) {
+                DetailView(record: $record.uptimeRecords[index])
+            }
+        }
+        .frame(minWidth: 400, minHeight: 300)
+        .onAppear() {
+            selectedId = record.uptimeRecords.first?.id
+        }
+    }
+    
+    private struct SidebarView: View {
+        @Binding var record: CalendarRecord
+        @Binding var selectedId: SystemUptimeRecord.ID?
+        @State private var recordToRemove: SystemUptimeRecord? = nil
+        
+        var body: some View {
+            List(selection: $selectedId) {
+                Section("稼働時間") {
+                    ForEach($record.uptimeRecords) { $record in
+                        HStack {
+                            NavigationLink(record.uptime.formatted(.timeWorked)) {
+                                DetailView(record: $record)
+                            }
+                            .accessibilityIdentifier("nav_link")
+                            
+                            Spacer()
+                            
+                            if recordToRemove == record {
+                                Button(role: .destructive) {
+                                    removeRecord(record: record)
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .foregroundStyle(.red)
+                                }
+                                .accessibilityIdentifier("button_remove_uptime_record")
+                            } else {
+                                Button {
+                                    recordToRemove = record
+                                } label: {
+                                    Image(systemName: "minus")
+                                }
+                                .accessibilityIdentifier("button_remove_uptime_confirm")
+                            }
+                        }
+                        .tag(record.id)
+                    }
+                }
+                
+                Button("追加", systemImage: "plus") {
+                    addRecord()
+                }
+                .font(.footnote)
+                .accessibilityIdentifier("button_add_uptime_record")
+            }
+        }
+        
+        private func addRecord() {
+            let date = record.date
+            let record = SystemUptimeRecord(year: date.year, month: date.month, day: date.day, launch: date, shutdown: date)
+            self.record.uptimeRecords.append(record)
+            selectedId = record.id
+        }
+        
+        private func removeRecord(record: SystemUptimeRecord) {
+            self.record.uptimeRecords.removeAll(where: { $0 == record })
+            recordToRemove = nil
+            if selectedId == record.id {
+                selectedId = self.record.uptimeRecords.first?.id
+            }
+        }
+    }
+    
+    private struct DetailView: View {
+        @Binding var record: SystemUptimeRecord
+        @State private var recordToRemove: SystemUptimeRecord.SleepRecord? = nil
+        
+        var body: some View {
+            VStack(alignment: .leading) {
+                Form {
+                    DatePicker("起動", selection: $record.launch, displayedComponents: [.date, .hourAndMinute])
+                        .accessibilityIdentifier("date_launch")
+                    DatePicker("終了", selection: $record.shutdown, displayedComponents: [.date, .hourAndMinute])
+                        .accessibilityIdentifier("date_shutdown")
+                }
+                .padding()
+                
+                List {
+                    ForEach($record.sleepRecords) { $sleepRecord in
+                        Section {
+                            SleepRecordView(sleepRecord: $sleepRecord)
+                        } header: {
+                            HStack {
+                                Text("スリープ")
+                                
+                                Spacer()
+                                
+                                if recordToRemove == sleepRecord {
+                                    Button(role: .destructive) {
+                                        record.sleepRecords.removeAll(where: { $0 == sleepRecord })
+                                        recordToRemove = nil
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .foregroundStyle(.red)
+                                    }
+                                    .accessibilityIdentifier("button_remove_sleep_record")
+                                } else {
+                                    Button {
+                                        recordToRemove = sleepRecord
+                                    } label: {
+                                        Image(systemName: "minus")
+                                    }
+                                    .accessibilityIdentifier("button_remove_sleep_confirm")
+                                }
+                            }
+                        }
+                    }
+                    
+                    Button("スリープを追加", systemImage: "plus") {
+                        let date = record.launch
+                        let sleep = SystemUptimeRecord.SleepRecord(start: date, end: date)
+                        record.sleepRecords.append(sleep)
+                    }
+                    .font(.footnote)
+                    .accessibilityIdentifier("button_add_sleep_record")
+                }
+            }
+        }
+    }
+    
+    private struct SleepRecordView: View {
+        @Binding var sleepRecord: SystemUptimeRecord.SleepRecord
+        
+        var body: some View {
+            Form {
+                DatePicker("開始", selection: $sleepRecord.start, displayedComponents: [.date, .hourAndMinute])
+                    .accessibilityIdentifier("date_sleep_start")
+                DatePicker("終了", selection: $sleepRecord.end, displayedComponents: [.date, .hourAndMinute])
+                    .accessibilityIdentifier("date_sleep_end")
+            }
+        }
+    }
+}
+
+#Preview {
+    @Previewable @State var record = CalendarRecord(
+        date: .now,
+        timeRecords: [],
+        uptimeRecords: [
+            SystemUptimeRecord(
+                year: Date.now.year,
+                month: Date.now.month,
+                day: Date.now.day,
+                launch: .now,
+                shutdown: .now,
+                sleepRecords: [
+                    SystemUptimeRecord.SleepRecord(
+                        start: .now,
+                        end: .now
+                    )
+                ]
+            )
+        ]
+    )
+    SystemUptimeRecordEditView(record: $record)
+}

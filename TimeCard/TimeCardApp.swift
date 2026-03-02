@@ -14,6 +14,7 @@ struct TimeCardApp: App {
     private let timeRecord: TimeRecordViewModel
     private let uptimeRecord: SystemUptimeRecordViewModel
     private let calendar: CalendarViewModel
+    private let server: TimeCardServer
     
     init() {
         #if DEBUG
@@ -29,15 +30,17 @@ struct TimeCardApp: App {
             fatalError(error.localizedDescription)
         }
         
-        let source = DefaultLocalDataSource(context: container.mainContext)
-        let timeRepository = DefaultTimeRecordRepository(source: source)
-        timeRecord = TimeRecordViewModel(repository: timeRepository)
+        let source = DefaultLocalDataSource(container.mainContext)
+        let timeRepository = DefaultTimeRecordRepository(source)
+        timeRecord = TimeRecordViewModel(timeRepository)
         
-        let uptimeRepository = DefaultSystemUptimeRecordRepository(source: source)
-        uptimeRecord = SystemUptimeRecordViewModel(repository: uptimeRepository)
+        let uptimeRepository = DefaultSystemUptimeRecordRepository(source)
+        uptimeRecord = SystemUptimeRecordViewModel(uptimeRepository)
         
-        let calendarRepository = DefaultCalendarRecordRepository(source: source)
-        calendar = CalendarViewModel(repository: calendarRepository)
+        let calendarRepository = DefaultCalendarRecordRepository(source)
+        calendar = CalendarViewModel(calendarRepository)
+        
+        server = TimeCardServer(timeRepository)
     }
     
     var body: some Scene {
@@ -54,8 +57,7 @@ struct TimeCardApp: App {
             SystemUptimeView(uptimeRecord: uptimeRecord)
                 .environmentObject(terminationManager)
             SleepView(timeRecord: timeRecord)
-            ServerView()
-                .modelContainer(container)
+            ServerView(server: server)
                 .environmentObject(terminationManager)
         }
         .menuBarExtraStyle(.window)
@@ -114,16 +116,16 @@ struct UITestApp: App {
             fatalError(error.localizedDescription)
         }
         
-        let source = DefaultLocalDataSource(context: container.mainContext)
-        let timeRepository = DefaultTimeRecordRepository(source: source)
-        let timeRecord = TimeRecordViewModel(repository: timeRepository)
+        let source = DefaultLocalDataSource(container.mainContext)
+        let timeRepository = DefaultTimeRecordRepository(source)
+        let timeRecord = TimeRecordViewModel(timeRepository)
         _timeRecord = StateObject(wrappedValue: timeRecord)
         
-        let uptimeRepository = DefaultSystemUptimeRecordRepository(source: source)
-        uptimeRecord = SystemUptimeRecordViewModel(repository: uptimeRepository)
+        let uptimeRepository = DefaultSystemUptimeRecordRepository(source)
+        uptimeRecord = SystemUptimeRecordViewModel(uptimeRepository)
         
-        let calendarRepository = DefaultCalendarRecordRepository(source: source)
-        let calendar = CalendarViewModel(repository: calendarRepository)
+        let calendarRepository = DefaultCalendarRecordRepository(source)
+        let calendar = CalendarViewModel(calendarRepository)
         _calendar = StateObject(wrappedValue: calendar)
         
         formatter = DateFormatter()
@@ -131,7 +133,7 @@ struct UITestApp: App {
         
         record = CalendarRecord(
             date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
-            records: [
+            timeRecords: [
                 TimeRecord(
                     year: 2025,
                     month: 12,
@@ -145,7 +147,7 @@ struct UITestApp: App {
                     ]
                 )
             ],
-            systemUptimeRecords: [
+            uptimeRecords: [
                 SystemUptimeRecord(
                     year: 2025,
                     month: 12,
@@ -168,9 +170,9 @@ struct UITestApp: App {
     var body: some Scene {
         WindowGroup {
             if CommandLine.arguments.contains("RecorderViewTests") {
-                RecorderView(model: timeRecord)
+                RecorderView(timeRecord: timeRecord)
             } else if CommandLine.arguments.contains("CalendarViewTests") {
-                RecorderView(model: timeRecord)
+                RecorderView(timeRecord: timeRecord)
                 CalendarView(calendar: calendar)
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
                 CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
@@ -179,11 +181,11 @@ struct UITestApp: App {
                         .accessibilityIdentifier("text_rec_to_edit")
                 }
             } else if CommandLine.arguments.contains("MonthSelectorViewTests") {
-                MonthSelectorView(now: $now)
+                MonthSelectorView(date: $now)
             } else if CommandLine.arguments.contains("RecordEditViewTests") {
-                Text("\(calendar.records.first?.records.count ?? 0)")
+                Text("\(calendar.records.first?.timeRecords.count ?? 0)")
                     .accessibilityIdentifier("time_record_count")
-                Text("\(calendar.records.first?.systemUptimeRecords.count ?? 0)")
+                Text("\(calendar.records.first?.uptimeRecords.count ?? 0)")
                     .accessibilityIdentifier("uptime_record_count")
                 Button("show") {
                     recordToEdit = calendar.records.first
@@ -193,10 +195,10 @@ struct UITestApp: App {
                 }
             } else if CommandLine.arguments.contains("TimeRecordEditViewTests") {
                 TimeRecordEditView(record: $record)
-                    .modelContainer(for: TimeRecord.self, inMemory: true)
+                    .modelContainer(for: LocalTimeRecord.self, inMemory: true)
             } else if CommandLine.arguments.contains("SystemUptimeRecordEditViewTests") {
                 SystemUptimeRecordEditView(record: $record)
-                    .modelContainer(for: SystemUptimeRecord.self, inMemory: true)
+                    .modelContainer(for: LocalUptimeRecord.self, inMemory: true)
             } else if CommandLine.arguments.contains("SleepViewTests") {
                 SleepView(timeRecord: timeRecord)
                 Text("\(String(describing: timeRecord.state))")
@@ -218,7 +220,7 @@ struct UITestApp: App {
                         .accessibilityIdentifier("launch")
                     Text(uptime.shutdown, format: .dateTime.hour().minute().second())
                         .accessibilityIdentifier("shutdown")
-                    if let sleep = uptime.sortedSleepRecords.first {
+                    if let sleep = uptime.sleepRecords.first {
                         Text(sleep.start, format: .dateTime.hour().minute().second())
                             .accessibilityIdentifier("start")
                         Text(sleep.end, format: .dateTime.hour().minute().second())
@@ -237,10 +239,10 @@ struct UITestApp: App {
                     }
                 }
                 Button("update") {
-                    let descriptor = FetchDescriptor<SystemUptimeRecord>(
+                    let descriptor = FetchDescriptor<LocalUptimeRecord>(
                         sortBy: [.init(\.launch)]
                     )
-                    self.uptime = try? container.mainContext.fetch(descriptor).first
+                    self.uptime = try? container.mainContext.fetch(descriptor).first?.toUptimeRecord()
                 }
             }
         }
