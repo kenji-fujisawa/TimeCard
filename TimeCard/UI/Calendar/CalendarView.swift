@@ -33,7 +33,7 @@ struct CalendarView: View {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecords(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
+    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
         AsyncStream { continuation in
             let records = Calendar.current.datesOf(year: year, month: month).map { date in
                 CalendarRecord(date: date, timeRecords: [], uptimeRecords: [])

@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 protocol CalendarRecordRepository {
-    func getRecords(year: Int, month: Int) -> AsyncStream<[CalendarRecord]>
+    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]>
     func updateRecord(_ record: CalendarRecord) throws
 }
 
@@ -26,7 +26,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         fetchTask?.cancel()
     }
     
-    func getRecords(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
+    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
         fetchTask?.cancel()
         fetchTask = Task { [weak self] in
             let notifications = NotificationCenter.default.notifications(named: ModelContext.didSave)

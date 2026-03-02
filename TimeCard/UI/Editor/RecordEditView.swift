@@ -81,7 +81,7 @@ struct RecordEditView: View {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecords(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
+    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
         AsyncStream { _ in }
     }
     
