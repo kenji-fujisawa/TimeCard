@@ -18,7 +18,7 @@ struct CalendarRecordRepositoryTests {
         source.initForGet()
         
         let repository = DefaultCalendarRecordRepository(source)
-        var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
+        var iterator = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
         let records = await iterator.next()
         #expect(records?.count == 31)
         
