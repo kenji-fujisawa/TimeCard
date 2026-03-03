@@ -167,8 +167,6 @@ class TimeCardServer {
             }
             
             let record = TimeRecord(
-                year: checkInDate.year,
-                month: checkInDate.month,
                 checkIn: checkInDate,
                 checkOut: checkOutDate,
                 breakTimes: breakTimeModels

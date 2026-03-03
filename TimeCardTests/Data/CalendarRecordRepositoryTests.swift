@@ -79,15 +79,11 @@ struct CalendarRecordRepositoryTests {
                 source.timeRecords[1],
                 TimeRecord(
                     id: source.timeRecords[2].id,
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-01 12:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 13:00:00"),
                     breakTimes: source.timeRecords[2].breakTimes
                 ),
                 TimeRecord(
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-01 17:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 18:00:00"),
                     breakTimes: [
@@ -106,17 +102,11 @@ struct CalendarRecordRepositoryTests {
                 source.uptimeRecords[1],
                 SystemUptimeRecord(
                     id: source.uptimeRecords[2].id,
-                    year: 2025,
-                    month: 12,
-                    day: 1,
                     launch: formatter.date(from: "2025-12-01 12:00:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-01 13:00:00") ?? .now,
                     sleepRecords: source.uptimeRecords[2].sleepRecords
                 ),
                 SystemUptimeRecord(
-                    year: 2025,
-                    month: 12,
-                    day: 1,
                     launch: formatter.date(from: "2025-12-01 17:00:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-01 18:00:00") ?? .now,
                     sleepRecords: [
@@ -161,8 +151,6 @@ struct CalendarRecordRepositoryTests {
             
             timeRecords = [
                 TimeRecord(
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-04 09:00:00"),
                     checkOut: formatter.date(from: "2025-12-04 19:00:00"),
                     breakTimes: [
@@ -177,8 +165,6 @@ struct CalendarRecordRepositoryTests {
                     ]
                 ),
                 TimeRecord(
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-04 22:00:00"),
                     checkOut: formatter.date(from: "2025-12-05 01:00:00"),
                     breakTimes: [
@@ -189,8 +175,6 @@ struct CalendarRecordRepositoryTests {
                     ]
                 ),
                 TimeRecord(
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-05 08:30:00"),
                     checkOut: formatter.date(from: "2025-12-05 17:30:00"),
                     breakTimes: []
@@ -199,9 +183,6 @@ struct CalendarRecordRepositoryTests {
             
             uptimeRecords = [
                 SystemUptimeRecord(
-                    year: 2025,
-                    month: 12,
-                    day: 4,
                     launch: formatter.date(from: "2025-12-04 08:00:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-04 20:00:00") ?? .now,
                     sleepRecords: [
@@ -216,9 +197,6 @@ struct CalendarRecordRepositoryTests {
                     ]
                 ),
                 SystemUptimeRecord(
-                    year: 2025,
-                    month: 12,
-                    day: 4,
                     launch: formatter.date(from: "2025-12-04 21:30:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-05 01:30:00") ?? .now,
                     sleepRecords: [
@@ -229,9 +207,6 @@ struct CalendarRecordRepositoryTests {
                     ]
                 ),
                 SystemUptimeRecord(
-                    year: 2025,
-                    month: 12,
-                    day: 5,
                     launch: formatter.date(from: "2025-12-05 08:00:00") ?? .now,
                     shutdown: formatter.date(from: "2025-12-05 18:00:00") ?? .now,
                     sleepRecords: []
@@ -247,8 +222,6 @@ struct CalendarRecordRepositoryTests {
             for _ in 1...3 {
                 timeRecords.append(
                     TimeRecord(
-                        year: date.year,
-                        month: date.month,
                         checkIn: date,
                         checkOut: date,
                         breakTimes: [
@@ -262,9 +235,6 @@ struct CalendarRecordRepositoryTests {
                 
                 uptimeRecords.append(
                     SystemUptimeRecord(
-                        year: date.year,
-                        month: date.month,
-                        day: date.day,
                         launch: date,
                         shutdown: date,
                         sleepRecords: [

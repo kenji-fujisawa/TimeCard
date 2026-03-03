@@ -59,7 +59,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         
         var uptimes: [Int: [SystemUptimeRecord]] = [:]
         try source.getUptimeRecords(year: year, month: month).forEach { uptime in
-            let day = uptime.day
+            let day = uptime.launch.day
             if uptimes[day] == nil {
                 uptimes[day] = []
             }

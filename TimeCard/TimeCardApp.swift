@@ -134,8 +134,6 @@ struct UITestApp: App {
             date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
             timeRecords: [
                 TimeRecord(
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-29 09:45:30"),
                     checkOut: formatter.date(from: "2025-12-30 02:12:38"),
                     breakTimes: [
@@ -148,9 +146,6 @@ struct UITestApp: App {
             ],
             uptimeRecords: [
                 SystemUptimeRecord(
-                    year: 2025,
-                    month: 12,
-                    day: 29,
                     launch: formatter.date(from: "2025-12-29 08:27:32") ?? .now,
                     shutdown: formatter.date(from: "2025-12-29 23:59:58") ?? .now,
                     sleepRecords: [

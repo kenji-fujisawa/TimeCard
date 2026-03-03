@@ -21,8 +21,6 @@ struct TimeRecord: Identifiable, Hashable, Equatable, Encodable {
     }
     
     var id: UUID
-    var year: Int
-    var month: Int
     var checkIn: Date?
     var checkOut: Date?
     var breakTimes: [BreakTime]
@@ -41,10 +39,8 @@ struct TimeRecord: Identifiable, Hashable, Equatable, Encodable {
         return interval
     }
     
-    init(id: UUID = UUID(), year: Int, month: Int, checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
+    init(id: UUID = UUID(), checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
         self.id = id
-        self.year = year
-        self.month = month
         self.checkIn = checkIn
         self.checkOut = checkOut
         self.breakTimes = breakTimes

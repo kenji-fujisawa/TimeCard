@@ -22,7 +22,7 @@ struct SystemUptimeRecordTests {
         let sleepStart1_3 = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 17, minute: 0, second: 0))
         let sleepEnd1_3 = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 17, minute: 0, second: 30))
         
-        var record = SystemUptimeRecord(year: 2025, month: 11, day: 13, launch: launch1!, shutdown: shutdown1!)
+        var record = SystemUptimeRecord(launch: launch1!, shutdown: shutdown1!)
         let hour9: TimeInterval = 9 * 60 * 60
         #expect(record.uptime == hour9)
         

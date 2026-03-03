@@ -245,14 +245,15 @@ struct SystemUptimeRecordRepositoryTests {
             Issue.record()
             return
         }
+        record.launch -= 24 * 60 * 60
         record.shutdown = .distantPast
-        record.day -= 1
         
         try repository.update()
         
         let results = try context.fetch(descriptor)
         #expect(results.count == 2)
         #expect(results[0].day == Date.now.day - 1)
+        #expect(results[0].launch.day == Date.now.day - 1)
         #expect(results[0].shutdown.equals(.now))
         #expect(results[1].year == Date.now.year)
         #expect(results[1].month == Date.now.month)
@@ -276,15 +277,16 @@ struct SystemUptimeRecordRepositoryTests {
             Issue.record()
             return
         }
+        record.launch -= 24 * 60 * 60
         record.shutdown = .distantPast
         record.sleepRecords[0].end = .distantPast
-        record.day -= 1
         
         try repository.update()
         
         let results = try context.fetch(descriptor)
         #expect(results.count == 2)
         #expect(results[0].day == Date.now.day - 1)
+        #expect(results[0].launch.day == Date.now.day - 1)
         #expect(results[0].shutdown.equals(.now))
         #expect(results[0].sleepRecords[0].end.equals(.now))
         #expect(results[1].year == Date.now.year)
