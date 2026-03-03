@@ -55,10 +55,10 @@ struct TimeCardApp: App {
         } label: {
             Image(systemName: "clock.badge.checkmark")
             SystemUptimeView(uptimeRecord: uptimeRecord)
-                .environmentObject(terminationManager)
+                .environment(terminationManager)
             SleepView(timeRecord: timeRecord)
             ServerView(server: server)
-                .environmentObject(terminationManager)
+                .environment(terminationManager)
         }
         .menuBarExtraStyle(.window)
         
@@ -76,7 +76,8 @@ extension Notification {
     static let exitApp = Notification.Name("exitApp")
 }
 
-class AppTerminationManager: ObservableObject {
+@Observable
+class AppTerminationManager {
     private var cleanupActions: [() async -> Void] = []
     
     func addCleanupAction(_ action: @escaping () async -> Void) {
@@ -97,9 +98,9 @@ class AppTerminationManager: ObservableObject {
 #if DEBUG
 struct UITestApp: App {
     private let container: ModelContainer
-    @StateObject private var timeRecord: TimeRecordViewModel
+    @State private var timeRecord: TimeRecordViewModel
     private let uptimeRecord: SystemUptimeRecordViewModel
-    @StateObject private var calendar: CalendarViewModel
+    @State private var calendar: CalendarViewModel
     private let formatter: DateFormatter
     @State private var record: CalendarRecord
     @State private var recordToEdit: CalendarRecord? = nil
@@ -118,15 +119,13 @@ struct UITestApp: App {
         
         let source = DefaultLocalDataSource(container.mainContext)
         let timeRepository = DefaultTimeRecordRepository(source)
-        let timeRecord = TimeRecordViewModel(timeRepository)
-        _timeRecord = StateObject(wrappedValue: timeRecord)
+        timeRecord = TimeRecordViewModel(timeRepository)
         
         let uptimeRepository = DefaultSystemUptimeRecordRepository(source)
         uptimeRecord = SystemUptimeRecordViewModel(uptimeRepository)
         
         let calendarRepository = DefaultCalendarRecordRepository(source)
-        let calendar = CalendarViewModel(calendarRepository)
-        _calendar = StateObject(wrappedValue: calendar)
+        calendar = CalendarViewModel(calendarRepository)
         
         formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -214,7 +213,7 @@ struct UITestApp: App {
                 }
             } else if CommandLine.arguments.contains("SystemUptimeViewTests") {
                 SystemUptimeView(uptimeRecord: uptimeRecord)
-                    .environmentObject(terminationManager)
+                    .environment(terminationManager)
                 if let uptime = self.uptime {
                     Text(uptime.launch, format: .dateTime.hour().minute().second())
                         .accessibilityIdentifier("launch")

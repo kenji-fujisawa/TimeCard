@@ -10,7 +10,7 @@ import SwiftUI
 struct RecordEditView: View {
     @Environment(\.dismiss) private var dismiss
     @State var record: CalendarRecord
-    @ObservedObject var calendar: CalendarViewModel
+    var calendar: CalendarViewModel
     
     var body: some View {
         TabView {

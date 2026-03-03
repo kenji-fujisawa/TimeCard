@@ -7,10 +7,11 @@
 
 import Foundation
 
-class TimeRecordViewModel: ObservableObject {
-    private let repository: TimeRecordRepository
+@Observable
+class TimeRecordViewModel {
+    @ObservationIgnored private let repository: TimeRecordRepository
     
-    @Published var state: WorkState
+    var state: WorkState
     
     init(_ repository: TimeRecordRepository) {
         self.repository = repository

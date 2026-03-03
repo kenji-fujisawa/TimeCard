@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CalendarView: View {
-    @ObservedObject var calendar: CalendarViewModel
+    @Bindable var calendar: CalendarViewModel
     
     var body: some View {
         VStack {
