@@ -171,8 +171,6 @@ private struct PDFView: View {
         date: .now,
         timeRecords: [
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
                 breakTimes: [
@@ -186,8 +184,6 @@ private struct PDFView: View {
                 ]
             ),
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 breakTimes: [
                     TimeRecord.BreakTime(
@@ -199,9 +195,6 @@ private struct PDFView: View {
         ],
         uptimeRecords: [
             SystemUptimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
-                day: Date.now.day,
                 launch: .now,
                 shutdown: .now
             )

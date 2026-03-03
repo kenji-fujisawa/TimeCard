@@ -93,11 +93,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
         }
         
         let now = Date.now
-        let record = TimeRecord(
-            year: now.year,
-            month: now.month,
-            checkIn: now
-        )
+        let record = TimeRecord(checkIn: now)
         try source.insertTimeRecord(record)
     }
     

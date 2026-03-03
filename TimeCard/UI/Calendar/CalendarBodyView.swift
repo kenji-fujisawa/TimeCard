@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CalendarBodyView: View {
-    @ObservedObject var calendar: CalendarViewModel
+    var calendar: CalendarViewModel
     @State private var recordToEdit: CalendarRecord? = nil
     @State private var showFileExport: Bool = false
     

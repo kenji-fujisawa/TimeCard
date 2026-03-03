@@ -47,14 +47,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         }
         
         let now = Date.now
-        let record = SystemUptimeRecord(
-            year: now.year,
-            month: now.month,
-            day: now.day,
-            launch: now,
-            shutdown: now,
-            sleepRecords: []
-        )
+        let record = SystemUptimeRecord(launch: now, shutdown: now)
         try source.insertUptimeRecord(record)
         
         state = .running
@@ -126,14 +119,8 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         
         try source.updateUptimeRecord(record)
         
-        if record.day != now.day {
-            var record = SystemUptimeRecord(
-                year: now.year,
-                month: now.month,
-                day: now.day,
-                launch: now,
-                shutdown: now
-            )
+        if record.launch.day != now.day {
+            var record = SystemUptimeRecord(launch: now, shutdown: now)
             
             if state == .sleep {
                 let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)

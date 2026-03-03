@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SystemUptimeView: View {
-    @EnvironmentObject private var terminationManager: AppTerminationManager
+    @Environment(AppTerminationManager.self) private var terminationManager
     let uptimeRecord: SystemUptimeRecordViewModel
     @State private var becomeActive = false
     
@@ -45,7 +45,7 @@ struct SystemUptimeView: View {
     let repository = FakeUptimeRepository()
     let uptimeRecord = SystemUptimeRecordViewModel(repository)
     SystemUptimeView(uptimeRecord: uptimeRecord)
-        .environmentObject(terminationManager)
+        .environment(terminationManager)
 }
 
 private class FakeUptimeRepository: SystemUptimeRecordRepository {

@@ -30,8 +30,6 @@ struct LocalDataSourceTests {
         
         self.timeRecords = [
             TimeRecord(
-                year: 2025,
-                month: 12,
                 checkIn: formatter.date(from: "2025-12-29 08:00:00"),
                 checkOut: formatter.date(from: "2025-12-29 18:00:00"),
                 breakTimes: [
@@ -46,15 +44,11 @@ struct LocalDataSourceTests {
                 ]
             ),
             TimeRecord(
-                year: 2025,
-                month: 12,
                 checkIn: formatter.date(from: "2025-12-30 09:00:00"),
                 checkOut: nil,
                 breakTimes: []
             ),
             TimeRecord(
-                year: 2026,
-                month: 1,
                 checkIn: formatter.date(from: "2026-01-07 08:30:00"),
                 checkOut: nil,
                 breakTimes: [
@@ -68,9 +62,6 @@ struct LocalDataSourceTests {
         
         uptimeRecords = [
             SystemUptimeRecord(
-                year: 2025,
-                month: 12,
-                day: 29,
                 launch: formatter.date(from: "2025-12-29 07:00:00") ?? .now,
                 shutdown: formatter.date(from: "2025-12-29 19:00:00") ?? .now,
                 sleepRecords: [
@@ -85,17 +76,11 @@ struct LocalDataSourceTests {
                 ]
             ),
             SystemUptimeRecord(
-                year: 2025,
-                month: 12,
-                day: 30,
                 launch: formatter.date(from: "2025-12-30 08:00:00") ?? .now,
                 shutdown: formatter.date(from: "2025-12-30 20:00:00") ?? .now,
                 sleepRecords: []
             ),
             SystemUptimeRecord(
-                year: 2026,
-                month: 1,
-                day: 7,
                 launch: formatter.date(from: "2026-01-07 07:30:00") ?? .now,
                 shutdown: formatter.date(from: "2026-01-07 20:30:00") ?? .now,
                 sleepRecords: [

@@ -21,9 +21,6 @@ struct SystemUptimeRecord: Identifiable, Hashable, Equatable {
     }
     
     var id: UUID
-    var year: Int
-    var month: Int
-    var day: Int
     var launch: Date
     var shutdown: Date
     var sleepRecords: [SleepRecord]
@@ -37,11 +34,8 @@ struct SystemUptimeRecord: Identifiable, Hashable, Equatable {
         return interval
     }
     
-    init(id: UUID = UUID(), year: Int, month: Int, day: Int, launch: Date, shutdown: Date, sleepRecords: [SleepRecord] = []) {
+    init(id: UUID = UUID(), launch: Date, shutdown: Date, sleepRecords: [SleepRecord] = []) {
         self.id = id
-        self.year = year
-        self.month = month
-        self.day = day
         self.launch = launch
         self.shutdown = shutdown
         self.sleepRecords = sleepRecords

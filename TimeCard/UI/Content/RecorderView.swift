@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RecorderView: View {
-    @ObservedObject var timeRecord: TimeRecordViewModel
+    var timeRecord: TimeRecordViewModel
     
     var body: some View {
         VStack {

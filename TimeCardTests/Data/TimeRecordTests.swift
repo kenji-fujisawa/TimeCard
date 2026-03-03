@@ -22,7 +22,7 @@ struct TimeRecordTests {
         let breakStart3 = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 17, minute: 0, second: 0))
         let breakEnd3 = Calendar.current.date(from: DateComponents(year: 2025, month: 10, day: 7, hour: 17, minute: 0, second: 30))
         
-        var record = TimeRecord(year: 2025, month: 10)
+        var record = TimeRecord()
         #expect(record.timeWorked == 0)
         
         record.checkIn = checkIn

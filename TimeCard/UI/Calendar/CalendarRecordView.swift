@@ -124,8 +124,6 @@ struct CalendarRecordView: View {
         date: .now,
         timeRecords: [
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
                 breakTimes: [
@@ -139,8 +137,6 @@ struct CalendarRecordView: View {
                 ]
             ),
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 breakTimes: [
                     TimeRecord.BreakTime(
@@ -152,9 +148,6 @@ struct CalendarRecordView: View {
         ],
         uptimeRecords: [
             SystemUptimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
-                day: Date.now.day,
                 launch: .now,
                 shutdown: .now
             )

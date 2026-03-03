@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct TimeRecordEditView: View {
-    @Environment(\.dismiss) private var dismiss
     @Binding var record: CalendarRecord
     @State private var selectedId: TimeRecord.ID? = nil
     
@@ -74,7 +73,7 @@ struct TimeRecordEditView: View {
         
         private func addRecord() {
             let date = record.date
-            let record = TimeRecord(year: date.year, month: date.month, checkIn: date, checkOut: date)
+            let record = TimeRecord(checkIn: date, checkOut: date)
             self.record.timeRecords.append(record)
             selectedId = record.id
         }
@@ -164,8 +163,6 @@ struct TimeRecordEditView: View {
         date: .now,
         timeRecords: [
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [
@@ -179,8 +176,6 @@ struct TimeRecordEditView: View {
                 ]
             ),
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 breakTimes: [
                     TimeRecord.BreakTime(

@@ -48,7 +48,7 @@ struct TimeRecordRepositoryTests {
         let source = FakeLocalDataSource()
         let repository = DefaultTimeRecordRepository(source)
         
-        let record = TimeRecord(year: Date.now.year, month: Date.now.month)
+        let record = TimeRecord()
         try repository.insert(record)
         #expect(source.inserted == record)
     }
@@ -57,7 +57,7 @@ struct TimeRecordRepositoryTests {
         let source = FakeLocalDataSource()
         let repository = DefaultTimeRecordRepository(source)
         
-        let record = TimeRecord(year: Date.now.year, month: Date.now.month)
+        let record = TimeRecord()
         try repository.update(record)
         #expect(source.updated == record)
     }
@@ -66,7 +66,7 @@ struct TimeRecordRepositoryTests {
         let source = FakeLocalDataSource()
         let repository = DefaultTimeRecordRepository(source)
         
-        let record = TimeRecord(year: Date.now.year, month: Date.now.month)
+        let record = TimeRecord()
         try repository.delete(record)
         #expect(source.deleted == record)
     }
@@ -265,8 +265,6 @@ struct TimeRecordRepositoryTests {
     class FakeLocalDataSource: LocalDataSource {
         let records = [
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [

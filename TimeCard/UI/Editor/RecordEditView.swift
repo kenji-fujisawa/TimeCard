@@ -10,7 +10,7 @@ import SwiftUI
 struct RecordEditView: View {
     @Environment(\.dismiss) private var dismiss
     @State var record: CalendarRecord
-    @ObservedObject var calendar: CalendarViewModel
+    var calendar: CalendarViewModel
     
     var body: some View {
         TabView {
@@ -39,8 +39,6 @@ struct RecordEditView: View {
         date: .now,
         timeRecords: [
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [
@@ -54,8 +52,6 @@ struct RecordEditView: View {
                 ]
             ),
             TimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 breakTimes: [
                     TimeRecord.BreakTime(
@@ -67,9 +63,6 @@ struct RecordEditView: View {
         ],
         uptimeRecords: [
             SystemUptimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
-                day: Date.now.day,
                 launch: .now,
                 shutdown: .now
             )

@@ -66,8 +66,10 @@ class DefaultLocalDataSource: LocalDataSource {
     
     func updateTimeRecord(_ record: TimeRecord) throws {
         if let rec = try getLocalTimeRecord(id: record.id) {
-            rec.year = record.year
-            rec.month = record.month
+            if let checkIn = record.checkIn {
+                rec.year = checkIn.year
+                rec.month = checkIn.month
+            }
             rec.checkIn = record.checkIn
             rec.checkOut = record.checkOut
             rec.breakTimes = record.breakTimes.map { $0.toLocal() }
@@ -104,9 +106,9 @@ class DefaultLocalDataSource: LocalDataSource {
     
     func updateUptimeRecord(_ record: SystemUptimeRecord) throws {
         if let rec = try getLocalUptimeRecord(id: record.id) {
-            rec.year = record.year
-            rec.month = record.month
-            rec.day = record.day
+            rec.year = record.launch.year
+            rec.month = record.launch.month
+            rec.day = record.launch.day
             rec.launch = record.launch
             rec.shutdown = record.shutdown
             rec.sleepRecords = record.sleepRecords.map { $0.toLocal() }
@@ -126,8 +128,8 @@ extension TimeRecord {
     func toLocal() -> LocalTimeRecord {
         LocalTimeRecord(
             id: self.id,
-            year: self.year,
-            month: self.month,
+            year: self.checkIn?.year ?? Date.now.year,
+            month: self.checkIn?.month ?? Date.now.month,
             checkIn: self.checkIn,
             checkOut: self.checkOut,
             breakTimes: self.breakTimes.map { $0.toLocal() }
@@ -149,9 +151,9 @@ extension SystemUptimeRecord {
     func toLocal() -> LocalUptimeRecord {
         LocalUptimeRecord(
             id: self.id,
-            year: self.year,
-            month: self.month,
-            day: self.day,
+            year: self.launch.year,
+            month: self.launch.month,
+            day: self.launch.day,
             launch: self.launch,
             shutdown: self.shutdown,
             sleepRecords: self.sleepRecords.map { $0.toLocal() }
@@ -173,8 +175,6 @@ extension LocalTimeRecord {
     func toTimeRecord() -> TimeRecord {
         TimeRecord(
             id: self.id,
-            year: self.year,
-            month: self.month,
             checkIn: self.checkIn,
             checkOut: self.checkOut,
             breakTimes: self.breakTimes
@@ -198,9 +198,6 @@ extension LocalUptimeRecord {
     func toUptimeRecord() -> SystemUptimeRecord {
         SystemUptimeRecord(
             id: self.id,
-            year: self.year,
-            month: self.month,
-            day: self.day,
             launch: self.launch,
             shutdown: self.shutdown,
             sleepRecords: self.sleepRecords

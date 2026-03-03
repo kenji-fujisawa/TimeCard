@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
-    @Environment(\.dismiss) private var dismiss
     @Binding var record: CalendarRecord
     @State private var selectedId: SystemUptimeRecord.ID? = nil
     
@@ -72,7 +71,7 @@ struct SystemUptimeRecordEditView: View {
         
         private func addRecord() {
             let date = record.date
-            let record = SystemUptimeRecord(year: date.year, month: date.month, day: date.day, launch: date, shutdown: date)
+            let record = SystemUptimeRecord(launch: date, shutdown: date)
             self.record.uptimeRecords.append(record)
             selectedId = record.id
         }
@@ -163,9 +162,6 @@ struct SystemUptimeRecordEditView: View {
         timeRecords: [],
         uptimeRecords: [
             SystemUptimeRecord(
-                year: Date.now.year,
-                month: Date.now.month,
-                day: Date.now.day,
                 launch: .now,
                 shutdown: .now,
                 sleepRecords: [
