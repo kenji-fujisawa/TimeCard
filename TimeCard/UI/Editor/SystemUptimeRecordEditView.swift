@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
-    @Environment(\.dismiss) private var dismiss
     @Binding var record: CalendarRecord
     @State private var selectedId: SystemUptimeRecord.ID? = nil
     

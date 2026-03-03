@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct TimeRecordEditView: View {
-    @Environment(\.dismiss) private var dismiss
     @Binding var record: CalendarRecord
     @State private var selectedId: TimeRecord.ID? = nil
     
