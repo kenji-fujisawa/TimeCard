@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ServerView: View {
-    @Environment(AppTerminationManager.self) private var terminationManager
+    @Environment(\.terminationManager) private var terminationManager
     let server: TimeCardServer
     @State private var becomeActive = false
     
@@ -31,11 +31,9 @@ struct ServerView: View {
 }
 
 #Preview {
-    let terminationManager = AppTerminationManager()
     let repository = FakeTimeRecordRepository()
     let server = TimeCardServer(repository)
     ServerView(server: server)
-        .environment(terminationManager)
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {

@@ -10,7 +10,6 @@ import SwiftUI
 
 struct TimeCardApp: App {
     private var container: ModelContainer
-    private let terminationManager = AppTerminationManager()
     private let timeRecord: TimeRecordViewModel
     private let uptimeRecord: SystemUptimeRecordViewModel
     private let calendar: CalendarViewModel
@@ -48,17 +47,15 @@ struct TimeCardApp: App {
             ContentView(timeRecord: timeRecord)
                 .onReceive(NotificationCenter.default.publisher(for: Notification.exitApp)) { _ in
                     Task {
-                        await terminationManager.performCleanup()
+                        await AppTerminationManager.shared.performCleanup()
                         NSApplication.shared.terminate(nil)
                     }
                 }
         } label: {
             Image(systemName: "clock.badge.checkmark")
             SystemUptimeView(uptimeRecord: uptimeRecord)
-                .environment(terminationManager)
             SleepView(timeRecord: timeRecord)
             ServerView(server: server)
-                .environment(terminationManager)
         }
         .menuBarExtraStyle(.window)
         
@@ -76,9 +73,10 @@ extension Notification {
     static let exitApp = Notification.Name("exitApp")
 }
 
-@Observable
 class AppTerminationManager {
     private var cleanupActions: [() async -> Void] = []
+    
+    static let shared = AppTerminationManager()
     
     func addCleanupAction(_ action: @escaping () async -> Void) {
         cleanupActions.append(action)
@@ -95,6 +93,10 @@ class AppTerminationManager {
     }
 }
 
+extension EnvironmentValues {
+    @Entry var terminationManager = AppTerminationManager.shared
+}
+
 #if DEBUG
 struct UITestApp: App {
     private let container: ModelContainer
@@ -106,7 +108,6 @@ struct UITestApp: App {
     @State private var recordToEdit: CalendarRecord? = nil
     @State private var now: Date
     @State private var uptime: SystemUptimeRecord? = nil
-    private let terminationManager = AppTerminationManager()
     
     init() {
         let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
@@ -208,7 +209,6 @@ struct UITestApp: App {
                 }
             } else if CommandLine.arguments.contains("SystemUptimeViewTests") {
                 SystemUptimeView(uptimeRecord: uptimeRecord)
-                    .environment(terminationManager)
                 if let uptime = self.uptime {
                     Text(uptime.launch, format: .dateTime.hour().minute().second())
                         .accessibilityIdentifier("launch")
@@ -229,7 +229,7 @@ struct UITestApp: App {
                 }
                 Button("terminate") {
                     Task {
-                        await terminationManager.performCleanup()
+                        await AppTerminationManager.shared.performCleanup()
                     }
                 }
                 Button("update") {
