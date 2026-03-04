@@ -10,10 +10,9 @@ import SwiftUI
 
 struct TimeCardApp: App {
     private var container: ModelContainer
-    private let timeRecord: TimeRecordViewModel
-    private let uptimeRecord: SystemUptimeRecordViewModel
-    private let calendar: CalendarViewModel
-    private let server: TimeCardServer
+    private let timeRepository: TimeRecordRepository
+    private let uptimeRepository: SystemUptimeRecordRepository
+    private let calendarRepository: CalendarRecordRepository
     
     init() {
         #if DEBUG
@@ -30,21 +29,15 @@ struct TimeCardApp: App {
         }
         
         let source = DefaultLocalDataSource(container.mainContext)
-        let timeRepository = DefaultTimeRecordRepository(source)
-        timeRecord = TimeRecordViewModel(timeRepository)
-        
-        let uptimeRepository = DefaultSystemUptimeRecordRepository(source)
-        uptimeRecord = SystemUptimeRecordViewModel(uptimeRepository)
-        
-        let calendarRepository = DefaultCalendarRecordRepository(source)
-        calendar = CalendarViewModel(calendarRepository)
-        
-        server = TimeCardServer(timeRepository)
+        timeRepository = DefaultTimeRecordRepository(source)
+        uptimeRepository = DefaultSystemUptimeRecordRepository(source)
+        calendarRepository = DefaultCalendarRecordRepository(source)
     }
     
     var body: some Scene {
         MenuBarExtra {
-            ContentView(timeRecord: timeRecord)
+            ContentView()
+                .environment(\.timeRecordRepository, timeRepository)
                 .onReceive(NotificationCenter.default.publisher(for: Notification.exitApp)) { _ in
                     Task {
                         await AppTerminationManager.shared.performCleanup()
@@ -53,14 +46,14 @@ struct TimeCardApp: App {
                 }
         } label: {
             Image(systemName: "clock.badge.checkmark")
-            SystemUptimeView(uptimeRecord: uptimeRecord)
-            SleepView(timeRecord: timeRecord)
-            ServerView(server: server)
+            SystemUptimeView(uptimeRecord: SystemUptimeRecordViewModel(uptimeRepository))
+            SleepView(timeRecord: TimeRecordViewModel(timeRepository))
+            ServerView(server: TimeCardServer(timeRepository))
         }
         .menuBarExtraStyle(.window)
         
         Window("TimeCard", id: "calendar") {
-            CalendarView(calendar: calendar)
+            CalendarView(calendar: CalendarViewModel(calendarRepository))
         }
         
         Settings {
@@ -95,6 +88,21 @@ class AppTerminationManager {
 
 extension EnvironmentValues {
     @Entry var terminationManager = AppTerminationManager.shared
+    @Entry var timeRecordRepository: TimeRecordRepository = FakeTimeRecordRepository()
+}
+
+private class FakeTimeRecordRepository: TimeRecordRepository {
+    func getRecords(year: Int, month: Int) throws -> [TimeRecord] { [] }
+    func getRecord(id: UUID) throws -> TimeRecord? { nil }
+    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? { nil }
+    func insert(_ record: TimeRecord) throws {}
+    func update(_ record: TimeRecord) throws {}
+    func delete(_ record: TimeRecord) throws {}
+    func getState() -> WorkState { .offWork }
+    func checkIn() throws {}
+    func checkOut() throws {}
+    func startBreak() throws {}
+    func endBreak() throws {}
 }
 
 #if DEBUG

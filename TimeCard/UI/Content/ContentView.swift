@@ -10,11 +10,11 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
-    let timeRecord: TimeRecordViewModel
+    @Environment(\.timeRecordRepository) private var repository
     
     var body: some View {
         VStack {
-            RecorderView(timeRecord: timeRecord)
+            RecorderView(timeRecord: TimeRecordViewModel(repository))
             
             Divider()
             
@@ -89,8 +89,8 @@ extension PrimitiveButtonStyle where Self == PreActionButtonStyle {
 
 #Preview {
     let repository = FakeTimeRecordRepository()
-    let timeRecord = TimeRecordViewModel(repository)
-    ContentView(timeRecord: timeRecord)
+    ContentView()
+        .environment(\.timeRecordRepository, repository)
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {
