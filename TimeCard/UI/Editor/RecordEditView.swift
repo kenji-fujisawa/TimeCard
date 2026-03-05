@@ -10,7 +10,7 @@ import SwiftUI
 struct RecordEditView: View {
     @Environment(\.dismiss) private var dismiss
     @State var record: CalendarRecord
-    var calendar: CalendarViewModel
+    var viewModel: CalendarViewModel
     
     var body: some View {
         TabView {
@@ -25,7 +25,7 @@ struct RecordEditView: View {
         .toolbar {
             ToolbarItem {
                 Button("閉じる", systemImage: "xmark") {
-                    calendar.update(record: record)
+                    viewModel.update(record: record)
                     dismiss()
                 }
                 .accessibilityIdentifier("button_close")
@@ -69,8 +69,8 @@ struct RecordEditView: View {
         ]
     )
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository)
-    RecordEditView(record: record, calendar: calendar)
+    let viewModel = CalendarViewModel(repository)
+    RecordEditView(record: record, viewModel: viewModel)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {

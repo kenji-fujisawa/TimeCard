@@ -8,23 +8,23 @@
 import SwiftUI
 
 struct SleepView: View {
-    let timeRecord: TimeRecordViewModel
+    let viewModel: TimeRecordViewModel
     
     var body: some View {
         EmptyView()
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.willSleepNotification)) { _ in
-                timeRecord.startBreak()
+                viewModel.startBreak()
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
-                timeRecord.endBreak()
+                viewModel.endBreak()
             }
     }
 }
 
 #Preview {
     let repository = FakeTimeRecordRepository()
-    let timeRecord = TimeRecordViewModel(repository)
-    SleepView(timeRecord: timeRecord)
+    let viewModel = TimeRecordViewModel(repository)
+    SleepView(viewModel: viewModel)
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {

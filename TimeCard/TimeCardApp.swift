@@ -46,14 +46,14 @@ struct TimeCardApp: App {
                 }
         } label: {
             Image(systemName: "clock.badge.checkmark")
-            SystemUptimeView(uptimeRecord: SystemUptimeRecordViewModel(uptimeRepository))
-            SleepView(timeRecord: TimeRecordViewModel(timeRepository))
+            SystemUptimeView(viewModel: SystemUptimeRecordViewModel(uptimeRepository))
+            SleepView(viewModel: TimeRecordViewModel(timeRepository))
             ServerView(server: TimeCardServer(timeRepository))
         }
         .menuBarExtraStyle(.window)
         
         Window("TimeCard", id: "calendar") {
-            CalendarView(calendar: CalendarViewModel(calendarRepository))
+            CalendarView(viewModel: CalendarViewModel(calendarRepository))
         }
         
         Settings {
@@ -108,9 +108,9 @@ private class FakeTimeRecordRepository: TimeRecordRepository {
 #if DEBUG
 struct UITestApp: App {
     private let container: ModelContainer
-    @State private var timeRecord: TimeRecordViewModel
-    private let uptimeRecord: SystemUptimeRecordViewModel
-    @State private var calendar: CalendarViewModel
+    @State private var timeViewModel: TimeRecordViewModel
+    private let uptimeViewModel: SystemUptimeRecordViewModel
+    @State private var calendarViewModel: CalendarViewModel
     private let formatter: DateFormatter
     @State private var record: CalendarRecord
     @State private var recordToEdit: CalendarRecord? = nil
@@ -128,13 +128,13 @@ struct UITestApp: App {
         
         let source = DefaultLocalDataSource(container.mainContext)
         let timeRepository = DefaultTimeRecordRepository(source)
-        timeRecord = TimeRecordViewModel(timeRepository)
+        timeViewModel = TimeRecordViewModel(timeRepository)
         
         let uptimeRepository = DefaultSystemUptimeRecordRepository(source)
-        uptimeRecord = SystemUptimeRecordViewModel(uptimeRepository)
+        uptimeViewModel = SystemUptimeRecordViewModel(uptimeRepository)
         
         let calendarRepository = DefaultCalendarRecordRepository(source)
-        calendar = CalendarViewModel(calendarRepository)
+        calendarViewModel = CalendarViewModel(calendarRepository)
         
         formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -173,10 +173,10 @@ struct UITestApp: App {
     var body: some Scene {
         WindowGroup {
             if CommandLine.arguments.contains("RecorderViewTests") {
-                RecorderView(timeRecord: timeRecord)
+                RecorderView(viewModel: timeViewModel)
             } else if CommandLine.arguments.contains("CalendarViewTests") {
-                RecorderView(timeRecord: timeRecord)
-                CalendarView(calendar: calendar)
+                RecorderView(viewModel: timeViewModel)
+                CalendarView(viewModel: calendarViewModel)
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
                 CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
                 if let rec = recordToEdit {
@@ -186,15 +186,15 @@ struct UITestApp: App {
             } else if CommandLine.arguments.contains("MonthSelectorViewTests") {
                 MonthSelectorView(date: $now)
             } else if CommandLine.arguments.contains("RecordEditViewTests") {
-                Text("\(calendar.records.first?.timeRecords.count ?? 0)")
+                Text("\(calendarViewModel.records.first?.timeRecords.count ?? 0)")
                     .accessibilityIdentifier("time_record_count")
-                Text("\(calendar.records.first?.uptimeRecords.count ?? 0)")
+                Text("\(calendarViewModel.records.first?.uptimeRecords.count ?? 0)")
                     .accessibilityIdentifier("uptime_record_count")
                 Button("show") {
-                    recordToEdit = calendar.records.first
+                    recordToEdit = calendarViewModel.records.first
                 }
                 .sheet(item: $recordToEdit) { record in
-                    RecordEditView(record: record, calendar: calendar)
+                    RecordEditView(record: record, viewModel: calendarViewModel)
                 }
             } else if CommandLine.arguments.contains("TimeRecordEditViewTests") {
                 TimeRecordEditView(record: $record)
@@ -203,11 +203,11 @@ struct UITestApp: App {
                 SystemUptimeRecordEditView(record: $record)
                     .modelContainer(for: LocalUptimeRecord.self, inMemory: true)
             } else if CommandLine.arguments.contains("SleepViewTests") {
-                SleepView(timeRecord: timeRecord)
-                Text("\(String(describing: timeRecord.state))")
+                SleepView(viewModel: timeViewModel)
+                Text("\(String(describing: timeViewModel.state))")
                     .accessibilityIdentifier("state")
                 Button("checkIn") {
-                    timeRecord.checkIn()
+                    timeViewModel.checkIn()
                 }
                 Button("sleep") {
                     NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.willSleepNotification, object: nil)
@@ -216,7 +216,7 @@ struct UITestApp: App {
                     NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
                 }
             } else if CommandLine.arguments.contains("SystemUptimeViewTests") {
-                SystemUptimeView(uptimeRecord: uptimeRecord)
+                SystemUptimeView(viewModel: uptimeViewModel)
                 if let uptime = self.uptime {
                     Text(uptime.launch, format: .dateTime.hour().minute().second())
                         .accessibilityIdentifier("launch")

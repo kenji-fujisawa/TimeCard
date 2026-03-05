@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CalendarBodyView: View {
-    var calendar: CalendarViewModel
+    var viewModel: CalendarViewModel
     @State private var recordToEdit: CalendarRecord? = nil
     @State private var showFileExport: Bool = false
     
@@ -33,7 +33,7 @@ struct CalendarBodyView: View {
                 }
                 Divider()
                 
-                ForEach(calendar.records) { record in
+                ForEach(viewModel.records) { record in
                     CalendarRecordView(record: record, fixed: isFixed(record: record), recordToEdit: $recordToEdit)
                     Divider()
                 }
@@ -44,18 +44,18 @@ struct CalendarBodyView: View {
                     Text("")
                     Text("")
                     Text("")
-                    Text(calendar.records.timeWorkedSum, format: .timeWorked)
-                    Text(calendar.records.systemUptimeSum, format: .timeWorked)
+                    Text(viewModel.records.timeWorkedSum, format: .timeWorked)
+                    Text(viewModel.records.systemUptimeSum, format: .timeWorked)
                 }
                 .font(.system(.headline, design: .monospaced))
                 .fontWeight(.regular)
             }
         }
         .sheet(item: $recordToEdit) { record in
-            RecordEditView(record: record, calendar: calendar)
+            RecordEditView(record: record, viewModel: viewModel)
         }
         .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
-        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: calendar.records, showExporter: { showFileExport = true }))
+        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: viewModel.records, showExporter: { showFileExport = true }))
     }
     
     private func isFixed(record: CalendarRecord) -> Bool {
@@ -71,8 +71,8 @@ struct CalendarBodyView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository)
-    CalendarBodyView(calendar: calendar)
+    let viewModel = CalendarViewModel(repository)
+    CalendarBodyView(viewModel: viewModel)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
