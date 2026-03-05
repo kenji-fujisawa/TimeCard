@@ -62,12 +62,23 @@ class TimeRecordEditViewModel {
         var checkIn: Date
         var checkOut: Date
         var breakTimes: [BreakTime]
+        var removeId: BreakTime.ID? = nil
         
         init(id: UUID = UUID(), checkIn: Date, checkOut: Date, breakTimes: [BreakTime] = []) {
             self.id = id
             self.checkIn = checkIn
             self.checkOut = checkOut
             self.breakTimes = breakTimes
+        }
+        
+        func addBreakTime() {
+            let breakTime = BreakTime(start: checkIn, end: checkIn)
+            breakTimes.append(breakTime)
+        }
+        
+        func removeBreakTime() {
+            breakTimes.removeAll(where: { $0.id == removeId })
+            removeId = nil
         }
         
         static func == (lhs: TimeRecordEditViewModel.TimeRecord, rhs: TimeRecordEditViewModel.TimeRecord) -> Bool {
@@ -80,10 +91,27 @@ class TimeRecordEditViewModel {
     
     var date: Date
     var records: [TimeRecord] = []
+    var selectedId: TimeRecord.ID? = nil
+    var removeId: TimeRecord.ID? = nil
     
     init(date: Date, records: [TimeRecord] = []) {
         self.date = date
         self.records = records
+        self.selectedId = records.first?.id
+    }
+    
+    func addRecord() {
+        let record = TimeRecord(checkIn: date, checkOut: date)
+        records.append(record)
+        selectedId = record.id
+    }
+    
+    func removeRecord() {
+        records.removeAll(where: { $0.id == removeId })
+        if selectedId == removeId {
+            selectedId = records.first?.id
+        }
+        removeId = nil
     }
 }
 
@@ -114,6 +142,7 @@ class UptimeRecordEditViewModel {
         var launch: Date
         var shutdown: Date
         var sleepRecords: [SleepRecord]
+        var removeId: SleepRecord.ID? = nil
         
         var uptime: TimeInterval {
             var interval = shutdown.timeIntervalSince(launch)
@@ -131,6 +160,16 @@ class UptimeRecordEditViewModel {
             self.sleepRecords = sleepRecords
         }
         
+        func addSleep() {
+            let sleep = SleepRecord(start: launch, end: launch)
+            sleepRecords.append(sleep)
+        }
+        
+        func removeSleep() {
+            sleepRecords.removeAll(where: { $0.id == removeId })
+            removeId = nil
+        }
+        
         static func == (lhs: UptimeRecordEditViewModel.SystemUptimeRecord, rhs: UptimeRecordEditViewModel.SystemUptimeRecord) -> Bool {
             lhs.id == rhs.id &&
             lhs.launch == rhs.launch &&
@@ -141,10 +180,27 @@ class UptimeRecordEditViewModel {
     
     var date: Date
     var records: [SystemUptimeRecord] = []
+    var selectedId: SystemUptimeRecord.ID? = nil
+    var removeId: SystemUptimeRecord.ID? = nil
     
     init(date: Date, records: [SystemUptimeRecord] = []) {
         self.date = date
         self.records = records
+        self.selectedId = records.first?.id
+    }
+    
+    func addRecord() {
+        let record = SystemUptimeRecord(launch: date, shutdown: date)
+        records.append(record)
+        selectedId = record.id
+    }
+    
+    func removeRecord() {
+        records.removeAll(where: { $0.id == removeId })
+        if selectedId == removeId {
+            selectedId = records.first?.id
+        }
+        removeId = nil
     }
 }
 

@@ -9,29 +9,23 @@ import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
     @Bindable var viewModel: UptimeRecordEditViewModel
-    @State private var selectedId: UptimeRecordEditViewModel.SystemUptimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(viewModel: viewModel, selectedId: $selectedId)
+            SidebarView(viewModel: viewModel)
         } detail: {
-            if let index = viewModel.records.firstIndex(where: { $0.id == selectedId }) {
+            if let index = viewModel.records.firstIndex(where: { $0.id == viewModel.selectedId }) {
                 DetailView(record: viewModel.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
-        .onAppear() {
-            selectedId = viewModel.records.first?.id
-        }
     }
     
     private struct SidebarView: View {
-        var viewModel: UptimeRecordEditViewModel
-        @Binding var selectedId: UptimeRecordEditViewModel.SystemUptimeRecord.ID?
-        @State private var recordToRemove: UptimeRecordEditViewModel.SystemUptimeRecord? = nil
+        @Bindable var viewModel: UptimeRecordEditViewModel
         
         var body: some View {
-            List(selection: $selectedId) {
+            List(selection: $viewModel.selectedId) {
                 Section("稼働時間") {
                     ForEach(viewModel.records) { record in
                         HStack {
@@ -40,9 +34,9 @@ struct SystemUptimeRecordEditView: View {
                             
                             Spacer()
                             
-                            if recordToRemove == record {
+                            if viewModel.removeId == record.id {
                                 Button(role: .destructive) {
-                                    removeRecord(record: record)
+                                    viewModel.removeRecord()
                                 } label: {
                                     Image(systemName: "trash")
                                         .foregroundStyle(.red)
@@ -50,7 +44,7 @@ struct SystemUptimeRecordEditView: View {
                                 .accessibilityIdentifier("button_remove_uptime_record")
                             } else {
                                 Button {
-                                    recordToRemove = record
+                                    viewModel.removeId = record.id
                                 } label: {
                                     Image(systemName: "minus")
                                 }
@@ -62,32 +56,16 @@ struct SystemUptimeRecordEditView: View {
                 }
                 
                 Button("追加", systemImage: "plus") {
-                    addRecord()
+                    viewModel.addRecord()
                 }
                 .font(.footnote)
                 .accessibilityIdentifier("button_add_uptime_record")
-            }
-        }
-        
-        private func addRecord() {
-            let date = viewModel.date
-            let record = UptimeRecordEditViewModel.SystemUptimeRecord(launch: date, shutdown: date)
-            viewModel.records.append(record)
-            selectedId = record.id
-        }
-        
-        private func removeRecord(record: UptimeRecordEditViewModel.SystemUptimeRecord) {
-            viewModel.records.removeAll(where: { $0 == record })
-            recordToRemove = nil
-            if selectedId == record.id {
-                selectedId = viewModel.records.first?.id
             }
         }
     }
     
     private struct DetailView: View {
         @Bindable var record: UptimeRecordEditViewModel.SystemUptimeRecord
-        @State private var recordToRemove: UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord? = nil
         
         var body: some View {
             VStack(alignment: .leading) {
@@ -109,10 +87,9 @@ struct SystemUptimeRecordEditView: View {
                                 
                                 Spacer()
                                 
-                                if recordToRemove == sleepRecord {
+                                if record.removeId == sleepRecord.id {
                                     Button(role: .destructive) {
-                                        record.sleepRecords.removeAll(where: { $0 == sleepRecord })
-                                        recordToRemove = nil
+                                        record.removeSleep()
                                     } label: {
                                         Image(systemName: "trash")
                                             .foregroundStyle(.red)
@@ -120,7 +97,7 @@ struct SystemUptimeRecordEditView: View {
                                     .accessibilityIdentifier("button_remove_sleep_record")
                                 } else {
                                     Button {
-                                        recordToRemove = sleepRecord
+                                        record.removeId = sleepRecord.id
                                     } label: {
                                         Image(systemName: "minus")
                                     }
@@ -131,9 +108,7 @@ struct SystemUptimeRecordEditView: View {
                     }
                     
                     Button("スリープを追加", systemImage: "plus") {
-                        let date = record.launch
-                        let sleep = UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord(start: date, end: date)
-                        record.sleepRecords.append(sleep)
+                        record.addSleep()
                     }
                     .font(.footnote)
                     .accessibilityIdentifier("button_add_sleep_record")

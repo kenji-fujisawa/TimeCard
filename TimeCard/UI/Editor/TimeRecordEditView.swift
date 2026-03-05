@@ -9,29 +9,23 @@ import SwiftUI
 
 struct TimeRecordEditView: View {
     @Bindable var viewModel: TimeRecordEditViewModel
-    @State private var selectedId: TimeRecordEditViewModel.TimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(viewModel: viewModel, selectedId: $selectedId)
+            SidebarView(viewModel: viewModel)
         } detail: {
-            if let index = viewModel.records.firstIndex(where: { $0.id == selectedId }) {
+            if let index = viewModel.records.firstIndex(where: { $0.id == viewModel.selectedId }) {
                 DetailView(record: viewModel.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
-        .onAppear() {
-            selectedId = viewModel.records.first?.id
-        }
     }
     
     private struct SidebarView: View {
-        var viewModel: TimeRecordEditViewModel
-        @Binding var selectedId: TimeRecordEditViewModel.TimeRecord.ID?
-        @State private var recordToRemove: TimeRecordEditViewModel.TimeRecord? = nil
+        @Bindable var viewModel: TimeRecordEditViewModel
         
         var body: some View {
-            List(selection: $selectedId) {
+            List(selection: $viewModel.selectedId) {
                 Section("出勤時刻") {
                     ForEach(viewModel.records) { record in
                         HStack {
@@ -40,9 +34,9 @@ struct TimeRecordEditView: View {
                             
                             Spacer()
                             
-                            if recordToRemove == record {
+                            if viewModel.removeId == record.id {
                                 Button(role: .destructive) {
-                                    removeRecord(record: record)
+                                    viewModel.removeRecord()
                                 } label: {
                                     Image(systemName: "trash")
                                         .foregroundStyle(.red)
@@ -50,7 +44,7 @@ struct TimeRecordEditView: View {
                                 .accessibilityIdentifier("button_remove_time_record")
                             } else {
                                 Button {
-                                    recordToRemove = record
+                                    viewModel.removeId = record.id
                                 } label: {
                                     Image(systemName: "minus")
                                 }
@@ -62,32 +56,16 @@ struct TimeRecordEditView: View {
                 }
                 
                 Button("追加", systemImage: "plus") {
-                    addRecord()
+                    viewModel.addRecord()
                 }
                 .font(.footnote)
                 .accessibilityIdentifier("button_add_time_record")
-            }
-        }
-        
-        private func addRecord() {
-            let date = viewModel.date
-            let record = TimeRecordEditViewModel.TimeRecord(checkIn: date, checkOut: date)
-            viewModel.records.append(record)
-            selectedId = record.id
-        }
-        
-        private func removeRecord(record: TimeRecordEditViewModel.TimeRecord) {
-            viewModel.records.removeAll(where: { $0 == record })
-            recordToRemove = nil
-            if selectedId == record.id {
-                selectedId = viewModel.records.first?.id
             }
         }
     }
     
     private struct DetailView: View {
         @Bindable var record: TimeRecordEditViewModel.TimeRecord
-        @State private var recordToRemove: TimeRecordEditViewModel.TimeRecord.BreakTime? = nil
         
         var body: some View {
             VStack(alignment: .leading) {
@@ -109,10 +87,9 @@ struct TimeRecordEditView: View {
                                 
                                 Spacer()
                                 
-                                if recordToRemove == breakTime {
+                                if record.removeId == breakTime.id {
                                     Button(role: .destructive) {
-                                        record.breakTimes.removeAll(where: { $0 == breakTime })
-                                        recordToRemove = nil
+                                        record.removeBreakTime()
                                     } label: {
                                         Image(systemName: "trash")
                                             .foregroundStyle(.red)
@@ -120,7 +97,7 @@ struct TimeRecordEditView: View {
                                     .accessibilityIdentifier("button_remove_break_time")
                                 } else {
                                     Button {
-                                        recordToRemove = breakTime
+                                        record.removeId = breakTime.id
                                     } label: {
                                         Image(systemName: "minus")
                                     }
@@ -131,9 +108,7 @@ struct TimeRecordEditView: View {
                     }
                     
                     Button("休憩を追加", systemImage: "plus") {
-                        let date = record.checkIn
-                        let breakTime = TimeRecordEditViewModel.TimeRecord.BreakTime(start: date, end: date)
-                        record.breakTimes.append(breakTime)
+                        record.addBreakTime()
                     }
                     .font(.footnote)
                     .accessibilityIdentifier("button_add_break_time")
