@@ -53,7 +53,7 @@ struct CalendarBodyView: View {
             }
         }
         .sheet(item: $recordToEdit) { record in
-            RecordEditView(viewModel: RecordEditViewModel(repository, record))
+            RecordEditView(viewModel: RecordEditViewModel(repository, record.date))
         }
         .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
         .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: viewModel.records, showExporter: { showFileExport = true }))
@@ -86,5 +86,8 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])
+    }
     func updateRecord(_ record: CalendarRecord) throws {}
 }

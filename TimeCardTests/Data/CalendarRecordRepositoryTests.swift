@@ -67,6 +67,39 @@ struct CalendarRecordRepositoryTests {
         }
     }
     
+    @Test func testGetRecord() async throws {
+        let source = FakeLocalDataSource()
+        source.initForGet()
+        
+        let repository = DefaultCalendarRecordRepository(source)
+        var record = try repository.getRecord(year: 2025, month: 12, day: 4)
+        #expect(record.date.year == 2025)
+        #expect(record.date.month == 12)
+        #expect(record.date.day == 4)
+        #expect(record.timeRecords.count == 2)
+        #expect(record.timeRecords[0] == source.timeRecords[0])
+        #expect(record.timeRecords[1] == source.timeRecords[1])
+        #expect(record.uptimeRecords.count == 2)
+        #expect(record.uptimeRecords[0] == source.uptimeRecords[0])
+        #expect(record.uptimeRecords[1] == source.uptimeRecords[1])
+        
+        record = try repository.getRecord(year: 2025, month: 12, day: 5)
+        #expect(record.date.year == 2025)
+        #expect(record.date.month == 12)
+        #expect(record.date.day == 5)
+        #expect(record.timeRecords.count == 1)
+        #expect(record.timeRecords[0] == source.timeRecords[2])
+        #expect(record.uptimeRecords.count == 1)
+        #expect(record.uptimeRecords[0] == source.uptimeRecords[2])
+        
+        record = try repository.getRecord(year: 2025, month: 12, day: 6)
+        #expect(record.date.year == 2025)
+        #expect(record.date.month == 12)
+        #expect(record.date.day == 6)
+        #expect(record.timeRecords.count == 0)
+        #expect(record.uptimeRecords.count == 0)
+    }
+    
     @Test func testUpdateRecord() async throws {
         let source = FakeLocalDataSource()
         source.initForUpdate()

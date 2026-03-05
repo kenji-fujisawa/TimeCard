@@ -54,6 +54,7 @@ struct TimeCardApp: App {
         
         Window("TimeCard", id: "calendar") {
             CalendarView(viewModel: CalendarViewModel(calendarRepository))
+                .environment(\.calendarRecordRepository, calendarRepository)
         }
         
         Settings {
@@ -107,7 +108,12 @@ private class FakeTimeRecordRepository: TimeRecordRepository {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> { AsyncStream { _ in } }
+    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
+        AsyncStream { _ in }
+    }
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])
+    }
     func updateRecord(_ record: CalendarRecord) throws {}
 }
 
@@ -196,7 +202,7 @@ struct UITestApp: App {
                     recordToEdit = CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])
                 }
                 .sheet(item: $recordToEdit) { record in
-                    RecordEditView(viewModel: RecordEditViewModel(calendarRepository, record))
+                    RecordEditView(viewModel: RecordEditViewModel(calendarRepository, record.date))
                 }
                 Button("update") {
                     timeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalTimeRecord>()))?.map { $0.toTimeRecord() } ?? []

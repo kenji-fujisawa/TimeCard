@@ -14,10 +14,15 @@ class RecordEditViewModel {
     var timeViewModel: TimeRecordEditViewModel
     var uptimeViewModel: UptimeRecordEditViewModel
     
-    init(_ repository: CalendarRecordRepository, _ record: CalendarRecord) {
+    init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository
-        self.timeViewModel = TimeRecordEditViewModel(date: record.date, records: record.timeRecords)
-        self.uptimeViewModel = UptimeRecordEditViewModel(date: record.date, records: record.uptimeRecords)
+        self.timeViewModel = TimeRecordEditViewModel(date: date)
+        self.uptimeViewModel = UptimeRecordEditViewModel(date: date)
+        
+        if let record = try? repository.getRecord(year: date.year, month: date.month, day: date.day) {
+            self.timeViewModel.records = record.timeRecords
+            self.uptimeViewModel.records = record.uptimeRecords
+        }
     }
     
     func update() {
