@@ -39,6 +39,9 @@ final class RecordEditViewTests: XCTestCase {
         
         sleep(1)
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         XCTAssertTrue(app.staticTexts["time_record_count"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["time_record_count"].value as! String, "1")
         

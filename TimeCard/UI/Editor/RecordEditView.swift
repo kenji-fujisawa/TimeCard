@@ -9,23 +9,22 @@ import SwiftUI
 
 struct RecordEditView: View {
     @Environment(\.dismiss) private var dismiss
-    @State var record: CalendarRecord
-    var viewModel: CalendarViewModel
+    var viewModel: RecordEditViewModel
     
     var body: some View {
         TabView {
             Tab("労働時間", systemImage: "person.circle.fill") {
-                TimeRecordEditView(record: $record)
+                TimeRecordEditView(viewModel: viewModel.timeViewModel)
             }
             Tab("システム稼働時間", systemImage: "power.circle.fill") {
-                SystemUptimeRecordEditView(record: $record)
+                SystemUptimeRecordEditView(viewModel: viewModel.uptimeViewModel)
             }
         }
         .padding()
         .toolbar {
             ToolbarItem {
                 Button("閉じる", systemImage: "xmark") {
-                    viewModel.update(record: record)
+                    viewModel.update()
                     dismiss()
                 }
                 .accessibilityIdentifier("button_close")
@@ -69,14 +68,13 @@ struct RecordEditView: View {
         ]
     )
     let repository = FakeCalendarRecordRepository()
-    let viewModel = CalendarViewModel(repository)
-    RecordEditView(record: record, viewModel: viewModel)
+    let viewModel = RecordEditViewModel(repository, record)
+    RecordEditView(viewModel: viewModel)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
     func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
         AsyncStream { _ in }
     }
-    
     func updateRecord(_ record: CalendarRecord) throws {}
 }

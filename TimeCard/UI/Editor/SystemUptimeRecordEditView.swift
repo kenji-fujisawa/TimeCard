@@ -8,32 +8,32 @@
 import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
-    @Binding var record: CalendarRecord
+    @Bindable var viewModel: UptimeRecordEditViewModel
     @State private var selectedId: SystemUptimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(record: $record, selectedId: $selectedId)
+            SidebarView(viewModel: viewModel, selectedId: $selectedId)
         } detail: {
-            if let index = record.uptimeRecords.firstIndex(where: { $0.id == selectedId }) {
-                DetailView(record: $record.uptimeRecords[index])
+            if let index = viewModel.records.firstIndex(where: { $0.id == selectedId }) {
+                DetailView(record: $viewModel.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
         .onAppear() {
-            selectedId = record.uptimeRecords.first?.id
+            selectedId = viewModel.records.first?.id
         }
     }
     
     private struct SidebarView: View {
-        @Binding var record: CalendarRecord
+        var viewModel: UptimeRecordEditViewModel
         @Binding var selectedId: SystemUptimeRecord.ID?
         @State private var recordToRemove: SystemUptimeRecord? = nil
         
         var body: some View {
             List(selection: $selectedId) {
                 Section("稼働時間") {
-                    ForEach($record.uptimeRecords) { $record in
+                    ForEach(viewModel.records) { record in
                         HStack {
                             Text(record.uptime.formatted(.timeWorked))
                             .accessibilityIdentifier("nav_link")
@@ -70,17 +70,17 @@ struct SystemUptimeRecordEditView: View {
         }
         
         private func addRecord() {
-            let date = record.date
+            let date = viewModel.date
             let record = SystemUptimeRecord(launch: date, shutdown: date)
-            self.record.uptimeRecords.append(record)
+            viewModel.records.append(record)
             selectedId = record.id
         }
         
         private func removeRecord(record: SystemUptimeRecord) {
-            self.record.uptimeRecords.removeAll(where: { $0 == record })
+            viewModel.records.removeAll(where: { $0 == record })
             recordToRemove = nil
             if selectedId == record.id {
-                selectedId = self.record.uptimeRecords.first?.id
+                selectedId = viewModel.records.first?.id
             }
         }
     }
@@ -157,10 +157,9 @@ struct SystemUptimeRecordEditView: View {
 }
 
 #Preview {
-    @Previewable @State var record = CalendarRecord(
+    let viewModel = UptimeRecordEditViewModel(
         date: .now,
-        timeRecords: [],
-        uptimeRecords: [
+        records: [
             SystemUptimeRecord(
                 launch: .now,
                 shutdown: .now,
@@ -173,5 +172,5 @@ struct SystemUptimeRecordEditView: View {
             )
         ]
     )
-    SystemUptimeRecordEditView(record: $record)
+    SystemUptimeRecordEditView(viewModel: viewModel)
 }

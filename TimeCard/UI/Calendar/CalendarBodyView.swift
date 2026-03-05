@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CalendarBodyView: View {
+    @Environment(\.calendarRecordRepository) private var repository
     var viewModel: CalendarViewModel
     @State private var recordToEdit: CalendarRecord? = nil
     @State private var showFileExport: Bool = false
@@ -52,7 +53,7 @@ struct CalendarBodyView: View {
             }
         }
         .sheet(item: $recordToEdit) { record in
-            RecordEditView(record: record, viewModel: viewModel)
+            RecordEditView(viewModel: RecordEditViewModel(repository, record))
         }
         .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
         .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: viewModel.records, showExporter: { showFileExport = true }))

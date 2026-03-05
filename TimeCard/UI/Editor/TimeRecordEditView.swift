@@ -8,32 +8,32 @@
 import SwiftUI
 
 struct TimeRecordEditView: View {
-    @Binding var record: CalendarRecord
+    @Bindable var viewModel: TimeRecordEditViewModel
     @State private var selectedId: TimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(record: $record, selectedId: $selectedId)
+            SidebarView(viewModel: viewModel, selectedId: $selectedId)
         } detail: {
-            if let index = record.timeRecords.firstIndex(where: { $0.id == selectedId }) {
-                DetailView(record: $record.timeRecords[index])
+            if let index = viewModel.records.firstIndex(where: { $0.id == selectedId }) {
+                DetailView(record: $viewModel.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
         .onAppear() {
-            selectedId = record.timeRecords.first?.id
+            selectedId = viewModel.records.first?.id
         }
     }
     
     private struct SidebarView: View {
-        @Binding var record: CalendarRecord
+        var viewModel: TimeRecordEditViewModel
         @Binding var selectedId: TimeRecord.ID?
         @State private var recordToRemove: TimeRecord? = nil
         
         var body: some View {
             List(selection: $selectedId) {
                 Section("出勤時刻") {
-                    ForEach($record.timeRecords) { $record in
+                    ForEach(viewModel.records) { record in
                         if let checkIn = record.checkIn {
                             HStack {
                                 Text(checkIn.formatted(.dateTime.hour().minute()))
@@ -72,17 +72,17 @@ struct TimeRecordEditView: View {
         }
         
         private func addRecord() {
-            let date = record.date
+            let date = viewModel.date
             let record = TimeRecord(checkIn: date, checkOut: date)
-            self.record.timeRecords.append(record)
+            viewModel.records.append(record)
             selectedId = record.id
         }
         
         private func removeRecord(record: TimeRecord) {
-            self.record.timeRecords.removeAll(where: { $0 == record })
+            viewModel.records.removeAll(where: { $0 == record })
             recordToRemove = nil
             if selectedId == record.id {
-                selectedId = self.record.timeRecords.first?.id
+                selectedId = viewModel.records.first?.id
             }
         }
     }
@@ -159,9 +159,9 @@ struct TimeRecordEditView: View {
 }
 
 #Preview {
-    @Previewable @State var record = CalendarRecord(
+    let viewModel = TimeRecordEditViewModel(
         date: .now,
-        timeRecords: [
+        records: [
             TimeRecord(
                 checkIn: .now,
                 checkOut: .now,
@@ -184,8 +184,7 @@ struct TimeRecordEditView: View {
                     )
                 ]
             )
-        ],
-        uptimeRecords: []
+        ]
     )
-    TimeRecordEditView(record: $record)
+    TimeRecordEditView(viewModel: viewModel)
 }

@@ -36,8 +36,4 @@ class CalendarViewModel {
             }
         }
     }
-    
-    func update(record: CalendarRecord) {
-        try? repository.updateRecord(record)
-    }
 }
