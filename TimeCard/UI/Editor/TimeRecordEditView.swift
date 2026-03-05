@@ -9,14 +9,14 @@ import SwiftUI
 
 struct TimeRecordEditView: View {
     @Bindable var viewModel: TimeRecordEditViewModel
-    @State private var selectedId: TimeRecord.ID? = nil
+    @State private var selectedId: TimeRecordEditViewModel.TimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
             SidebarView(viewModel: viewModel, selectedId: $selectedId)
         } detail: {
             if let index = viewModel.records.firstIndex(where: { $0.id == selectedId }) {
-                DetailView(record: $viewModel.records[index])
+                DetailView(record: viewModel.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
@@ -27,39 +27,37 @@ struct TimeRecordEditView: View {
     
     private struct SidebarView: View {
         var viewModel: TimeRecordEditViewModel
-        @Binding var selectedId: TimeRecord.ID?
-        @State private var recordToRemove: TimeRecord? = nil
+        @Binding var selectedId: TimeRecordEditViewModel.TimeRecord.ID?
+        @State private var recordToRemove: TimeRecordEditViewModel.TimeRecord? = nil
         
         var body: some View {
             List(selection: $selectedId) {
                 Section("出勤時刻") {
                     ForEach(viewModel.records) { record in
-                        if let checkIn = record.checkIn {
-                            HStack {
-                                Text(checkIn.formatted(.dateTime.hour().minute()))
+                        HStack {
+                            Text(record.checkIn.formatted(.dateTime.hour().minute()))
                                 .accessibilityIdentifier("nav_link")
-                                
-                                Spacer()
-                                
-                                if recordToRemove == record {
-                                    Button(role: .destructive) {
-                                        removeRecord(record: record)
-                                    } label: {
-                                        Image(systemName: "trash")
-                                            .foregroundStyle(.red)
-                                    }
-                                    .accessibilityIdentifier("button_remove_time_record")
-                                } else {
-                                    Button {
-                                        recordToRemove = record
-                                    } label: {
-                                        Image(systemName: "minus")
-                                    }
-                                    .accessibilityIdentifier("button_remove_time_confirm")
+                            
+                            Spacer()
+                            
+                            if recordToRemove == record {
+                                Button(role: .destructive) {
+                                    removeRecord(record: record)
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .foregroundStyle(.red)
                                 }
+                                .accessibilityIdentifier("button_remove_time_record")
+                            } else {
+                                Button {
+                                    recordToRemove = record
+                                } label: {
+                                    Image(systemName: "minus")
+                                }
+                                .accessibilityIdentifier("button_remove_time_confirm")
                             }
-                            .tag(record.id)
                         }
+                        .tag(record.id)
                     }
                 }
                 
@@ -73,12 +71,12 @@ struct TimeRecordEditView: View {
         
         private func addRecord() {
             let date = viewModel.date
-            let record = TimeRecord(checkIn: date, checkOut: date)
+            let record = TimeRecordEditViewModel.TimeRecord(checkIn: date, checkOut: date)
             viewModel.records.append(record)
             selectedId = record.id
         }
         
-        private func removeRecord(record: TimeRecord) {
+        private func removeRecord(record: TimeRecordEditViewModel.TimeRecord) {
             viewModel.records.removeAll(where: { $0 == record })
             recordToRemove = nil
             if selectedId == record.id {
@@ -88,23 +86,23 @@ struct TimeRecordEditView: View {
     }
     
     private struct DetailView: View {
-        @Binding var record: TimeRecord
-        @State private var recordToRemove: TimeRecord.BreakTime? = nil
+        @Bindable var record: TimeRecordEditViewModel.TimeRecord
+        @State private var recordToRemove: TimeRecordEditViewModel.TimeRecord.BreakTime? = nil
         
         var body: some View {
             VStack(alignment: .leading) {
                 Form {
-                    DatePicker("出勤", selection: $record.checkIn.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("出勤", selection: $record.checkIn, displayedComponents: [.date, .hourAndMinute])
                         .accessibilityIdentifier("date_check_in")
-                    DatePicker("退勤", selection: $record.checkOut.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("退勤", selection: $record.checkOut, displayedComponents: [.date, .hourAndMinute])
                         .accessibilityIdentifier("date_check_out")
                 }
                 .padding()
                 
                 List {
-                    ForEach($record.breakTimes) { $breakTime in
+                    ForEach(record.breakTimes) { breakTime in
                         Section {
-                            BreakTimeView(breakTime: $breakTime)
+                            BreakTimeView(breakTime: breakTime)
                         } header: {
                             HStack {
                                 Text("休憩")
@@ -134,7 +132,7 @@ struct TimeRecordEditView: View {
                     
                     Button("休憩を追加", systemImage: "plus") {
                         let date = record.checkIn
-                        let breakTime = TimeRecord.BreakTime(start: date, end: date)
+                        let breakTime = TimeRecordEditViewModel.TimeRecord.BreakTime(start: date, end: date)
                         record.breakTimes.append(breakTime)
                     }
                     .font(.footnote)
@@ -145,13 +143,13 @@ struct TimeRecordEditView: View {
     }
     
     private struct BreakTimeView: View {
-        @Binding var breakTime: TimeRecord.BreakTime
+        @Bindable var breakTime: TimeRecordEditViewModel.TimeRecord.BreakTime
         
         var body: some View {
             Form {
-                DatePicker("開始", selection: $breakTime.start.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                DatePicker("開始", selection: $breakTime.start, displayedComponents: [.date, .hourAndMinute])
                     .accessibilityIdentifier("date_break_start")
-                DatePicker("終了", selection: $breakTime.end.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                DatePicker("終了", selection: $breakTime.end, displayedComponents: [.date, .hourAndMinute])
                     .accessibilityIdentifier("date_break_end")
             }
         }
@@ -162,23 +160,25 @@ struct TimeRecordEditView: View {
     let viewModel = TimeRecordEditViewModel(
         date: .now,
         records: [
-            TimeRecord(
+            TimeRecordEditViewModel.TimeRecord(
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [
-                    TimeRecord.BreakTime(
+                    TimeRecordEditViewModel.TimeRecord.BreakTime(
                         start: .now,
                         end: .now
                     ),
-                    TimeRecord.BreakTime(
-                        start: .now
+                    TimeRecordEditViewModel.TimeRecord.BreakTime(
+                        start: .now,
+                        end: .now
                     )
                 ]
             ),
-            TimeRecord(
+            TimeRecordEditViewModel.TimeRecord(
                 checkIn: .now,
+                checkOut: .now,
                 breakTimes: [
-                    TimeRecord.BreakTime(
+                    TimeRecordEditViewModel.TimeRecord.BreakTime(
                         start: .now,
                         end: .now
                     )

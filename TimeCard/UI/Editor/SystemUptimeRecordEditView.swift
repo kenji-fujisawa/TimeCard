@@ -9,14 +9,14 @@ import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
     @Bindable var viewModel: UptimeRecordEditViewModel
-    @State private var selectedId: SystemUptimeRecord.ID? = nil
+    @State private var selectedId: UptimeRecordEditViewModel.SystemUptimeRecord.ID? = nil
     
     var body: some View {
         NavigationSplitView {
             SidebarView(viewModel: viewModel, selectedId: $selectedId)
         } detail: {
             if let index = viewModel.records.firstIndex(where: { $0.id == selectedId }) {
-                DetailView(record: $viewModel.records[index])
+                DetailView(record: viewModel.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
@@ -27,8 +27,8 @@ struct SystemUptimeRecordEditView: View {
     
     private struct SidebarView: View {
         var viewModel: UptimeRecordEditViewModel
-        @Binding var selectedId: SystemUptimeRecord.ID?
-        @State private var recordToRemove: SystemUptimeRecord? = nil
+        @Binding var selectedId: UptimeRecordEditViewModel.SystemUptimeRecord.ID?
+        @State private var recordToRemove: UptimeRecordEditViewModel.SystemUptimeRecord? = nil
         
         var body: some View {
             List(selection: $selectedId) {
@@ -71,12 +71,12 @@ struct SystemUptimeRecordEditView: View {
         
         private func addRecord() {
             let date = viewModel.date
-            let record = SystemUptimeRecord(launch: date, shutdown: date)
+            let record = UptimeRecordEditViewModel.SystemUptimeRecord(launch: date, shutdown: date)
             viewModel.records.append(record)
             selectedId = record.id
         }
         
-        private func removeRecord(record: SystemUptimeRecord) {
+        private func removeRecord(record: UptimeRecordEditViewModel.SystemUptimeRecord) {
             viewModel.records.removeAll(where: { $0 == record })
             recordToRemove = nil
             if selectedId == record.id {
@@ -86,8 +86,8 @@ struct SystemUptimeRecordEditView: View {
     }
     
     private struct DetailView: View {
-        @Binding var record: SystemUptimeRecord
-        @State private var recordToRemove: SystemUptimeRecord.SleepRecord? = nil
+        @Bindable var record: UptimeRecordEditViewModel.SystemUptimeRecord
+        @State private var recordToRemove: UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord? = nil
         
         var body: some View {
             VStack(alignment: .leading) {
@@ -100,9 +100,9 @@ struct SystemUptimeRecordEditView: View {
                 .padding()
                 
                 List {
-                    ForEach($record.sleepRecords) { $sleepRecord in
+                    ForEach(record.sleepRecords) { sleepRecord in
                         Section {
-                            SleepRecordView(sleepRecord: $sleepRecord)
+                            SleepRecordView(sleepRecord: sleepRecord)
                         } header: {
                             HStack {
                                 Text("スリープ")
@@ -132,7 +132,7 @@ struct SystemUptimeRecordEditView: View {
                     
                     Button("スリープを追加", systemImage: "plus") {
                         let date = record.launch
-                        let sleep = SystemUptimeRecord.SleepRecord(start: date, end: date)
+                        let sleep = UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord(start: date, end: date)
                         record.sleepRecords.append(sleep)
                     }
                     .font(.footnote)
@@ -143,7 +143,7 @@ struct SystemUptimeRecordEditView: View {
     }
     
     private struct SleepRecordView: View {
-        @Binding var sleepRecord: SystemUptimeRecord.SleepRecord
+        @Bindable var sleepRecord: UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord
         
         var body: some View {
             Form {
@@ -160,11 +160,11 @@ struct SystemUptimeRecordEditView: View {
     let viewModel = UptimeRecordEditViewModel(
         date: .now,
         records: [
-            SystemUptimeRecord(
+            UptimeRecordEditViewModel.SystemUptimeRecord(
                 launch: .now,
                 shutdown: .now,
                 sleepRecords: [
-                    SystemUptimeRecord.SleepRecord(
+                    UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord(
                         start: .now,
                         end: .now
                     )

@@ -209,9 +209,9 @@ struct UITestApp: App {
                     uptimeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalUptimeRecord>()))?.map { $0.toUptimeRecord() } ?? []
                 }
             } else if CommandLine.arguments.contains("TimeRecordEditViewTests") {
-                TimeRecordEditView(viewModel: TimeRecordEditViewModel(date: record.date, records: record.timeRecords))
+                TimeRecordEditView(viewModel: TimeRecordEditViewModel(date: record.date, records: record.timeRecords.map { $0.toViewModel() }))
             } else if CommandLine.arguments.contains("SystemUptimeRecordEditViewTests") {
-                SystemUptimeRecordEditView(viewModel: UptimeRecordEditViewModel(date: record.date, records: record.uptimeRecords))
+                SystemUptimeRecordEditView(viewModel: UptimeRecordEditViewModel(date: record.date, records: record.uptimeRecords.map { $0.toViewModel() }))
             } else if CommandLine.arguments.contains("SleepViewTests") {
                 SleepView(viewModel: TimeRecordViewModel(timeRepository))
                 Text("\(String(describing: state))")
