@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct CalendarRecordView: View {
-    let record: CalendarRecord
+    let record: CalendarViewModel.CalendarRecord
     let fixed: Bool
-    @Binding var recordToEdit: CalendarRecord?
+    @Binding var recordToEdit: CalendarViewModel.CalendarRecord?
     
     var body: some View {
         GridRow {
@@ -103,11 +103,11 @@ struct CalendarRecordView: View {
         .fontWeight(.regular)
     }
     
-    private func interval(record: TimeRecord) -> TimeInterval {
+    private func interval(record: CalendarViewModel.CalendarRecord.TimeRecord) -> TimeInterval {
         interval(start: record.checkIn, end: record.checkOut)
     }
     
-    private func interval(breakTime: TimeRecord.BreakTime) -> TimeInterval {
+    private func interval(breakTime: CalendarViewModel.CalendarRecord.TimeRecord.BreakTime) -> TimeInterval {
         interval(start: breakTime.start, end: breakTime.end)
     }
     
@@ -119,39 +119,35 @@ struct CalendarRecordView: View {
 }
 
 #Preview {
-    @Previewable @State var recordToEdit: CalendarRecord?
-    let record = CalendarRecord(
+    @Previewable @State var recordToEdit: CalendarViewModel.CalendarRecord?
+    let record = CalendarViewModel.CalendarRecord(
         date: .now,
         timeRecords: [
-            TimeRecord(
+            CalendarViewModel.CalendarRecord.TimeRecord(
                 checkIn: .now,
                 checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
                 breakTimes: [
-                    TimeRecord.BreakTime(
+                    CalendarViewModel.CalendarRecord.TimeRecord.BreakTime(
                         start: .now,
                         end: Date(timeIntervalSinceNow: 25 * 60 * 60)
                     ),
-                    TimeRecord.BreakTime(
+                    CalendarViewModel.CalendarRecord.TimeRecord.BreakTime(
                         start: .now
                     )
                 ]
             ),
-            TimeRecord(
+            CalendarViewModel.CalendarRecord.TimeRecord(
                 checkIn: .now,
                 breakTimes: [
-                    TimeRecord.BreakTime(
+                    CalendarViewModel.CalendarRecord.TimeRecord.BreakTime(
                         start: .now,
                         end: Date(timeIntervalSinceNow: 25 * 60 * 60)
                     )
                 ]
             )
         ],
-        uptimeRecords: [
-            SystemUptimeRecord(
-                launch: .now,
-                shutdown: .now
-            )
-        ]
+        timeWorked: 60 * 60,
+        systemUptime: 60 * 60
     )
     Grid {
         CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)

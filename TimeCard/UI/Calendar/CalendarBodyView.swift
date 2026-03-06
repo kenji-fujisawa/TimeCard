@@ -10,7 +10,7 @@ import SwiftUI
 struct CalendarBodyView: View {
     @Environment(\.calendarRecordRepository) private var repository
     var viewModel: CalendarViewModel
-    @State private var recordToEdit: CalendarRecord? = nil
+    @State private var recordToEdit: CalendarViewModel.CalendarRecord? = nil
     @State private var showFileExport: Bool = false
     
     var body: some View {
@@ -45,8 +45,8 @@ struct CalendarBodyView: View {
                     Text("")
                     Text("")
                     Text("")
-                    Text(viewModel.records.timeWorkedSum, format: .timeWorked)
-                    Text(viewModel.records.systemUptimeSum, format: .timeWorked)
+                    Text(viewModel.timeWorkedSum, format: .timeWorked)
+                    Text(viewModel.systemUptimeSum, format: .timeWorked)
                 }
                 .font(.system(.headline, design: .monospaced))
                 .fontWeight(.regular)
@@ -56,10 +56,10 @@ struct CalendarBodyView: View {
             RecordEditView(viewModel: RecordEditViewModel(repository, record.date))
         }
         .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
-        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: viewModel.records, showExporter: { showFileExport = true }))
+        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(viewModel: viewModel, showExporter: { showFileExport = true }))
     }
     
-    private func isFixed(record: CalendarRecord) -> Bool {
+    private func isFixed(record: CalendarViewModel.CalendarRecord) -> Bool {
         let now = Date.now
         if record.date.year == now.year && record.date.month == now.month && record.date.day == now.day {
             let latest = record.timeRecords.last

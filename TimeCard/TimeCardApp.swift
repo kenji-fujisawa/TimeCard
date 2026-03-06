@@ -124,7 +124,7 @@ struct UITestApp: App {
     private let uptimeRepository: SystemUptimeRecordRepository
     private let calendarRepository: CalendarRecordRepository
     private let record: CalendarRecord
-    @State private var recordToEdit: CalendarRecord? = nil
+    @State private var recordToEdit: CalendarViewModel.CalendarRecord? = nil
     @State private var now: Date
     @State private var timeRecords: [TimeRecord] = []
     @State private var uptimeRecords: [SystemUptimeRecord] = []
@@ -186,7 +186,7 @@ struct UITestApp: App {
                 RecorderView(viewModel: TimeRecordViewModel(timeRepository))
                 CalendarView(viewModel: CalendarViewModel(calendarRepository))
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
-                CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
+                CalendarRecordView(record: record.toViewModel(), fixed: true, recordToEdit: $recordToEdit)
                 if let rec = recordToEdit {
                     Text(rec.date, format: .dateTime.month().day())
                         .accessibilityIdentifier("text_rec_to_edit")
@@ -199,7 +199,7 @@ struct UITestApp: App {
                 Text("\(uptimeRecords.count)")
                     .accessibilityIdentifier("uptime_record_count")
                 Button("show") {
-                    recordToEdit = CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])
+                    recordToEdit = CalendarViewModel.CalendarRecord(date: .now)
                 }
                 .sheet(item: $recordToEdit) { record in
                     RecordEditView(viewModel: RecordEditViewModel(calendarRepository, record.date))
