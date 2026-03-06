@@ -118,7 +118,7 @@ struct SystemUptimeRecordEditView: View {
     }
     
     private struct SleepRecordView: View {
-        @Bindable var sleepRecord: UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord
+        @Bindable var sleepRecord: UptimeRecordEditViewModel.SleepRecord
         
         var body: some View {
             Form {
@@ -139,7 +139,7 @@ struct SystemUptimeRecordEditView: View {
                 launch: .now,
                 shutdown: .now,
                 sleepRecords: [
-                    UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord(
+                    UptimeRecordEditViewModel.SleepRecord(
                         start: .now,
                         end: .now
                     )

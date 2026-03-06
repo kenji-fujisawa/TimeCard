@@ -103,11 +103,11 @@ struct CalendarRecordView: View {
         .fontWeight(.regular)
     }
     
-    private func interval(record: CalendarViewModel.CalendarRecord.TimeRecord) -> TimeInterval {
+    private func interval(record: CalendarViewModel.TimeRecord) -> TimeInterval {
         interval(start: record.checkIn, end: record.checkOut)
     }
     
-    private func interval(breakTime: CalendarViewModel.CalendarRecord.TimeRecord.BreakTime) -> TimeInterval {
+    private func interval(breakTime: CalendarViewModel.BreakTime) -> TimeInterval {
         interval(start: breakTime.start, end: breakTime.end)
     }
     
@@ -123,23 +123,23 @@ struct CalendarRecordView: View {
     let record = CalendarViewModel.CalendarRecord(
         date: .now,
         timeRecords: [
-            CalendarViewModel.CalendarRecord.TimeRecord(
+            CalendarViewModel.TimeRecord(
                 checkIn: .now,
                 checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
                 breakTimes: [
-                    CalendarViewModel.CalendarRecord.TimeRecord.BreakTime(
+                    CalendarViewModel.BreakTime(
                         start: .now,
                         end: Date(timeIntervalSinceNow: 25 * 60 * 60)
                     ),
-                    CalendarViewModel.CalendarRecord.TimeRecord.BreakTime(
+                    CalendarViewModel.BreakTime(
                         start: .now
                     )
                 ]
             ),
-            CalendarViewModel.CalendarRecord.TimeRecord(
+            CalendarViewModel.TimeRecord(
                 checkIn: .now,
                 breakTimes: [
-                    CalendarViewModel.CalendarRecord.TimeRecord.BreakTime(
+                    CalendarViewModel.BreakTime(
                         start: .now,
                         end: Date(timeIntervalSinceNow: 25 * 60 * 60)
                     )

@@ -118,7 +118,7 @@ struct TimeRecordEditView: View {
     }
     
     private struct BreakTimeView: View {
-        @Bindable var breakTime: TimeRecordEditViewModel.TimeRecord.BreakTime
+        @Bindable var breakTime: TimeRecordEditViewModel.BreakTime
         
         var body: some View {
             Form {
@@ -139,11 +139,11 @@ struct TimeRecordEditView: View {
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [
-                    TimeRecordEditViewModel.TimeRecord.BreakTime(
+                    TimeRecordEditViewModel.BreakTime(
                         start: .now,
                         end: .now
                     ),
-                    TimeRecordEditViewModel.TimeRecord.BreakTime(
+                    TimeRecordEditViewModel.BreakTime(
                         start: .now,
                         end: .now
                     )
@@ -153,7 +153,7 @@ struct TimeRecordEditView: View {
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [
-                    TimeRecordEditViewModel.TimeRecord.BreakTime(
+                    TimeRecordEditViewModel.BreakTime(
                         start: .now,
                         end: .now
                     )

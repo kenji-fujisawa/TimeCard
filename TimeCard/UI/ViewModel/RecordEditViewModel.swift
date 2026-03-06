@@ -38,26 +38,26 @@ class RecordEditViewModel {
 @Observable
 class TimeRecordEditViewModel {
     @Observable
-    class TimeRecord: Identifiable, Equatable {
-        @Observable
-        class BreakTime: Identifiable, Equatable {
-            var id: UUID
-            var start: Date
-            var end: Date
-            
-            init(id: UUID = UUID(), start: Date, end: Date) {
-                self.id = id
-                self.start = start
-                self.end = end
-            }
-            
-            static func == (lhs: TimeRecordEditViewModel.TimeRecord.BreakTime, rhs: TimeRecordEditViewModel.TimeRecord.BreakTime) -> Bool {
-                lhs.id == rhs.id &&
-                lhs.start == rhs.start &&
-                lhs.end == rhs.end
-            }
+    class BreakTime: Identifiable, Equatable {
+        var id: UUID
+        var start: Date
+        var end: Date
+        
+        init(id: UUID = UUID(), start: Date, end: Date) {
+            self.id = id
+            self.start = start
+            self.end = end
         }
         
+        static func == (lhs: TimeRecordEditViewModel.BreakTime, rhs: TimeRecordEditViewModel.BreakTime) -> Bool {
+            lhs.id == rhs.id &&
+            lhs.start == rhs.start &&
+            lhs.end == rhs.end
+        }
+    }
+    
+    @Observable
+    class TimeRecord: Identifiable, Equatable {
         var id: UUID
         var checkIn: Date
         var checkOut: Date
@@ -118,26 +118,26 @@ class TimeRecordEditViewModel {
 @Observable
 class UptimeRecordEditViewModel {
     @Observable
-    class SystemUptimeRecord: Identifiable, Equatable {
-        @Observable
-        class SleepRecord: Identifiable, Equatable {
-            var id: UUID
-            var start: Date
-            var end: Date
-            
-            init(id: UUID = UUID(), start: Date, end: Date) {
-                self.id = id
-                self.start = start
-                self.end = end
-            }
-            
-            static func == (lhs: UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord, rhs: UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord) -> Bool {
-                lhs.id == rhs.id &&
-                lhs.start == rhs.start &&
-                lhs.end == rhs.end
-            }
+    class SleepRecord: Identifiable, Equatable {
+        var id: UUID
+        var start: Date
+        var end: Date
+        
+        init(id: UUID = UUID(), start: Date, end: Date) {
+            self.id = id
+            self.start = start
+            self.end = end
         }
         
+        static func == (lhs: UptimeRecordEditViewModel.SleepRecord, rhs: UptimeRecordEditViewModel.SleepRecord) -> Bool {
+            lhs.id == rhs.id &&
+            lhs.start == rhs.start &&
+            lhs.end == rhs.end
+        }
+    }
+    
+    @Observable
+    class SystemUptimeRecord: Identifiable, Equatable {
         var id: UUID
         var launch: Date
         var shutdown: Date
@@ -216,8 +216,8 @@ extension TimeRecord {
 }
 
 extension TimeRecord.BreakTime {
-    func toViewModel() -> TimeRecordEditViewModel.TimeRecord.BreakTime {
-        TimeRecordEditViewModel.TimeRecord.BreakTime(
+    func toViewModel() -> TimeRecordEditViewModel.BreakTime {
+        TimeRecordEditViewModel.BreakTime(
             id: self.id,
             start: self.start ?? .now,
             end: self.end ?? .now
@@ -237,8 +237,8 @@ extension SystemUptimeRecord {
 }
 
 extension SystemUptimeRecord.SleepRecord {
-    func toViewModel() -> UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord {
-        UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord(
+    func toViewModel() -> UptimeRecordEditViewModel.SleepRecord {
+        UptimeRecordEditViewModel.SleepRecord(
             id: self.id,
             start: self.start,
             end: self.end
@@ -257,7 +257,7 @@ extension TimeRecordEditViewModel.TimeRecord {
     }
 }
 
-extension TimeRecordEditViewModel.TimeRecord.BreakTime {
+extension TimeRecordEditViewModel.BreakTime {
     func toBreakTime() -> TimeRecord.BreakTime {
         TimeRecord.BreakTime(
             id: self.id,
@@ -278,7 +278,7 @@ extension UptimeRecordEditViewModel.SystemUptimeRecord {
     }
 }
 
-extension UptimeRecordEditViewModel.SystemUptimeRecord.SleepRecord {
+extension UptimeRecordEditViewModel.SleepRecord {
     func toRecord() -> SystemUptimeRecord.SleepRecord {
         SystemUptimeRecord.SleepRecord(
             id: self.id,

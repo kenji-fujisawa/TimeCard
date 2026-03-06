@@ -10,33 +10,33 @@ import Foundation
 @Observable
 class CalendarViewModel {
     @Observable
-    class CalendarRecord: Identifiable {
-        @Observable
-        class TimeRecord: Identifiable {
-            @Observable
-            class BreakTime: Identifiable {
-                let start: Date?
-                let end: Date?
-                
-                init(start: Date? = nil, end: Date? = nil) {
-                    self.start = start
-                    self.end = end
-                }
-            }
-            
-            let checkIn: Date?
-            let checkOut: Date?
-            let breakTimes: [BreakTime]
-            let timeWorked: TimeInterval
-            
-            init(checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = [], timeWorked: TimeInterval = 0) {
-                self.checkIn = checkIn
-                self.checkOut = checkOut
-                self.breakTimes = breakTimes
-                self.timeWorked = timeWorked
-            }
-        }
+    class BreakTime: Identifiable {
+        let start: Date?
+        let end: Date?
         
+        init(start: Date? = nil, end: Date? = nil) {
+            self.start = start
+            self.end = end
+        }
+    }
+    
+    @Observable
+    class TimeRecord: Identifiable {
+        let checkIn: Date?
+        let checkOut: Date?
+        let breakTimes: [BreakTime]
+        let timeWorked: TimeInterval
+        
+        init(checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = [], timeWorked: TimeInterval = 0) {
+            self.checkIn = checkIn
+            self.checkOut = checkOut
+            self.breakTimes = breakTimes
+            self.timeWorked = timeWorked
+        }
+    }
+    
+    @Observable
+    class CalendarRecord: Identifiable {
         let date: Date
         let timeRecords: [TimeRecord]
         let timeWorked: TimeInterval
@@ -95,8 +95,8 @@ extension CalendarRecord {
 }
 
 extension TimeRecord {
-    func toViewModel() -> CalendarViewModel.CalendarRecord.TimeRecord {
-        CalendarViewModel.CalendarRecord.TimeRecord(
+    func toViewModel() -> CalendarViewModel.TimeRecord {
+        CalendarViewModel.TimeRecord(
             checkIn: self.checkIn,
             checkOut: self.checkOut,
             breakTimes: self.breakTimes.map { $0.toViewModel() },
@@ -106,8 +106,8 @@ extension TimeRecord {
 }
 
 extension TimeRecord.BreakTime {
-    func toViewModel() -> CalendarViewModel.CalendarRecord.TimeRecord.BreakTime {
-        CalendarViewModel.CalendarRecord.TimeRecord.BreakTime(
+    func toViewModel() -> CalendarViewModel.BreakTime {
+        CalendarViewModel.BreakTime(
             start: self.start,
             end: self.end
         )
