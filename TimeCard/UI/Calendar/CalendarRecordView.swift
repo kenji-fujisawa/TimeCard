@@ -9,7 +9,6 @@ import SwiftUI
 
 struct CalendarRecordView: View {
     let record: CalendarViewModel.CalendarRecord
-    let fixed: Bool
     @Binding var recordToEdit: CalendarViewModel.CalendarRecord?
     
     var body: some View {
@@ -35,7 +34,7 @@ struct CalendarRecordView: View {
                 VStack {
                     ForEach(record.timeRecords) { record in
                         if record.checkOut != nil {
-                            Text(interval(record: record), format: .timeWorked)
+                            Text(record.interval, format: .timeWorked)
                                 .accessibilityIdentifier("text_check_out")
                         }
                     }
@@ -64,7 +63,7 @@ struct CalendarRecordView: View {
                     ForEach(record.timeRecords) { record in
                         ForEach(record.breakTimes) { breakTime in
                             if breakTime.end != nil {
-                                Text(interval(breakTime: breakTime), format: .timeWorked)
+                                Text(breakTime.interval, format: .timeWorked)
                                     .accessibilityIdentifier("text_break_end")
                             }
                         }
@@ -92,7 +91,7 @@ struct CalendarRecordView: View {
                     .opacity(0)
             }
             
-            if fixed {
+            if record.fixed {
                 Button("edit") {
                     recordToEdit = record
                 }
@@ -101,20 +100,6 @@ struct CalendarRecordView: View {
         }
         .font(.system(.headline, design: .monospaced))
         .fontWeight(.regular)
-    }
-    
-    private func interval(record: CalendarViewModel.TimeRecord) -> TimeInterval {
-        interval(start: record.checkIn, end: record.checkOut)
-    }
-    
-    private func interval(breakTime: CalendarViewModel.BreakTime) -> TimeInterval {
-        interval(start: breakTime.start, end: breakTime.end)
-    }
-    
-    private func interval(start: Date?, end: Date?) -> TimeInterval {
-        guard let start = start else { return 0 }
-        guard let end = end else { return 0 }
-        return end.timeIntervalSince(Calendar.current.startOfDay(for: start))
     }
 }
 
@@ -150,6 +135,6 @@ struct CalendarRecordView: View {
         systemUptime: 60 * 60
     )
     Grid {
-        CalendarRecordView(record: record, fixed: true, recordToEdit: $recordToEdit)
+        CalendarRecordView(record: record, recordToEdit: $recordToEdit)
     }
 }

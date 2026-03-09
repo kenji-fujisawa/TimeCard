@@ -186,7 +186,7 @@ struct UITestApp: App {
                 RecorderView(viewModel: TimeRecordViewModel(timeRepository))
                 CalendarView(viewModel: CalendarViewModel(calendarRepository))
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
-                CalendarRecordView(record: record.toViewModel(), fixed: true, recordToEdit: $recordToEdit)
+                CalendarRecordView(record: record.toViewModel(), recordToEdit: $recordToEdit)
                 if let rec = recordToEdit {
                     Text(rec.date, format: .dateTime.month().day())
                         .accessibilityIdentifier("text_rec_to_edit")

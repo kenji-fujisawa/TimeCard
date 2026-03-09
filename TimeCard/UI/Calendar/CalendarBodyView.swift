@@ -35,7 +35,7 @@ struct CalendarBodyView: View {
                 Divider()
                 
                 ForEach(viewModel.records) { record in
-                    CalendarRecordView(record: record, fixed: isFixed(record: record), recordToEdit: $recordToEdit)
+                    CalendarRecordView(record: record, recordToEdit: $recordToEdit)
                     Divider()
                 }
                 
@@ -57,16 +57,6 @@ struct CalendarBodyView: View {
         }
         .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
         .focusedSceneValue(\.exportPDFAction, ExportPDFAction(viewModel: viewModel, showExporter: { showFileExport = true }))
-    }
-    
-    private func isFixed(record: CalendarViewModel.CalendarRecord) -> Bool {
-        let now = Date.now
-        if record.date.year == now.year && record.date.month == now.month && record.date.day == now.day {
-            let latest = record.timeRecords.last
-            return latest != nil && latest?.checkIn != nil && latest?.checkOut != nil
-        }
-        
-        return record.date < now
     }
 }
 

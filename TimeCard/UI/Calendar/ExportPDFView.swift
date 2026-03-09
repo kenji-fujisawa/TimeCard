@@ -137,7 +137,7 @@ private struct PDFView: View {
             
             ForEach(viewModel.records) { record in
                 HStack(alignment: .top) {
-                    CalendarRecordView(record: record, fixed: false, recordToEdit: $recordToEdit)
+                    CalendarRecordView(record: record, recordToEdit: $recordToEdit)
                 }
                 Divider()
             }

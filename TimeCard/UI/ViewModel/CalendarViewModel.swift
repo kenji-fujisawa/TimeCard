@@ -14,6 +14,12 @@ class CalendarViewModel {
         let start: Date?
         let end: Date?
         
+        var interval: TimeInterval {
+            guard let start = start else { return 0 }
+            guard let end = end else { return 0 }
+            return end.timeIntervalSince(Calendar.current.startOfDay(for: start))
+        }
+        
         init(start: Date? = nil, end: Date? = nil) {
             self.start = start
             self.end = end
@@ -26,6 +32,12 @@ class CalendarViewModel {
         let checkOut: Date?
         let breakTimes: [BreakTime]
         let timeWorked: TimeInterval
+        
+        var interval: TimeInterval {
+            guard let checkIn = checkIn else { return 0 }
+            guard let checkOut = checkOut else { return 0 }
+            return checkOut.timeIntervalSince(Calendar.current.startOfDay(for: checkIn))
+        }
         
         init(checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = [], timeWorked: TimeInterval = 0) {
             self.checkIn = checkIn
@@ -41,6 +53,16 @@ class CalendarViewModel {
         let timeRecords: [TimeRecord]
         let timeWorked: TimeInterval
         let systemUptime: TimeInterval
+        
+        var fixed: Bool {
+            let now = Date.now
+            if date.year == now.year && date.month == now.month && date.day == now.day {
+                let latest = timeRecords.last
+                return latest != nil && latest?.checkIn != nil && latest?.checkOut != nil
+            }
+            
+            return date < now
+        }
         
         init(date: Date, timeRecords: [TimeRecord] = [], timeWorked: TimeInterval = 0, systemUptime: TimeInterval = 0) {
             self.date = date
