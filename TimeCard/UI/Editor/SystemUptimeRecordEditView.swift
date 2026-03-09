@@ -8,41 +8,35 @@
 import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
-    @Binding var record: CalendarRecord
-    @State private var selectedId: SystemUptimeRecord.ID? = nil
+    @Bindable var viewModel: UptimeRecordEditViewModel
     
     var body: some View {
         NavigationSplitView {
-            SidebarView(record: $record, selectedId: $selectedId)
+            SidebarView(viewModel: viewModel)
         } detail: {
-            if let index = record.uptimeRecords.firstIndex(where: { $0.id == selectedId }) {
-                DetailView(record: $record.uptimeRecords[index])
+            if let index = viewModel.records.firstIndex(where: { $0.id == viewModel.selectedId }) {
+                DetailView(record: viewModel.records[index])
             }
         }
         .frame(minWidth: 400, minHeight: 300)
-        .onAppear() {
-            selectedId = record.uptimeRecords.first?.id
-        }
     }
     
     private struct SidebarView: View {
-        @Binding var record: CalendarRecord
-        @Binding var selectedId: SystemUptimeRecord.ID?
-        @State private var recordToRemove: SystemUptimeRecord? = nil
+        @Bindable var viewModel: UptimeRecordEditViewModel
         
         var body: some View {
-            List(selection: $selectedId) {
+            List(selection: $viewModel.selectedId) {
                 Section("稼働時間") {
-                    ForEach($record.uptimeRecords) { $record in
+                    ForEach(viewModel.records) { record in
                         HStack {
                             Text(record.uptime.formatted(.timeWorked))
                             .accessibilityIdentifier("nav_link")
                             
                             Spacer()
                             
-                            if recordToRemove == record {
+                            if viewModel.removeId == record.id {
                                 Button(role: .destructive) {
-                                    removeRecord(record: record)
+                                    viewModel.removeRecord()
                                 } label: {
                                     Image(systemName: "trash")
                                         .foregroundStyle(.red)
@@ -50,7 +44,7 @@ struct SystemUptimeRecordEditView: View {
                                 .accessibilityIdentifier("button_remove_uptime_record")
                             } else {
                                 Button {
-                                    recordToRemove = record
+                                    viewModel.removeId = record.id
                                 } label: {
                                     Image(systemName: "minus")
                                 }
@@ -62,32 +56,16 @@ struct SystemUptimeRecordEditView: View {
                 }
                 
                 Button("追加", systemImage: "plus") {
-                    addRecord()
+                    viewModel.addRecord()
                 }
                 .font(.footnote)
                 .accessibilityIdentifier("button_add_uptime_record")
             }
         }
-        
-        private func addRecord() {
-            let date = record.date
-            let record = SystemUptimeRecord(launch: date, shutdown: date)
-            self.record.uptimeRecords.append(record)
-            selectedId = record.id
-        }
-        
-        private func removeRecord(record: SystemUptimeRecord) {
-            self.record.uptimeRecords.removeAll(where: { $0 == record })
-            recordToRemove = nil
-            if selectedId == record.id {
-                selectedId = self.record.uptimeRecords.first?.id
-            }
-        }
     }
     
     private struct DetailView: View {
-        @Binding var record: SystemUptimeRecord
-        @State private var recordToRemove: SystemUptimeRecord.SleepRecord? = nil
+        @Bindable var record: UptimeRecordEditViewModel.SystemUptimeRecord
         
         var body: some View {
             VStack(alignment: .leading) {
@@ -100,19 +78,18 @@ struct SystemUptimeRecordEditView: View {
                 .padding()
                 
                 List {
-                    ForEach($record.sleepRecords) { $sleepRecord in
+                    ForEach(record.sleepRecords) { sleepRecord in
                         Section {
-                            SleepRecordView(sleepRecord: $sleepRecord)
+                            SleepRecordView(sleepRecord: sleepRecord)
                         } header: {
                             HStack {
                                 Text("スリープ")
                                 
                                 Spacer()
                                 
-                                if recordToRemove == sleepRecord {
+                                if record.removeId == sleepRecord.id {
                                     Button(role: .destructive) {
-                                        record.sleepRecords.removeAll(where: { $0 == sleepRecord })
-                                        recordToRemove = nil
+                                        record.removeSleep()
                                     } label: {
                                         Image(systemName: "trash")
                                             .foregroundStyle(.red)
@@ -120,7 +97,7 @@ struct SystemUptimeRecordEditView: View {
                                     .accessibilityIdentifier("button_remove_sleep_record")
                                 } else {
                                     Button {
-                                        recordToRemove = sleepRecord
+                                        record.removeId = sleepRecord.id
                                     } label: {
                                         Image(systemName: "minus")
                                     }
@@ -131,9 +108,7 @@ struct SystemUptimeRecordEditView: View {
                     }
                     
                     Button("スリープを追加", systemImage: "plus") {
-                        let date = record.launch
-                        let sleep = SystemUptimeRecord.SleepRecord(start: date, end: date)
-                        record.sleepRecords.append(sleep)
+                        record.addSleep()
                     }
                     .font(.footnote)
                     .accessibilityIdentifier("button_add_sleep_record")
@@ -143,7 +118,7 @@ struct SystemUptimeRecordEditView: View {
     }
     
     private struct SleepRecordView: View {
-        @Binding var sleepRecord: SystemUptimeRecord.SleepRecord
+        @Bindable var sleepRecord: UptimeRecordEditViewModel.SleepRecord
         
         var body: some View {
             Form {
@@ -157,15 +132,14 @@ struct SystemUptimeRecordEditView: View {
 }
 
 #Preview {
-    @Previewable @State var record = CalendarRecord(
+    let viewModel = UptimeRecordEditViewModel(
         date: .now,
-        timeRecords: [],
-        uptimeRecords: [
-            SystemUptimeRecord(
+        records: [
+            UptimeRecordEditViewModel.SystemUptimeRecord(
                 launch: .now,
                 shutdown: .now,
                 sleepRecords: [
-                    SystemUptimeRecord.SleepRecord(
+                    UptimeRecordEditViewModel.SleepRecord(
                         start: .now,
                         end: .now
                     )
@@ -173,5 +147,5 @@ struct SystemUptimeRecordEditView: View {
             )
         ]
     )
-    SystemUptimeRecordEditView(record: $record)
+    SystemUptimeRecordEditView(viewModel: viewModel)
 }

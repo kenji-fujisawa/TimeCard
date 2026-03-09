@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct CalendarBodyView: View {
-    var calendar: CalendarViewModel
-    @State private var recordToEdit: CalendarRecord? = nil
+    @Environment(\.calendarRecordRepository) private var repository
+    var viewModel: CalendarViewModel
+    @State private var recordToEdit: CalendarViewModel.CalendarRecord? = nil
     @State private var showFileExport: Bool = false
     
     var body: some View {
@@ -33,8 +34,8 @@ struct CalendarBodyView: View {
                 }
                 Divider()
                 
-                ForEach(calendar.records) { record in
-                    CalendarRecordView(record: record, fixed: isFixed(record: record), recordToEdit: $recordToEdit)
+                ForEach(viewModel.records) { record in
+                    CalendarRecordView(record: record, recordToEdit: $recordToEdit)
                     Divider()
                 }
                 
@@ -44,35 +45,25 @@ struct CalendarBodyView: View {
                     Text("")
                     Text("")
                     Text("")
-                    Text(calendar.records.timeWorkedSum, format: .timeWorked)
-                    Text(calendar.records.systemUptimeSum, format: .timeWorked)
+                    Text(viewModel.timeWorkedSum, format: .timeWorked)
+                    Text(viewModel.systemUptimeSum, format: .timeWorked)
                 }
                 .font(.system(.headline, design: .monospaced))
                 .fontWeight(.regular)
             }
         }
         .sheet(item: $recordToEdit) { record in
-            RecordEditView(record: record, calendar: calendar)
+            RecordEditView(viewModel: RecordEditViewModel(repository, record.date))
         }
         .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
-        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(records: calendar.records, showExporter: { showFileExport = true }))
-    }
-    
-    private func isFixed(record: CalendarRecord) -> Bool {
-        let now = Date.now
-        if record.date.year == now.year && record.date.month == now.month && record.date.day == now.day {
-            let latest = record.timeRecords.last
-            return latest != nil && latest?.checkIn != nil && latest?.checkOut != nil
-        }
-        
-        return record.date < now
+        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(viewModel: viewModel, showExporter: { showFileExport = true }))
     }
 }
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository)
-    CalendarBodyView(calendar: calendar)
+    let viewModel = CalendarViewModel(repository)
+    CalendarBodyView(viewModel: viewModel)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
@@ -85,5 +76,8 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])
+    }
     func updateRecord(_ record: CalendarRecord) throws {}
 }

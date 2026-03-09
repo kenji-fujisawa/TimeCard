@@ -10,6 +10,7 @@ import SwiftData
 
 protocol CalendarRecordRepository {
     func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]>
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord
     func updateRecord(_ record: CalendarRecord) throws
 }
 
@@ -76,6 +77,13 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         }
         
         publish?(results)
+    }
+    
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        let date = Calendar.current.date(from: DateComponents(year: year, month: month, day: day)) ?? .now
+        let timeRecords = try source.getTimeRecords(year: year, month: month).filter { $0.checkIn?.day == day }
+        let uptimeRecords = try source.getUptimeRecords(year: year, month: month).filter { $0.launch.day == day }
+        return CalendarRecord(date: date, timeRecords: timeRecords, uptimeRecords: uptimeRecords)
     }
     
     func updateRecord(_ record: CalendarRecord) throws {

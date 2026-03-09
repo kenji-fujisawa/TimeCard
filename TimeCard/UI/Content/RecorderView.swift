@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct RecorderView: View {
-    var timeRecord: TimeRecordViewModel
+    var viewModel: TimeRecordViewModel
     
     var body: some View {
         VStack {
             ClockView()
             
-            if timeRecord.state == .offWork {
+            if viewModel.state == .offWork {
                 Button {
-                    timeRecord.checkIn()
+                    viewModel.checkIn()
                 } label: {
                     VStack {
                         Image(systemName: "play.desktopcomputer")
@@ -29,9 +29,9 @@ struct RecorderView: View {
                     .frame(width: 50, height: 50)
                 }
                 .accessibilityIdentifier("button_check_in")
-            } else if timeRecord.state == .atBreak {
+            } else if viewModel.state == .atBreak {
                 Button {
-                    timeRecord.endBreak()
+                    viewModel.endBreak()
                 } label: {
                     VStack {
                         Image(systemName: "power.circle")
@@ -44,10 +44,10 @@ struct RecorderView: View {
                     .frame(width: 50, height: 50)
                 }
                 .accessibilityIdentifier("button_break_end")
-            } else if timeRecord.state == .atWork {
+            } else if viewModel.state == .atWork {
                 HStack {
                     Button {
-                        timeRecord.checkOut()
+                        viewModel.checkOut()
                     } label: {
                         VStack {
                             Image(systemName: "powersleep")
@@ -62,7 +62,7 @@ struct RecorderView: View {
                     .accessibilityIdentifier("button_check_out")
                     
                     Button {
-                        timeRecord.startBreak()
+                        viewModel.startBreak()
                     } label: {
                         VStack {
                             Image(systemName: "cup.and.saucer.fill")
@@ -83,8 +83,8 @@ struct RecorderView: View {
 
 #Preview {
     let repository = FakeTimeRecordRepository()
-    let timeRecord = TimeRecordViewModel(repository)
-    RecorderView(timeRecord: timeRecord)
+    let viewModel = TimeRecordViewModel(repository)
+    RecorderView(viewModel: viewModel)
 }
 
 private class FakeTimeRecordRepository: TimeRecordRepository {

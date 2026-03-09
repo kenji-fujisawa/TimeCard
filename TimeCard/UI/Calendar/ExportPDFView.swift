@@ -24,7 +24,7 @@ struct PdfDocument: FileDocument {
 }
 
 struct ExportPDFAction {
-    var records: [CalendarRecord]
+    var viewModel: CalendarViewModel
     var showExporter: () -> Void
 }
 
@@ -54,7 +54,7 @@ struct ExportPDFView: View {
     
     private func exportPdf() {
         guard let action = action else { return }
-        let view = PDFView(records: action.records)
+        let view = PDFView(viewModel: action.viewModel)
         let renderer = ImageRenderer(content: view)
         renderer.render { size, renderer in
             var mediaBox = CGRect(origin: .zero, size: CGSize(width: 400, height: computeHeight()))
@@ -77,7 +77,7 @@ struct ExportPDFView: View {
         let headerHeight: CGFloat = 100
         let footerHeight: CGFloat = 15
         
-        for record in action.records {
+        for record in action.viewModel.records {
             var lines = 0
             if record.timeRecords.isEmpty {
                 lines += 1
@@ -95,12 +95,12 @@ struct ExportPDFView: View {
 }
 
 private struct PDFView: View {
-    var records: [CalendarRecord]
-    @State private var recordToEdit: CalendarRecord?
+    var viewModel: CalendarViewModel
+    @State private var recordToEdit: CalendarViewModel.CalendarRecord?
     
     var body: some View {
         VStack(alignment: .leading) {
-            if let date = records.first?.date {
+            if let date = viewModel.records.first?.date {
                 Text(date, format: .dateTime.year().month())
                     .font(.title)
                     .padding(.bottom)
@@ -135,9 +135,9 @@ private struct PDFView: View {
             }
             Divider()
             
-            ForEach(records) { record in
+            ForEach(viewModel.records) { record in
                 HStack(alignment: .top) {
-                    CalendarRecordView(record: record, fixed: false, recordToEdit: $recordToEdit)
+                    CalendarRecordView(record: record, recordToEdit: $recordToEdit)
                 }
                 Divider()
             }
@@ -153,8 +153,8 @@ private struct PDFView: View {
                     .opacity(0)
                 Text("00:00")
                     .opacity(0)
-                Text(records.timeWorkedSum, format: .timeWorked)
-                Text(records.systemUptimeSum, format: .timeWorked)
+                Text(viewModel.timeWorkedSum, format: .timeWorked)
+                Text(viewModel.systemUptimeSum, format: .timeWorked)
             }
             .font(.system(.headline, design: .monospaced))
             .fontWeight(.regular)
@@ -166,39 +166,55 @@ private struct PDFView: View {
     ExportPDFView()
 }
 
-#Preview {
-    let record = CalendarRecord(
-        date: .now,
-        timeRecords: [
-            TimeRecord(
-                checkIn: .now,
-                checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
-                breakTimes: [
-                    TimeRecord.BreakTime(
-                        start: .now,
-                        end: Date(timeIntervalSinceNow: 25 * 60 * 60)
+#Preview(traits: .sizeThatFitsLayout) {
+    let repository = FakeCalendarRecordRepository()
+    let viewModel = CalendarViewModel(repository)
+    PDFView(viewModel: viewModel)
+        .fixedSize()
+}
+
+private class FakeCalendarRecordRepository: CalendarRecordRepository {
+    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
+        AsyncStream { continuation in
+            let record = CalendarRecord(
+                date: .now,
+                timeRecords: [
+                    TimeRecord(
+                        checkIn: .now,
+                        checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
+                        breakTimes: [
+                            TimeRecord.BreakTime(
+                                start: .now,
+                                end: Date(timeIntervalSinceNow: 25 * 60 * 60)
+                            ),
+                            TimeRecord.BreakTime(
+                                start: .now
+                            )
+                        ]
                     ),
-                    TimeRecord.BreakTime(
-                        start: .now
+                    TimeRecord(
+                        checkIn: .now,
+                        breakTimes: [
+                            TimeRecord.BreakTime(
+                                start: .now,
+                                end: Date(timeIntervalSinceNow: 25 * 60 * 60)
+                            )
+                        ]
                     )
-                ]
-            ),
-            TimeRecord(
-                checkIn: .now,
-                breakTimes: [
-                    TimeRecord.BreakTime(
-                        start: .now,
-                        end: Date(timeIntervalSinceNow: 25 * 60 * 60)
+                ],
+                uptimeRecords: [
+                    SystemUptimeRecord(
+                        launch: .now,
+                        shutdown: Date(timeIntervalSinceNow: 60 * 60)
                     )
                 ]
             )
-        ],
-        uptimeRecords: [
-            SystemUptimeRecord(
-                launch: .now,
-                shutdown: .now
-            )
-        ]
-    )
-    PDFView(records: [record, record])
+            continuation.yield([record])
+        }
+    }
+    
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])
+    }
+    func updateRecord(_ record: CalendarRecord) throws {}
 }

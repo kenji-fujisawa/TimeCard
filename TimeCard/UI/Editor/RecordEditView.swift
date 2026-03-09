@@ -9,23 +9,22 @@ import SwiftUI
 
 struct RecordEditView: View {
     @Environment(\.dismiss) private var dismiss
-    @State var record: CalendarRecord
-    var calendar: CalendarViewModel
+    var viewModel: RecordEditViewModel
     
     var body: some View {
         TabView {
             Tab("労働時間", systemImage: "person.circle.fill") {
-                TimeRecordEditView(record: $record)
+                TimeRecordEditView(viewModel: viewModel.timeViewModel)
             }
             Tab("システム稼働時間", systemImage: "power.circle.fill") {
-                SystemUptimeRecordEditView(record: $record)
+                SystemUptimeRecordEditView(viewModel: viewModel.uptimeViewModel)
             }
         }
         .padding()
         .toolbar {
             ToolbarItem {
                 Button("閉じる", systemImage: "xmark") {
-                    calendar.update(record: record)
+                    viewModel.update()
                     dismiss()
                 }
                 .accessibilityIdentifier("button_close")
@@ -35,47 +34,50 @@ struct RecordEditView: View {
 }
 
 #Preview {
-    let record = CalendarRecord(
-        date: .now,
-        timeRecords: [
-            TimeRecord(
-                checkIn: .now,
-                checkOut: .now,
-                breakTimes: [
-                    TimeRecord.BreakTime(
-                        start: .now,
-                        end: .now
-                    ),
-                    TimeRecord.BreakTime(
-                        start: .now
-                    )
-                ]
-            ),
-            TimeRecord(
-                checkIn: .now,
-                breakTimes: [
-                    TimeRecord.BreakTime(
-                        start: .now,
-                        end: .now
-                    )
-                ]
-            )
-        ],
-        uptimeRecords: [
-            SystemUptimeRecord(
-                launch: .now,
-                shutdown: .now
-            )
-        ]
-    )
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository)
-    RecordEditView(record: record, calendar: calendar)
+    let viewModel = RecordEditViewModel(repository, .now)
+    RecordEditView(viewModel: viewModel)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
     func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
         AsyncStream { _ in }
+    }
+    
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(
+            date: .now,
+            timeRecords: [
+                TimeRecord(
+                    checkIn: .now,
+                    checkOut: .now,
+                    breakTimes: [
+                        TimeRecord.BreakTime(
+                            start: .now,
+                            end: .now
+                        ),
+                        TimeRecord.BreakTime(
+                            start: .now
+                        )
+                    ]
+                ),
+                TimeRecord(
+                    checkIn: .now,
+                    breakTimes: [
+                        TimeRecord.BreakTime(
+                            start: .now,
+                            end: .now
+                        )
+                    ]
+                )
+            ],
+            uptimeRecords: [
+                SystemUptimeRecord(
+                    launch: .now,
+                    shutdown: .now
+                )
+            ]
+        )
     }
     
     func updateRecord(_ record: CalendarRecord) throws {}

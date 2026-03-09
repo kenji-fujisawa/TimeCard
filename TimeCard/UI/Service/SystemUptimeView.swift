@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct SystemUptimeView: View {
-    @Environment(AppTerminationManager.self) private var terminationManager
-    let uptimeRecord: SystemUptimeRecordViewModel
+    @Environment(\.terminationManager) private var terminationManager
+    let viewModel: SystemUptimeRecordViewModel
     @State private var becomeActive = false
     
     private let timer = Timer.publish(every: 60 * 5, on: .main, in: .common).autoconnect()
@@ -17,35 +17,33 @@ struct SystemUptimeView: View {
     var body: some View {
         EmptyView()
             .onReceive(timer) { _ in
-                uptimeRecord.update()
+                viewModel.update()
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 if !becomeActive {
                     terminationManager.addCleanupAction {
-                        uptimeRecord.shutdown()
+                        viewModel.shutdown()
                     }
                     
-                    uptimeRecord.launch()
+                    viewModel.launch()
                     becomeActive = true
                 }
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.willSleepNotification)) { _ in
-                uptimeRecord.sleep()
-                uptimeRecord.update()
+                viewModel.sleep()
+                viewModel.update()
             }
             .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)) { _ in
-                uptimeRecord.wake()
-                uptimeRecord.update()
+                viewModel.wake()
+                viewModel.update()
             }
     }
 }
 
 #Preview {
-    let terminationManager = AppTerminationManager()
     let repository = FakeUptimeRepository()
-    let uptimeRecord = SystemUptimeRecordViewModel(repository)
-    SystemUptimeView(uptimeRecord: uptimeRecord)
-        .environment(terminationManager)
+    let viewModel = SystemUptimeRecordViewModel(repository)
+    SystemUptimeView(viewModel: viewModel)
 }
 
 private class FakeUptimeRepository: SystemUptimeRecordRepository {

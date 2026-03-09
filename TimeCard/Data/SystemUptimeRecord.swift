@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct SystemUptimeRecord: Identifiable, Hashable, Equatable {
-    struct SleepRecord: Identifiable, Hashable, Equatable {
+struct SystemUptimeRecord: Equatable {
+    struct SleepRecord: Equatable {
         var id: UUID
         var start: Date
         var end: Date
