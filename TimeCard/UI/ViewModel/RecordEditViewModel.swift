@@ -21,7 +21,9 @@ class RecordEditViewModel {
         
         if let record = try? repository.getRecord(year: date.year, month: date.month, day: date.day) {
             self.timeViewModel.records = record.timeRecords.map { $0.toViewModel() }
+            self.timeViewModel.selectedId = record.timeRecords.first?.id
             self.uptimeViewModel.records = record.uptimeRecords.map { $0.toViewModel() }
+            self.uptimeViewModel.selectedId = record.uptimeRecords.first?.id
         }
     }
     
