@@ -34,6 +34,9 @@ final class RecordEditViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["button_add_uptime_record"].waitForExistence(timeout: 3))
         app.buttons["button_add_uptime_record"].tap()
         
+        XCTAssertTrue(app.buttons["button_save"].waitForExistence(timeout: 3))
+        app.buttons.matching(identifier: "button_save").firstMatch.tap()
+        
         XCTAssertTrue(app.buttons["button_close"].waitForExistence(timeout: 3))
         app.buttons.matching(identifier: "button_close").firstMatch.tap()
         
@@ -66,6 +69,9 @@ final class RecordEditViewTests: XCTestCase {
         
         XCTAssertTrue(app.buttons["button_add_uptime_record"].waitForExistence(timeout: 3))
         app.buttons["button_add_uptime_record"].tap()
+        
+        XCTAssertTrue(app.buttons["button_save"].waitForExistence(timeout: 3))
+        app.buttons.matching(identifier: "button_save").firstMatch.tap()
         
         XCTAssertTrue(app.buttons["button_close"].waitForExistence(timeout: 3))
         app.buttons.matching(identifier: "button_close").firstMatch.tap()

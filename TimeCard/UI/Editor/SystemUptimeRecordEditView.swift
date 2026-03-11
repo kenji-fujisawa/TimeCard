@@ -15,7 +15,8 @@ struct SystemUptimeRecordEditView: View {
             SidebarView(viewModel: viewModel)
         } detail: {
             if let index = viewModel.records.firstIndex(where: { $0.id == viewModel.selectedId }) {
-                DetailView(record: viewModel.records[index])
+                let record = viewModel.records[index]
+                DetailView(record: record, valid: viewModel.isValid(record))
             }
         }
         .frame(minWidth: 400, minHeight: 300)
@@ -30,7 +31,8 @@ struct SystemUptimeRecordEditView: View {
                     ForEach(viewModel.records) { record in
                         HStack {
                             Text(record.uptime.formatted(.timeWorked))
-                            .accessibilityIdentifier("nav_link")
+                                .foregroundStyle(!viewModel.isValid(record) ? .red : .primary)
+                                .accessibilityIdentifier("nav_link")
                             
                             Spacer()
                             
@@ -66,13 +68,16 @@ struct SystemUptimeRecordEditView: View {
     
     private struct DetailView: View {
         @Bindable var record: UptimeRecordEditViewModel.SystemUptimeRecord
+        let valid: Bool
         
         var body: some View {
             VStack(alignment: .leading) {
                 Form {
                     DatePicker("起動", selection: $record.launch, displayedComponents: [.date, .hourAndMinute])
+                        .isValid(valid)
                         .accessibilityIdentifier("date_launch")
                     DatePicker("終了", selection: $record.shutdown, displayedComponents: [.date, .hourAndMinute])
+                        .isValid(valid)
                         .accessibilityIdentifier("date_shutdown")
                 }
                 .padding()
@@ -80,7 +85,7 @@ struct SystemUptimeRecordEditView: View {
                 List {
                     ForEach(record.sleepRecords) { sleepRecord in
                         Section {
-                            SleepRecordView(sleepRecord: sleepRecord)
+                            SleepRecordView(sleepRecord: sleepRecord, valid: record.isValid(sleepRecord))
                         } header: {
                             HStack {
                                 Text("スリープ")
@@ -119,15 +124,38 @@ struct SystemUptimeRecordEditView: View {
     
     private struct SleepRecordView: View {
         @Bindable var sleepRecord: UptimeRecordEditViewModel.SleepRecord
+        let valid: Bool
         
         var body: some View {
             Form {
                 DatePicker("開始", selection: $sleepRecord.start, displayedComponents: [.date, .hourAndMinute])
+                    .isValid(valid)
                     .accessibilityIdentifier("date_sleep_start")
                 DatePicker("終了", selection: $sleepRecord.end, displayedComponents: [.date, .hourAndMinute])
+                    .isValid(valid)
                     .accessibilityIdentifier("date_sleep_end")
             }
         }
+    }
+}
+
+private struct ValidModifier: ViewModifier {
+    let valid: Bool
+    
+    func body(content: Content) -> some View {
+        if valid {
+            content
+        } else {
+            content
+                .padding(2)
+                .border(.red)
+        }
+    }
+}
+
+private extension View {
+    func isValid(_ valid: Bool) -> some View {
+        self.modifier(ValidModifier(valid: valid))
     }
 }
 

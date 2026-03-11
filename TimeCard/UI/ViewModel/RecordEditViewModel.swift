@@ -10,12 +10,14 @@ import Foundation
 @Observable
 class RecordEditViewModel {
     @ObservationIgnored private let repository: CalendarRecordRepository
+    @ObservationIgnored private let date: Date
     
     var timeViewModel: TimeRecordEditViewModel
     var uptimeViewModel: UptimeRecordEditViewModel
     
     init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository
+        self.date = date
         self.timeViewModel = TimeRecordEditViewModel(date: date)
         self.uptimeViewModel = UptimeRecordEditViewModel(date: date)
         
@@ -29,11 +31,15 @@ class RecordEditViewModel {
     
     func update() {
         let record = CalendarRecord(
-            date: timeViewModel.date,
+            date: date,
             timeRecords: timeViewModel.records.map { $0.toRecord() },
             uptimeRecords: uptimeViewModel.records.map { $0.toRecord() }
         )
         try? repository.updateRecord(record)
+    }
+    
+    func isValid() -> Bool {
+        timeViewModel.isValid() && uptimeViewModel.isValid()
     }
 }
 
@@ -83,6 +89,23 @@ class TimeRecordEditViewModel {
             removeId = nil
         }
         
+        func isValid(_ breakTime: BreakTime) -> Bool {
+            if breakTime.start > breakTime.end { return false }
+            if breakTime.start < checkIn { return false }
+            if breakTime.end > checkOut { return false }
+            
+            let sorted = breakTimes.sorted { $0.start < $1.start }
+            for (a, b) in zip(sorted, sorted.dropFirst()) {
+                if a.end > b.start {
+                    if a.id == breakTime.id || b.id == breakTime.id {
+                        return false
+                    }
+                }
+            }
+            
+            return true
+        }
+        
         static func == (lhs: TimeRecordEditViewModel.TimeRecord, rhs: TimeRecordEditViewModel.TimeRecord) -> Bool {
             lhs.id == rhs.id &&
             lhs.checkIn == rhs.checkIn &&
@@ -91,7 +114,8 @@ class TimeRecordEditViewModel {
         }
     }
     
-    var date: Date
+    @ObservationIgnored private var date: Date
+    
     var records: [TimeRecord] = []
     var selectedId: TimeRecord.ID? = nil
     var removeId: TimeRecord.ID? = nil
@@ -114,6 +138,34 @@ class TimeRecordEditViewModel {
             selectedId = records.first?.id
         }
         removeId = nil
+    }
+    
+    func isValid() -> Bool {
+        if records.contains(where: { !isValid($0) }) { return false }
+        
+        for rec in records {
+            if rec.breakTimes.contains(where: { !rec.isValid($0) }) {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    func isValid(_ record: TimeRecord) -> Bool {
+        if record.checkIn > record.checkOut { return false }
+        if record.checkIn < date { return false }
+        
+        let sorted = records.sorted { $0.checkIn < $1.checkIn }
+        for (a, b) in zip(sorted, sorted.dropFirst()) {
+            if a.checkOut > b.checkIn {
+                if a.id == record.id || b.id == record.id {
+                    return false
+                }
+            }
+        }
+        
+        return true
     }
 }
 
@@ -172,6 +224,23 @@ class UptimeRecordEditViewModel {
             removeId = nil
         }
         
+        func isValid(_ record: SleepRecord) -> Bool {
+            if record.start > record.end { return false }
+            if record.start < launch { return false }
+            if record.end > shutdown { return false }
+            
+            let sorted = sleepRecords.sorted { $0.start < $1.start }
+            for (a, b) in zip(sorted, sorted.dropFirst()) {
+                if a.end > b.start {
+                    if a.id == record.id || b.id == record.id {
+                        return false
+                    }
+                }
+            }
+            
+            return true
+        }
+        
         static func == (lhs: UptimeRecordEditViewModel.SystemUptimeRecord, rhs: UptimeRecordEditViewModel.SystemUptimeRecord) -> Bool {
             lhs.id == rhs.id &&
             lhs.launch == rhs.launch &&
@@ -180,7 +249,8 @@ class UptimeRecordEditViewModel {
         }
     }
     
-    var date: Date
+    @ObservationIgnored private var date: Date
+    
     var records: [SystemUptimeRecord] = []
     var selectedId: SystemUptimeRecord.ID? = nil
     var removeId: SystemUptimeRecord.ID? = nil
@@ -203,6 +273,34 @@ class UptimeRecordEditViewModel {
             selectedId = records.first?.id
         }
         removeId = nil
+    }
+    
+    func isValid() -> Bool {
+        if records.contains(where: { !isValid($0) }) { return false }
+        
+        for rec in records {
+            if rec.sleepRecords.contains(where: { !rec.isValid($0) }) {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    func isValid(_ record: SystemUptimeRecord) -> Bool {
+        if record.launch > record.shutdown { return false }
+        if record.launch < date { return false }
+        
+        let sorted = records.sorted { $0.launch < $1.launch }
+        for (a, b) in zip(sorted, sorted.dropFirst()) {
+            if a.shutdown > b.launch {
+                if a.id == record.id || b.id == record.id {
+                    return false
+                }
+            }
+        }
+        
+        return true
     }
 }
 

@@ -23,8 +23,14 @@ struct RecordEditView: View {
         .padding()
         .toolbar {
             ToolbarItem {
-                Button("閉じる", systemImage: "xmark") {
+                Button("保存", systemImage: "square.and.arrow.down") {
                     viewModel.update()
+                }
+                .disabled(!viewModel.isValid())
+                .accessibilityIdentifier("button_save")
+            }
+            ToolbarItem {
+                Button("閉じる", systemImage: "xmark") {
                     dismiss()
                 }
                 .accessibilityIdentifier("button_close")
