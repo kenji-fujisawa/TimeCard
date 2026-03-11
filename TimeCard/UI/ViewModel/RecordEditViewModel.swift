@@ -22,9 +22,9 @@ class RecordEditViewModel {
         self.uptimeViewModel = UptimeRecordEditViewModel(date: date)
         
         if let record = try? repository.getRecord(year: date.year, month: date.month, day: date.day) {
-            self.timeViewModel.records = record.timeRecords.map { $0.toViewModel() }
+            self.timeViewModel.records = record.timeRecords.map { $0.asViewModel() }
             self.timeViewModel.selectedId = record.timeRecords.first?.id
-            self.uptimeViewModel.records = record.uptimeRecords.map { $0.toViewModel() }
+            self.uptimeViewModel.records = record.uptimeRecords.map { $0.asViewModel() }
             self.uptimeViewModel.selectedId = record.uptimeRecords.first?.id
         }
     }
@@ -32,8 +32,8 @@ class RecordEditViewModel {
     func update() {
         let record = CalendarRecord(
             date: date,
-            timeRecords: timeViewModel.records.map { $0.toRecord() },
-            uptimeRecords: uptimeViewModel.records.map { $0.toRecord() }
+            timeRecords: timeViewModel.records.map { $0.asRecord() },
+            uptimeRecords: uptimeViewModel.records.map { $0.asRecord() }
         )
         try? repository.updateRecord(record)
     }
@@ -305,18 +305,18 @@ class UptimeRecordEditViewModel {
 }
 
 extension TimeRecord {
-    func toViewModel() -> TimeRecordEditViewModel.TimeRecord {
+    func asViewModel() -> TimeRecordEditViewModel.TimeRecord {
         TimeRecordEditViewModel.TimeRecord(
             id: self.id,
             checkIn: self.checkIn ?? .now,
             checkOut: self.checkOut ?? .now,
-            breakTimes: self.breakTimes.map { $0.toViewModel() }
+            breakTimes: self.breakTimes.map { $0.asViewModel() }
         )
     }
 }
 
 extension TimeRecord.BreakTime {
-    func toViewModel() -> TimeRecordEditViewModel.BreakTime {
+    func asViewModel() -> TimeRecordEditViewModel.BreakTime {
         TimeRecordEditViewModel.BreakTime(
             id: self.id,
             start: self.start ?? .now,
@@ -326,18 +326,18 @@ extension TimeRecord.BreakTime {
 }
 
 extension SystemUptimeRecord {
-    func toViewModel() -> UptimeRecordEditViewModel.SystemUptimeRecord {
+    func asViewModel() -> UptimeRecordEditViewModel.SystemUptimeRecord {
         UptimeRecordEditViewModel.SystemUptimeRecord(
             id: self.id,
             launch: self.launch,
             shutdown: self.shutdown,
-            sleepRecords: self.sleepRecords.map { $0.toViewModel() }
+            sleepRecords: self.sleepRecords.map { $0.asViewModel() }
         )
     }
 }
 
 extension SystemUptimeRecord.SleepRecord {
-    func toViewModel() -> UptimeRecordEditViewModel.SleepRecord {
+    func asViewModel() -> UptimeRecordEditViewModel.SleepRecord {
         UptimeRecordEditViewModel.SleepRecord(
             id: self.id,
             start: self.start,
@@ -347,18 +347,18 @@ extension SystemUptimeRecord.SleepRecord {
 }
 
 extension TimeRecordEditViewModel.TimeRecord {
-    func toRecord() -> TimeRecord {
+    func asRecord() -> TimeRecord {
         TimeRecord(
             id: self.id,
             checkIn: self.checkIn,
             checkOut: self.checkOut,
-            breakTimes: self.breakTimes.map { $0.toBreakTime() }
+            breakTimes: self.breakTimes.map { $0.asBreakTime() }
         )
     }
 }
 
 extension TimeRecordEditViewModel.BreakTime {
-    func toBreakTime() -> TimeRecord.BreakTime {
+    func asBreakTime() -> TimeRecord.BreakTime {
         TimeRecord.BreakTime(
             id: self.id,
             start: self.start,
@@ -368,18 +368,18 @@ extension TimeRecordEditViewModel.BreakTime {
 }
 
 extension UptimeRecordEditViewModel.SystemUptimeRecord {
-    func toRecord() -> SystemUptimeRecord {
+    func asRecord() -> SystemUptimeRecord {
         SystemUptimeRecord(
             id: self.id,
             launch: self.launch,
             shutdown: self.shutdown,
-            sleepRecords: self.sleepRecords.map { $0.toRecord() }
+            sleepRecords: self.sleepRecords.map { $0.asRecord() }
         )
     }
 }
 
 extension UptimeRecordEditViewModel.SleepRecord {
-    func toRecord() -> SystemUptimeRecord.SleepRecord {
+    func asRecord() -> SystemUptimeRecord.SleepRecord {
         SystemUptimeRecord.SleepRecord(
             id: self.id,
             start: self.start,

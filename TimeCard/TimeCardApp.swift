@@ -186,7 +186,7 @@ struct UITestApp: App {
                 RecorderView(viewModel: TimeRecordViewModel(timeRepository))
                 CalendarView(viewModel: CalendarViewModel(calendarRepository))
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
-                CalendarRecordView(record: record.toViewModel(), recordToEdit: $recordToEdit)
+                CalendarRecordView(record: record.asViewModel(), recordToEdit: $recordToEdit)
                 if let rec = recordToEdit {
                     Text(rec.date, format: .dateTime.month().day())
                         .accessibilityIdentifier("text_rec_to_edit")
@@ -205,13 +205,13 @@ struct UITestApp: App {
                     RecordEditView(viewModel: RecordEditViewModel(calendarRepository, record.date))
                 }
                 Button("update") {
-                    timeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalTimeRecord>()))?.map { $0.toTimeRecord() } ?? []
-                    uptimeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalUptimeRecord>()))?.map { $0.toUptimeRecord() } ?? []
+                    timeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalTimeRecord>()))?.map { $0.asTimeRecord() } ?? []
+                    uptimeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalUptimeRecord>()))?.map { $0.asUptimeRecord() } ?? []
                 }
             } else if CommandLine.arguments.contains("TimeRecordEditViewTests") {
-                TimeRecordEditView(viewModel: TimeRecordEditViewModel(date: record.date, records: record.timeRecords.map { $0.toViewModel() }))
+                TimeRecordEditView(viewModel: TimeRecordEditViewModel(date: record.date, records: record.timeRecords.map { $0.asViewModel() }))
             } else if CommandLine.arguments.contains("SystemUptimeRecordEditViewTests") {
-                SystemUptimeRecordEditView(viewModel: UptimeRecordEditViewModel(date: record.date, records: record.uptimeRecords.map { $0.toViewModel() }))
+                SystemUptimeRecordEditView(viewModel: UptimeRecordEditViewModel(date: record.date, records: record.uptimeRecords.map { $0.asViewModel() }))
             } else if CommandLine.arguments.contains("SleepViewTests") {
                 SleepView(viewModel: TimeRecordViewModel(timeRepository))
                 Text("\(String(describing: state))")
@@ -257,7 +257,7 @@ struct UITestApp: App {
                     let descriptor = FetchDescriptor<LocalUptimeRecord>(
                         sortBy: [.init(\.launch)]
                     )
-                    uptimeRecords = (try? container.mainContext.fetch(descriptor))?.map { $0.toUptimeRecord() } ?? []
+                    uptimeRecords = (try? container.mainContext.fetch(descriptor))?.map { $0.asUptimeRecord() } ?? []
                 }
             }
         }

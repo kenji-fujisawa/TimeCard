@@ -94,7 +94,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testGetTimeRecord() async throws {
-        timeRecords.forEach { context.insert($0.toLocal()) }
+        timeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         var result = try source.getTimeRecord(id: timeRecords[0].id)
@@ -108,7 +108,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testGetBreakTime() async throws {
-        timeRecords.forEach { context.insert($0.toLocal()) }
+        timeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         var result = try source.getBreakTime(id: timeRecords[0].breakTimes[1].id)
@@ -122,7 +122,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testGetTimeRecords() async throws {
-        timeRecords.forEach { context.insert($0.toLocal()) }
+        timeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         var results = try source.getTimeRecords(year: 2025, month: 12)
@@ -145,7 +145,7 @@ struct LocalDataSourceTests {
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             sortBy: [.init(\.checkIn)]
         )
-        let results = try context.fetch(descriptor).map { $0.toTimeRecord() }
+        let results = try context.fetch(descriptor).map { $0.asTimeRecord() }
         #expect(results.count == 3)
         #expect(results[0] == timeRecords[0])
         #expect(results[1] == timeRecords[1])
@@ -153,7 +153,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testUpdateTimeRecord() async throws {
-        timeRecords.forEach { context.insert($0.toLocal()) }
+        timeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         var records = try source.getTimeRecords(year: 2025, month: 12)
@@ -169,7 +169,7 @@ struct LocalDataSourceTests {
             predicate: #Predicate { $0.year == 2025 && $0.month == 12 },
             sortBy: [.init(\.checkIn)]
         )
-        var results = try context.fetch(descriptor).map { $0.toTimeRecord() }
+        var results = try context.fetch(descriptor).map { $0.asTimeRecord() }
         #expect(results.count == 2)
         #expect(results[0] != records[0])
         #expect(results[1] != records[1])
@@ -177,7 +177,7 @@ struct LocalDataSourceTests {
         try source.updateTimeRecord(records[0])
         try source.updateTimeRecord(records[1])
         
-        results = try context.fetch(descriptor).map { $0.toTimeRecord() }
+        results = try context.fetch(descriptor).map { $0.asTimeRecord() }
         #expect(results.count == 2)
         #expect(results[0] == records[0])
         #expect(results[1] == records[1])
@@ -196,7 +196,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testDeleteTimeRecord() async throws {
-        timeRecords.forEach { context.insert($0.toLocal()) }
+        timeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         let records = try source.getTimeRecords(year: 2025, month: 12)
@@ -206,18 +206,18 @@ struct LocalDataSourceTests {
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             sortBy: [.init(\.checkIn)]
         )
-        let timeRecords = try context.fetch(descriptor).map { $0.toTimeRecord() }
+        let timeRecords = try context.fetch(descriptor).map { $0.asTimeRecord() }
         #expect(timeRecords.count == 2)
         #expect(timeRecords[0] == self.timeRecords[1])
         #expect(timeRecords[1] == self.timeRecords[2])
         
-        let breakTimes = try context.fetch(FetchDescriptor<LocalTimeRecord.BreakTime>()).map { $0.toBreakTime() }
+        let breakTimes = try context.fetch(FetchDescriptor<LocalTimeRecord.BreakTime>()).map { $0.asBreakTime() }
         #expect(breakTimes.count == 1)
         #expect(breakTimes[0] == self.timeRecords[2].breakTimes[0])
     }
     
     @Test func testGetUptimeRecords() async throws {
-        uptimeRecords.forEach { context.insert($0.toLocal()) }
+        uptimeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         var results = try source.getUptimeRecords(year: 2025, month: 12)
@@ -240,7 +240,7 @@ struct LocalDataSourceTests {
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.launch)]
         )
-        let results = try context.fetch(descriptor).map { $0.toUptimeRecord() }
+        let results = try context.fetch(descriptor).map { $0.asUptimeRecord() }
         #expect(results.count == 3)
         #expect(results[0] == uptimeRecords[0])
         #expect(results[1] == uptimeRecords[1])
@@ -248,7 +248,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testUpdateUptimeRecord() async throws {
-        uptimeRecords.forEach { context.insert($0.toLocal()) }
+        uptimeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         var records = try source.getUptimeRecords(year: 2025, month: 12)
@@ -265,7 +265,7 @@ struct LocalDataSourceTests {
             predicate: #Predicate { $0.year == 2025 && $0.month == 12 },
             sortBy: [.init(\.launch)]
         )
-        var results = try context.fetch(descriptor).map { $0.toUptimeRecord() }
+        var results = try context.fetch(descriptor).map { $0.asUptimeRecord() }
         #expect(results.count == 2)
         #expect(results[0] != records[0])
         #expect(results[1] != records[1])
@@ -273,7 +273,7 @@ struct LocalDataSourceTests {
         try source.updateUptimeRecord(records[0])
         try source.updateUptimeRecord(records[1])
         
-        results = try context.fetch(descriptor).map { $0.toUptimeRecord() }
+        results = try context.fetch(descriptor).map { $0.asUptimeRecord() }
         #expect(results.count == 2)
         #expect(results[0] == records[0])
         #expect(results[1] == records[1])
@@ -292,7 +292,7 @@ struct LocalDataSourceTests {
     }
     
     @Test func testDeleteUptimeRecord() async throws {
-        uptimeRecords.forEach { context.insert($0.toLocal()) }
+        uptimeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
         let records = try source.getUptimeRecords(year: 2025, month: 12)
@@ -302,12 +302,12 @@ struct LocalDataSourceTests {
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.launch)]
         )
-        let uptimeRecords = try context.fetch(descriptor).map { $0.toUptimeRecord() }
+        let uptimeRecords = try context.fetch(descriptor).map { $0.asUptimeRecord() }
         #expect(uptimeRecords.count == 2)
         #expect(uptimeRecords[0] == self.uptimeRecords[1])
         #expect(uptimeRecords[1] == self.uptimeRecords[2])
         
-        let sleepRecords = try context.fetch(FetchDescriptor<LocalUptimeRecord.SleepRecord>()).map { $0.toSleepRecord() }
+        let sleepRecords = try context.fetch(FetchDescriptor<LocalUptimeRecord.SleepRecord>()).map { $0.asSleepRecord() }
         #expect(sleepRecords.count == 1)
         #expect(sleepRecords[0] == self.uptimeRecords[2].sleepRecords[0])
     }

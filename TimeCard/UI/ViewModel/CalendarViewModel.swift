@@ -96,7 +96,7 @@ class CalendarViewModel {
         fetchTask = Task { [weak self] in
             for await records in stream {
                 await MainActor.run { [weak self] in
-                    self?.records = records.map { $0.toViewModel() }
+                    self?.records = records.map { $0.asViewModel() }
                     self?.timeWorkedSum = records.timeWorkedSum
                     self?.systemUptimeSum = records.systemUptimeSum
                 }
@@ -106,10 +106,10 @@ class CalendarViewModel {
 }
 
 extension CalendarRecord {
-    func toViewModel() -> CalendarViewModel.CalendarRecord {
+    func asViewModel() -> CalendarViewModel.CalendarRecord {
         CalendarViewModel.CalendarRecord(
             date: self.date,
-            timeRecords: self.timeRecords.map { $0.toViewModel() },
+            timeRecords: self.timeRecords.map { $0.asViewModel() },
             timeWorked: self.timeWorked,
             systemUptime: self.systemUptime
         )
@@ -117,18 +117,18 @@ extension CalendarRecord {
 }
 
 extension TimeRecord {
-    func toViewModel() -> CalendarViewModel.TimeRecord {
+    func asViewModel() -> CalendarViewModel.TimeRecord {
         CalendarViewModel.TimeRecord(
             checkIn: self.checkIn,
             checkOut: self.checkOut,
-            breakTimes: self.breakTimes.map { $0.toViewModel() },
+            breakTimes: self.breakTimes.map { $0.asViewModel() },
             timeWorked: self.timeWorked
         )
     }
 }
 
 extension TimeRecord.BreakTime {
-    func toViewModel() -> CalendarViewModel.BreakTime {
+    func asViewModel() -> CalendarViewModel.BreakTime {
         CalendarViewModel.BreakTime(
             start: self.start,
             end: self.end

@@ -52,7 +52,7 @@ struct TimeCardServerTests {
             ]
         )
         context.insert(record)
-        records.append(record.toTimeRecord())
+        records.append(record.asTimeRecord())
         
         record = LocalTimeRecord(
             year: 2025,
@@ -71,7 +71,7 @@ struct TimeCardServerTests {
             ]
         )
         context.insert(record)
-        records.append(record.toTimeRecord())
+        records.append(record.asTimeRecord())
     }
     
     private mutating func setupChannel() async throws {
