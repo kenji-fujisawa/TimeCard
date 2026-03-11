@@ -70,65 +70,6 @@ class DefaultLocalDataSource: LocalDataSource {
     }
 }
 
-@Model
-class LocalTimeRecord {
-    @Model
-    class LocalBreakTime {
-        var id: UUID
-        var start: Date?
-        var end: Date?
-        var parent: LocalTimeRecord?
-        
-        init(id: UUID, start: Date? = nil, end: Date? = nil, parent: LocalTimeRecord? = nil) {
-            self.id = id
-            self.start = start
-            self.end = end
-            self.parent = parent
-        }
-        
-        func asBreakTime() -> TimeRecord.BreakTime {
-            TimeRecord.BreakTime(
-                id: self.id,
-                start: self.start,
-                end: self.end
-            )
-        }
-    }
-    
-    #Index<LocalTimeRecord>([\.id], [\.year, \.month])
-    
-    var id: UUID
-    var year: Int
-    var month: Int
-    var checkIn: Date?
-    var checkOut: Date?
-    
-    @Relationship(deleteRule: .cascade, inverse: \LocalBreakTime.parent)
-    var breakTimes: [LocalBreakTime]
-    
-    init(id: UUID, year: Int, month: Int, checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [LocalBreakTime]) {
-        self.id = id
-        self.year = year
-        self.month = month
-        self.checkIn = checkIn
-        self.checkOut = checkOut
-        self.breakTimes = breakTimes
-    }
-    
-    func asTimeRecord() -> TimeRecord {
-        TimeRecord(
-            id: self.id,
-            year: self.year,
-            month: self.month,
-            checkIn: self.checkIn,
-            checkOut: self.checkOut,
-            breakTimes: self.breakTimes
-                .sorted(by: { $0.start ?? .distantPast < $1.start ?? .distantPast })
-                .map { $0.asBreakTime() }
-        )
-    }
-}
-
 extension TimeRecord {
     func asLocal() -> LocalTimeRecord {
         LocalTimeRecord(
@@ -145,6 +86,31 @@ extension TimeRecord {
 extension TimeRecord.BreakTime {
     func asLocal() -> LocalTimeRecord.LocalBreakTime {
         LocalTimeRecord.LocalBreakTime(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
+extension LocalTimeRecord {
+    func asTimeRecord() -> TimeRecord {
+        TimeRecord(
+            id: self.id,
+            year: self.year,
+            month: self.month,
+            checkIn: self.checkIn,
+            checkOut: self.checkOut,
+            breakTimes: self.breakTimes
+                .sorted(by: { $0.start ?? .distantPast < $1.start ?? .distantPast })
+                .map { $0.asBreakTime() }
+        )
+    }
+}
+
+extension LocalTimeRecord.LocalBreakTime {
+    func asBreakTime() -> TimeRecord.BreakTime {
+        TimeRecord.BreakTime(
             id: self.id,
             start: self.start,
             end: self.end
