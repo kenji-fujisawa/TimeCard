@@ -75,7 +75,7 @@ struct LocalDataSourceTests {
     @Test func testGetRecords() async throws {
         records.forEach { context.insert($0.asLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         var results = try source.getRecords(year: 2025, month: 12)
         #expect(results.count == 2)
         #expect(results[0] == records[0])
@@ -90,8 +90,8 @@ struct LocalDataSourceTests {
     }
 
     @Test func testInsertRecord() async throws {
-        let source = DefaultLocalDataSource(context: context)
-        try records.forEach { try source.insertRecord(record: $0) }
+        let source = DefaultLocalDataSource(context)
+        try records.forEach { try source.insertRecord($0) }
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             sortBy: [.init(\.checkIn)]
@@ -121,8 +121,8 @@ struct LocalDataSourceTests {
             )
         ]
         
-        let source = DefaultLocalDataSource(context: context)
-        try source.updateRecord(record: record)
+        let source = DefaultLocalDataSource(context)
+        try source.updateRecord(record)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             sortBy: [.init(\.checkIn)]
@@ -148,8 +148,8 @@ struct LocalDataSourceTests {
     @Test func testDeleteRecord() async throws {
         records.forEach { context.insert($0.asLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
-        try source.deleteRecord(record: records[1])
+        let source = DefaultLocalDataSource(context)
+        try source.deleteRecord(records[1])
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             sortBy: [.init(\.checkIn)]
@@ -159,8 +159,8 @@ struct LocalDataSourceTests {
         #expect(records[0].equals(results[0]))
         #expect(records[2].equals(results[1]))
         
-        try source.deleteRecord(record: records[0])
-        try source.deleteRecord(record: records[2])
+        try source.deleteRecord(records[0])
+        try source.deleteRecord(records[2])
         
         results = try context.fetch(descriptor)
         #expect(results.count == 0)
@@ -172,7 +172,7 @@ struct LocalDataSourceTests {
     @Test func testDeleteRecords() async throws {
         records.forEach { context.insert($0.asLocal()) }
         
-        let source = DefaultLocalDataSource(context: context)
+        let source = DefaultLocalDataSource(context)
         try source.deleteRecords(year: 2025, month: 12)
         
         var results = try context.fetch(FetchDescriptor<LocalTimeRecord>())

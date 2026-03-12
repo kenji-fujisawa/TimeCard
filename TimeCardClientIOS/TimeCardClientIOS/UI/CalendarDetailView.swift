@@ -39,7 +39,7 @@ struct CalendarDetailView: View {
         }
         .padding()
         .onDisappear() {
-            model.updateRecord(record: record)
+            model.updateRecord(record)
         }
     }
     
@@ -139,7 +139,7 @@ struct CalendarDetailView: View {
         ]
     )
     let repository = FakeCalendarRecordRepository()
-    let model = CalendarViewModel(repository: repository)
+    let model = CalendarViewModel(repository)
     NavigationStack {
         CalendarDetailView(record: record, model: model)
             .environmentObject(ToastViewModel())
@@ -151,6 +151,6 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         AsyncThrowingStream { _ in }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
+    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
     }
 }

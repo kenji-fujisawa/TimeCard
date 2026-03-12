@@ -67,7 +67,7 @@ struct CalendarView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let model = CalendarViewModel(repository: repository)
+    let model = CalendarViewModel(repository)
     CalendarView(model: model)
         .environmentObject(ToastViewModel())
 }
@@ -82,6 +82,6 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
+    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
     }
 }

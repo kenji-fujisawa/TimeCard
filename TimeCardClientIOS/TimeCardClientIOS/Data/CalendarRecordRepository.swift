@@ -9,7 +9,7 @@ import Foundation
 
 protocol CalendarRecordRepository {
     func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error>
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws
+    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws
 }
 
 class DefaultCalendarRecordRepository: CalendarRecordRepository {
@@ -17,7 +17,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
     private var localDataSource: LocalDataSource
     private var publishRecord: (([CalendarRecord]) -> Void)?
     
-    init(networkDataSource: NetworkDataSource, localDataSource: LocalDataSource) {
+    init(_ networkDataSource: NetworkDataSource, _ localDataSource: LocalDataSource) {
         self.networkDataSource = networkDataSource
         self.localDataSource = localDataSource
     }
@@ -60,7 +60,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
                     let records = try await networkDataSource.getRecords(year: year, month: month)
                     
                     try localDataSource.deleteRecords(year: year, month: month)
-                    try records.forEach { try localDataSource.insertRecord(record: $0) }
+                    try records.forEach { try localDataSource.insertRecord($0) }
                     
                     continuation.yield(toCalendarRecord(records))
                 } catch {
@@ -70,7 +70,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
+    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
         guard let original = source.first(where: { $0.date == record.date }) else { return }
         
         let inserted = record.records.filter { rec in
@@ -91,18 +91,18 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         var results = notChanged
         
         for rec in inserted {
-            let result = try await networkDataSource.insertRecord(record: rec)
+            let result = try await networkDataSource.insertRecord(rec)
             results.append(result)
-            try localDataSource.insertRecord(record: result)
+            try localDataSource.insertRecord(result)
         }
         for rec in updated {
-            let result = try await networkDataSource.updateRecord(record: rec)
+            let result = try await networkDataSource.updateRecord(rec)
             results.append(result)
-            try localDataSource.updateRecord(record: result)
+            try localDataSource.updateRecord(result)
         }
         for rec in deleted {
-            try await networkDataSource.deleteRecord(record: rec)
-            try localDataSource.deleteRecord(record: rec)
+            try await networkDataSource.deleteRecord(rec)
+            try localDataSource.deleteRecord(rec)
         }
         
         results.sort(by: { $0.checkIn ?? .distantPast < $1.checkIn ?? .distantPast })

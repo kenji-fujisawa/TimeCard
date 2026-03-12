@@ -116,7 +116,7 @@ class NetworkDataSourceTests {
         
         let source = DefaultNetworkDataSource()
         let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
-        let response = try await source.insertRecord(record: record)
+        let response = try await source.insertRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records")
         #expect(request?.httpMethod == "POST")
@@ -153,7 +153,7 @@ class NetworkDataSourceTests {
         let source = DefaultNetworkDataSource()
         let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
-            try await source.insertRecord(record: request)
+            try await source.insertRecord(request)
         }
     }
     
@@ -169,7 +169,7 @@ class NetworkDataSourceTests {
         
         let source = DefaultNetworkDataSource()
         let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
-        let response = try await source.updateRecord(record: record)
+        let response = try await source.updateRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records/\(record.id.uuidString)")
         #expect(request?.httpMethod == "PATCH")
@@ -206,7 +206,7 @@ class NetworkDataSourceTests {
         let source = DefaultNetworkDataSource()
         let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
-            try await source.updateRecord(record: request)
+            try await source.updateRecord(request)
         }
     }
     
@@ -220,7 +220,7 @@ class NetworkDataSourceTests {
         
         let source = DefaultNetworkDataSource()
         let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
-        try await source.deleteRecord(record: record)
+        try await source.deleteRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records/\(record.id.uuidString)")
         #expect(request?.httpMethod == "DELETE")
@@ -234,7 +234,7 @@ class NetworkDataSourceTests {
         let source = DefaultNetworkDataSource()
         let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
-            try await source.deleteRecord(record: request)
+            try await source.deleteRecord(request)
         }
     }
 }

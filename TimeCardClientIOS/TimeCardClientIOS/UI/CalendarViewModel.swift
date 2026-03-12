@@ -15,7 +15,7 @@ class CalendarViewModel: ObservableObject {
     private let repository: CalendarRecordRepository
     private var fetchTask: Task<Void, Never>?
     
-    init(repository: CalendarRecordRepository) {
+    init(_ repository: CalendarRecordRepository) {
         self.repository = repository
         fetchRecords()
     }
@@ -47,10 +47,10 @@ class CalendarViewModel: ObservableObject {
         }
     }
     
-    func updateRecord(record: CalendarRecord) {
+    func updateRecord(_ record: CalendarRecord) {
         Task {
             do {
-                try await repository.updateRecord(source: records, record: record)
+                try await repository.updateRecord(records, record)
             } catch {
                 await MainActor.run {
                     self.message = "更新に失敗しました"

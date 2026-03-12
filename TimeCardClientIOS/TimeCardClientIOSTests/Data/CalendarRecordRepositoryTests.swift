@@ -15,7 +15,7 @@ struct CalendarRecordRepositoryTests {
     @Test func testGetRecords() async throws {
         let network = FakeNetworkDataSource()
         let local = FakeLocalDataSource()
-        let repository = DefaultCalendarRecordRepository(networkDataSource: network, localDataSource: local)
+        let repository = DefaultCalendarRecordRepository(network, local)
         var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
         var records = try await iterator.next()
         #expect(records?.count == 31)
@@ -163,7 +163,7 @@ struct CalendarRecordRepositoryTests {
         
         let network = FakeNetworkDataSource()
         let local = FakeLocalDataSource()
-        let repository = DefaultCalendarRecordRepository(networkDataSource: network, localDataSource: local)
+        let repository = DefaultCalendarRecordRepository(network, local)
         
         // setup async stream
         var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
@@ -181,7 +181,7 @@ struct CalendarRecordRepositoryTests {
         local.inserted.removeAll()
         
         // run tests
-        try await repository.updateRecord(source: records, record: record)
+        try await repository.updateRecord(records, record)
         result = try await iterator.next()
         #expect(result?.count == 31)
         
@@ -300,7 +300,7 @@ struct CalendarRecordRepositoryTests {
                 )
             ]
         )
-        func insertRecord(record: TimeRecord) async throws -> TimeRecord {
+        func insertRecord(_ record: TimeRecord) async throws -> TimeRecord {
             inserted.append(record)
             return TimeRecord(
                 id: insertedId.id,
@@ -324,13 +324,13 @@ struct CalendarRecordRepositoryTests {
         }
         
         var updated: [TimeRecord] = []
-        func updateRecord(record: TimeRecord) async throws -> TimeRecord {
+        func updateRecord(_ record: TimeRecord) async throws -> TimeRecord {
             updated.append(record)
             return record
         }
         
         var deleted: [TimeRecord] = []
-        func deleteRecord(record: TimeRecord) async throws {
+        func deleteRecord(_ record: TimeRecord) async throws {
             deleted.append(record)
         }
     }
@@ -396,17 +396,17 @@ struct CalendarRecordRepositoryTests {
         }
         
         var inserted: [TimeRecord] = []
-        func insertRecord(record: TimeRecord) throws {
+        func insertRecord(_ record: TimeRecord) throws {
             inserted.append(record)
         }
         
         var updated: [TimeRecord] = []
-        func updateRecord(record: TimeRecord) throws {
+        func updateRecord(_ record: TimeRecord) throws {
             updated.append(record)
         }
         
         var deleted: [TimeRecord] = []
-        func deleteRecord(record: TimeRecord) throws {
+        func deleteRecord(_ record: TimeRecord) throws {
             deleted.append(record)
         }
         

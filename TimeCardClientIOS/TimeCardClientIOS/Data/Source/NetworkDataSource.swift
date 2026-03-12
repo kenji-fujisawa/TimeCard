@@ -9,9 +9,9 @@ import Foundation
 
 protocol NetworkDataSource {
     func getRecords(year: Int, month: Int) async throws -> [TimeRecord]
-    func insertRecord(record: TimeRecord) async throws -> TimeRecord
-    func updateRecord(record: TimeRecord) async throws -> TimeRecord
-    func deleteRecord(record: TimeRecord) async throws
+    func insertRecord(_ record: TimeRecord) async throws -> TimeRecord
+    func updateRecord(_ record: TimeRecord) async throws -> TimeRecord
+    func deleteRecord(_ record: TimeRecord) async throws
 }
 
 class DefaultNetworkDataSource: NetworkDataSource {
@@ -44,7 +44,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
         return records
     }
     
-    func insertRecord(record: TimeRecord) async throws -> TimeRecord {
+    func insertRecord(_ record: TimeRecord) async throws -> TimeRecord {
         let url = URL(string: "http://192.168.4.33:8080/timecard/records")
         guard let url = url else { throw NetworkError(status: nil) }
         
@@ -72,7 +72,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
         return record
     }
     
-    func updateRecord(record: TimeRecord) async throws -> TimeRecord {
+    func updateRecord(_ record: TimeRecord) async throws -> TimeRecord {
         var url = URL(string: "http://192.168.4.33:8080/timecard/records")
         url = url?.appending(path: record.id.uuidString)
         guard let url = url else { throw NetworkError(status: nil) }
@@ -101,7 +101,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
         return record
     }
     
-    func deleteRecord(record: TimeRecord) async throws {
+    func deleteRecord(_ record: TimeRecord) async throws {
         var url = URL(string: "http://192.168.4.33:8080/timecard/records")
         url = url?.appendingPathComponent(record.id.uuidString)
         guard let url = url else { throw NetworkError(status: nil) }

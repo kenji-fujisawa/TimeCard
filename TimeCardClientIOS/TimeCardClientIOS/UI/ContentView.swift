@@ -26,7 +26,7 @@ struct ContentView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository: repository)
+    let calendar = CalendarViewModel(repository)
     ContentView(calendar: calendar)
 }
 
@@ -40,6 +40,6 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
+    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
     }
 }

@@ -10,16 +10,16 @@ import SwiftData
 
 protocol LocalDataSource {
     func getRecords(year: Int, month: Int) throws -> [TimeRecord]
-    func insertRecord(record: TimeRecord) throws
-    func updateRecord(record: TimeRecord) throws
-    func deleteRecord(record: TimeRecord) throws
+    func insertRecord(_ record: TimeRecord) throws
+    func updateRecord(_ record: TimeRecord) throws
+    func deleteRecord(_ record: TimeRecord) throws
     func deleteRecords(year: Int, month: Int) throws
 }
 
 class DefaultLocalDataSource: LocalDataSource {
     private let context: ModelContext
     
-    init(context: ModelContext) {
+    init(_ context: ModelContext) {
         self.context = context
     }
     
@@ -39,12 +39,12 @@ class DefaultLocalDataSource: LocalDataSource {
         return try context.fetch(descriptor).first
     }
     
-    func insertRecord(record: TimeRecord) throws {
+    func insertRecord(_ record: TimeRecord) throws {
         context.insert(record.asLocal())
         try context.save()
     }
     
-    func updateRecord(record: TimeRecord) throws {
+    func updateRecord(_ record: TimeRecord) throws {
         guard let local = try getRecord(id: record.id) else { return }
         local.year = record.year
         local.month = record.month
@@ -54,7 +54,7 @@ class DefaultLocalDataSource: LocalDataSource {
         try context.save()
     }
     
-    func deleteRecord(record: TimeRecord) throws {
+    func deleteRecord(_ record: TimeRecord) throws {
         guard let local = try getRecord(id: record.id) else { return }
         context.delete(local)
         try context.save()

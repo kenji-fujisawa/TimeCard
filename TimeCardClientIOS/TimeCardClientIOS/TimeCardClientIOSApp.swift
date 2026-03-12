@@ -22,9 +22,9 @@ struct TimeCardClientIOSApp: App {
         }
         
         let network = DefaultNetworkDataSource()
-        let local = DefaultLocalDataSource(context: container.mainContext)
-        let repository = DefaultCalendarRecordRepository(networkDataSource: network, localDataSource: local)
-        self.calendar = CalendarViewModel(repository: repository)
+        let local = DefaultLocalDataSource(container.mainContext)
+        let repository = DefaultCalendarRecordRepository(network, local)
+        self.calendar = CalendarViewModel(repository)
     }
     
     var body: some Scene {
@@ -72,10 +72,10 @@ struct UITestApp: App {
         )
         
         let repositoryForDetailView = FakeCalendarRecordRepositoryForDetailView()
-        let calendarForDetailView = StateObject(wrappedValue: CalendarViewModel(repository: repositoryForDetailView))
+        let calendarForDetailView = StateObject(wrappedValue: CalendarViewModel(repositoryForDetailView))
         
         let repositoryForContentView = FakeCalendarRecordRepositoryForContentView()
-        let calendarForContentView = StateObject(wrappedValue: CalendarViewModel(repository: repositoryForContentView))
+        let calendarForContentView = StateObject(wrappedValue: CalendarViewModel(repositoryForContentView))
         
         self.repositoryForDetailView = repositoryForDetailView
         self._calendarForDetailView = calendarForDetailView
@@ -136,7 +136,7 @@ private class FakeCalendarRecordRepositoryForDetailView: CalendarRecordRepositor
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
+    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
         publish?([record])
     }
 }
@@ -173,7 +173,7 @@ private class FakeCalendarRecordRepositoryForContentView: CalendarRecordReposito
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
+    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
     }
 }
 #endif
