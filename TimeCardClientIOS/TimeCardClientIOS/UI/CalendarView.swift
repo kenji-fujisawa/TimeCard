@@ -16,8 +16,8 @@ struct CalendarView: View {
             if viewModel.loading {
                 ProgressView()
             } else {
-                MonthSelectorView(date: $viewModel.now)
-                    .onChange(of: viewModel.now) { _, _ in
+                MonthSelectorView(date: $viewModel.date)
+                    .onChange(of: viewModel.date) { _, _ in
                         withAnimation {
                             viewModel.fetchRecords()
                         }

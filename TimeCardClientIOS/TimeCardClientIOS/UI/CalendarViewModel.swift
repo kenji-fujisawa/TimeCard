@@ -12,7 +12,7 @@ class CalendarViewModel {
     @ObservationIgnored private let repository: CalendarRecordRepository
     @ObservationIgnored private var fetchTask: Task<Void, Never>?
     
-    var now: Date = .now
+    var date: Date = .now
     var records: [CalendarRecord] = []
     var loading: Bool = false
     var message: String = ""
@@ -29,7 +29,7 @@ class CalendarViewModel {
     func fetchRecords() {
         self.loading = true
         
-        let stream = repository.getRecordsStream(year: now.year, month: now.month)
+        let stream = repository.getRecordsStream(year: date.year, month: date.month)
         
         fetchTask?.cancel()
         fetchTask = Task { [weak self] in
