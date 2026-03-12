@@ -9,13 +9,13 @@ import Foundation
 
 protocol CalendarRecordRepository {
     func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error>
-    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws
+    func updateRecord(_ record: CalendarRecord) async throws
 }
 
 class DefaultCalendarRecordRepository: CalendarRecordRepository {
     private var networkDataSource: NetworkDataSource
     private var localDataSource: LocalDataSource
-    private var publishRecord: (([CalendarRecord]) -> Void)?
+    private var publish: (([CalendarRecord]) -> Void)?
     
     init(_ networkDataSource: NetworkDataSource, _ localDataSource: LocalDataSource) {
         self.networkDataSource = networkDataSource
@@ -23,34 +23,13 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
     }
     
     func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
-        let toCalendarRecord = { (records: [TimeRecord]) in
-            var timeRecords: [Int: [TimeRecord]] = [:]
-            records.forEach { rec in
-                if let day = rec.checkIn?.day {
-                    if timeRecords[day] == nil {
-                        timeRecords[day] = []
-                    }
-                    timeRecords[day]?.append(rec)
-                }
-            }
-            
-            var results: [CalendarRecord] = []
-            let dates = Calendar.current.datesOf(year: year, month: month)
-            dates.forEach { date in
-                results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? []))
-            }
-            
-            return results
-        }
-        
         return AsyncThrowingStream { continuation in
-            publishRecord = { records in
+            publish = { records in
                 continuation.yield(records)
             }
             
             do {
-                let records = try localDataSource.getRecords(year: year, month: month)
-                continuation.yield(toCalendarRecord(records))
+                try publishRecords(year: year, month: month)
             } catch {
                 continuation.finish(throwing: error)
             }
@@ -62,7 +41,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
                     try localDataSource.deleteRecords(year: year, month: month)
                     try records.forEach { try localDataSource.insertRecord($0) }
                     
-                    continuation.yield(toCalendarRecord(records))
+                    try publishRecords(year: year, month: month)
                 } catch {
                     continuation.finish(throwing: error)
                 }
@@ -70,34 +49,51 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
-    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
-        guard let original = source.first(where: { $0.date == record.date }) else { return }
+    private func publishRecords(year: Int, month: Int) throws {
+        let records = try localDataSource.getRecords(year: year, month: month)
+        
+        var timeRecords: [Int: [TimeRecord]] = [:]
+        records.forEach { rec in
+            if let day = rec.checkIn?.day {
+                if timeRecords[day] == nil {
+                    timeRecords[day] = []
+                }
+                timeRecords[day]?.append(rec)
+            }
+        }
+        
+        var results: [CalendarRecord] = []
+        let dates = Calendar.current.datesOf(year: year, month: month)
+        dates.forEach { date in
+            results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? []))
+        }
+        
+        publish?(results)
+    }
+    
+    func updateRecord(_ record: CalendarRecord) async throws {
+        let year = record.date.year
+        let month = record.date.month
+        let day = record.date.day
+        let original = try localDataSource.getRecords(year: year, month: month).filter { $0.checkIn?.day == day }
         
         let inserted = record.records.filter { rec in
-            !original.records.contains(where: { $0.id == rec.id })
+            !original.contains(where: { $0.id == rec.id })
         }
         let updated = record.records.filter { rec in
-            let before = original.records.first(where: { $0.id == rec.id })
+            let before = original.first(where: { $0.id == rec.id })
             return before != nil && before != rec
         }
-        let deleted = original.records.filter { rec in
+        let deleted = original.filter { rec in
             !record.records.contains(where: { $0.id == rec.id })
         }
-        let notChanged = record.records.filter { rec in
-            let before = original.records.first(where: { $0.id == rec.id })
-            return before != nil && before == rec
-        }
-        
-        var results = notChanged
         
         for rec in inserted {
             let result = try await networkDataSource.insertRecord(rec)
-            results.append(result)
             try localDataSource.insertRecord(result)
         }
         for rec in updated {
             let result = try await networkDataSource.updateRecord(rec)
-            results.append(result)
             try localDataSource.updateRecord(result)
         }
         for rec in deleted {
@@ -105,13 +101,6 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
             try localDataSource.deleteRecord(rec)
         }
         
-        results.sort(by: { $0.checkIn ?? .distantPast < $1.checkIn ?? .distantPast })
-        
-        publishRecord?(source.map { rec in
-            rec.date != record.date ? rec : CalendarRecord(
-                date: rec.date,
-                records: results
-            )
-        })
+        try publishRecords(year: year, month: month)
     }
 }

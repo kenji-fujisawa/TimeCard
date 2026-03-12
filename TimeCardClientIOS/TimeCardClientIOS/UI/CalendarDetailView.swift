@@ -150,7 +150,5 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
     func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
         AsyncThrowingStream { _ in }
     }
-    
-    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
-    }
+    func updateRecord(_ record: CalendarRecord) async throws {}
 }

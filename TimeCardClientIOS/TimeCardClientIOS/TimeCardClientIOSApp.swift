@@ -137,7 +137,7 @@ private class FakeCalendarRecordRepositoryForDetailView: CalendarRecordRepositor
         }
     }
     
-    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
+    func updateRecord(_ record: CalendarRecord) async throws {
         publish?([record])
     }
 }
@@ -174,7 +174,6 @@ private class FakeCalendarRecordRepositoryForContentView: CalendarRecordReposito
         }
     }
     
-    func updateRecord(_ source: [CalendarRecord], _ record: CalendarRecord) async throws {
-    }
+    func updateRecord(_ record: CalendarRecord) async throws {}
 }
 #endif
