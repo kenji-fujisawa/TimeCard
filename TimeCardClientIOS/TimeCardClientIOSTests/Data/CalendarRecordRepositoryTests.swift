@@ -96,16 +96,12 @@ struct CalendarRecordRepositoryTests {
                 local.records[1],
                 TimeRecord(
                     id: local.records[2].id,
-                    year: local.records[2].year,
-                    month: local.records[2].month,
                     checkIn: formatter.date(from: "2025-12-01 12:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 13:00:00"),
                     breakTimes: local.records[2].breakTimes
                 ),
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-01 17:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 18:00:00"),
                     breakTimes: [
@@ -158,8 +154,6 @@ struct CalendarRecordRepositoryTests {
                 #expect(result?[i].records[1] == record.records[1])
                 
                 #expect(result?[i].records[2].id == network.insertedId.id)
-                #expect(result?[i].records[2].year == record.records[2].year)
-                #expect(result?[i].records[2].month == record.records[2].month)
                 #expect(result?[i].records[2].checkIn == record.records[2].checkIn)
                 #expect(result?[i].records[2].checkOut == record.records[2].checkOut)
                 
@@ -199,8 +193,6 @@ struct CalendarRecordRepositoryTests {
             records = [
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-04 09:00:00"),
                     checkOut: formatter.date(from: "2025-12-04 19:00:00"),
                     breakTimes: [
@@ -218,8 +210,6 @@ struct CalendarRecordRepositoryTests {
                 ),
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-04 22:00:00"),
                     checkOut: formatter.date(from: "2025-12-05 01:00:00"),
                     breakTimes: [
@@ -232,8 +222,6 @@ struct CalendarRecordRepositoryTests {
                 ),
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-05 08:30:00"),
                     checkOut: formatter.date(from: "2025-12-05 17:30:00"),
                     breakTimes: []
@@ -252,8 +240,6 @@ struct CalendarRecordRepositoryTests {
         var inserted: [TimeRecord] = []
         let insertedId = TimeRecord(
             id: UUID(),
-            year: 0,
-            month: 0,
             breakTimes: [
                 TimeRecord.BreakTime(
                     id: UUID()
@@ -267,8 +253,6 @@ struct CalendarRecordRepositoryTests {
             inserted.append(record)
             return TimeRecord(
                 id: insertedId.id,
-                year: record.year,
-                month: record.month,
                 checkIn: record.checkIn,
                 checkOut: record.checkOut,
                 breakTimes: [
@@ -308,8 +292,6 @@ struct CalendarRecordRepositoryTests {
             records = [
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-01 09:00:00"),
                     checkOut: formatter.date(from: "2025-12-01 19:00:00"),
                     breakTimes: [
@@ -327,8 +309,6 @@ struct CalendarRecordRepositoryTests {
                 ),
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-01 22:00:00"),
                     checkOut: formatter.date(from: "2025-12-02 01:00:00"),
                     breakTimes: [
@@ -341,8 +321,6 @@ struct CalendarRecordRepositoryTests {
                 ),
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-02 08:30:00"),
                     checkOut: formatter.date(from: "2025-12-02 17:30:00"),
                     breakTimes: []
@@ -359,8 +337,6 @@ struct CalendarRecordRepositoryTests {
                 records.append(
                     TimeRecord(
                         id: UUID(),
-                        year: date.year,
-                        month: date.month,
                         checkIn: date,
                         checkOut: date,
                         breakTimes: [
@@ -408,7 +384,7 @@ struct CalendarRecordRepositoryTests {
         func deleteRecords(year: Int, month: Int) throws {
             deleteRecordsYear = year
             deleteRecordsMonth = month
-            records.removeAll { $0.year == year && $0.month == month }
+            records.removeAll { $0.checkIn?.year == year && $0.checkIn?.month == month }
         }
     }
 }

@@ -30,8 +30,6 @@ struct LocalDataSourceTests {
         self.records = [
             TimeRecord(
                 id: UUID(),
-                year: 2025,
-                month: 12,
                 checkIn: formatter.date(from: "2025-12-29 08:00:00"),
                 checkOut: formatter.date(from: "2025-12-29 18:00:00"),
                 breakTimes: [
@@ -49,16 +47,12 @@ struct LocalDataSourceTests {
             ),
             TimeRecord(
                 id: UUID(),
-                year: 2025,
-                month: 12,
                 checkIn: formatter.date(from: "2025-12-30 09:00:00"),
                 checkOut: nil,
                 breakTimes: []
             ),
             TimeRecord(
                 id: UUID(),
-                year: 2026,
-                month: 1,
                 checkIn: formatter.date(from: "2026-01-07 08:30:00"),
                 checkOut: nil,
                 breakTimes: [
@@ -133,8 +127,6 @@ struct LocalDataSourceTests {
         #expect(results[2] == records[2])
         
         #expect(results[1].id == records[1].id)
-        #expect(results[1].year == records[1].year)
-        #expect(results[1].month == records[1].month)
         #expect(results[1].checkIn == records[1].checkIn)
         #expect(results[1].checkOut != records[1].checkOut)
         #expect(results[1].breakTimes.count != records[1].breakTimes.count)

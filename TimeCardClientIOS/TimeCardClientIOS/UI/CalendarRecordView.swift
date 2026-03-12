@@ -79,8 +79,6 @@ struct CalendarRecordView: View {
         records: [
             TimeRecord(
                 id: UUID(),
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
                 breakTimes: [
@@ -97,8 +95,6 @@ struct CalendarRecordView: View {
             ),
             TimeRecord(
                 id: UUID(),
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 breakTimes: [
                     TimeRecord.BreakTime(

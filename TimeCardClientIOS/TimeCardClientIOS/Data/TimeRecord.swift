@@ -15,8 +15,6 @@ struct TimeRecord: Codable, Identifiable, Equatable {
     }
     
     var id: UUID
-    var year: Int
-    var month: Int
     var checkIn: Date?
     var checkOut: Date?
     var breakTimes: [BreakTime]

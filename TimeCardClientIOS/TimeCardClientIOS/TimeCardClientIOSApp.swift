@@ -57,8 +57,6 @@ struct UITestApp: App {
             records: [
                 TimeRecord(
                     id: UUID(),
-                    year: 2025,
-                    month: 12,
                     checkIn: formatter.date(from: "2025-12-29 09:12:38"),
                     checkOut: formatter.date(from: "2025-12-30 02:28:11"),
                     breakTimes: [

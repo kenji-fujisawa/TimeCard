@@ -46,8 +46,10 @@ class DefaultLocalDataSource: LocalDataSource {
     
     func updateRecord(_ record: TimeRecord) throws {
         guard let local = try getRecord(id: record.id) else { return }
-        local.year = record.year
-        local.month = record.month
+        if let checkIn = record.checkIn {
+            local.year = checkIn.year
+            local.month = checkIn.month
+        }
         local.checkIn = record.checkIn
         local.checkOut = record.checkOut
         local.breakTimes = record.breakTimes.map { $0.asLocal() }
@@ -74,8 +76,8 @@ extension TimeRecord {
     func asLocal() -> LocalTimeRecord {
         LocalTimeRecord(
             id: self.id,
-            year: self.year,
-            month: self.month,
+            year: self.checkIn?.year ?? Date.now.year,
+            month: self.checkIn?.month ?? Date.now.month,
             checkIn: self.checkIn,
             checkOut: self.checkOut,
             breakTimes: self.breakTimes.map { $0.asLocal() }
@@ -97,8 +99,6 @@ extension LocalTimeRecord {
     func asTimeRecord() -> TimeRecord {
         TimeRecord(
             id: self.id,
-            year: self.year,
-            month: self.month,
             checkIn: self.checkIn,
             checkOut: self.checkOut,
             breakTimes: self.breakTimes

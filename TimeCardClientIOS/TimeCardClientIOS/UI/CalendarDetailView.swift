@@ -44,7 +44,7 @@ struct CalendarDetailView: View {
     }
     
     private func addItem() {
-        let rec = TimeRecord(id: UUID(), year: record.date.year, month: record.date.month, checkIn: record.date, checkOut: record.date, breakTimes: [])
+        let rec = TimeRecord(id: UUID(), checkIn: record.date, checkOut: record.date, breakTimes: [])
         record.records.append(rec)
     }
     
@@ -105,8 +105,6 @@ struct CalendarDetailView: View {
         records: [
             TimeRecord(
                 id: UUID(),
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [
@@ -124,8 +122,6 @@ struct CalendarDetailView: View {
             ),
             TimeRecord(
                 id: UUID(),
-                year: Date.now.year,
-                month: Date.now.month,
                 checkIn: .now,
                 checkOut: .now,
                 breakTimes: [
