@@ -20,7 +20,7 @@ struct CalendarRecordRepositoryTests {
         let localRecords = local.records
         
         let repository = DefaultCalendarRecordRepository(network, local)
-        var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
+        var iterator = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
         var records = try await iterator.next()
         #expect(records?.count == 31)
         
@@ -127,7 +127,7 @@ struct CalendarRecordRepositoryTests {
         let repository = DefaultCalendarRecordRepository(network, local)
         
         // setup async stream
-        var iterator = repository.getRecords(year: 2025, month: 12).makeAsyncIterator()
+        var iterator = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
         var result = try await iterator.next()
         #expect(result?.count == 31)
         #expect(result?[0].records.count == 3)

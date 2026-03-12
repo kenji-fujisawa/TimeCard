@@ -27,7 +27,7 @@ class CalendarViewModel: ObservableObject {
     func fetchRecords() {
         self.loading = true
         
-        let stream = repository.getRecords(year: now.year, month: now.month)
+        let stream = repository.getRecordsStream(year: now.year, month: now.month)
         
         fetchTask?.cancel()
         fetchTask = Task { [weak self] in

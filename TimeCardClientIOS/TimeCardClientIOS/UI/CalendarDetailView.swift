@@ -147,7 +147,7 @@ struct CalendarDetailView: View {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
         AsyncThrowingStream { _ in }
     }
     func updateRecord(_ record: CalendarRecord) async throws {}

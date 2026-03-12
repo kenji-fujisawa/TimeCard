@@ -129,7 +129,7 @@ struct UITestApp: App {
 
 private class FakeCalendarRecordRepositoryForDetailView: CalendarRecordRepository {
     private var publish: (([CalendarRecord]) -> Void)?
-    func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
         AsyncThrowingStream { continuation in
             publish = { records in
                 continuation.yield(records)
@@ -143,7 +143,7 @@ private class FakeCalendarRecordRepositoryForDetailView: CalendarRecordRepositor
 }
 
 private class FakeCalendarRecordRepositoryForContentView: CalendarRecordRepository {
-    func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
         let date = Calendar.current.date(from: DateComponents(year: year, month: month)) ?? .now
         if year == Date.now.year && month == Date.now.month {
             return AsyncThrowingStream { continuation in
