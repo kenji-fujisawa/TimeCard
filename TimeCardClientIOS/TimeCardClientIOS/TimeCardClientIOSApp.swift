@@ -41,10 +41,10 @@ struct UITestApp: App {
     @State private var now: Date
     @State private var record: CalendarRecord
     private let repositoryForDetailView: FakeCalendarRecordRepositoryForDetailView
-    @StateObject private var calendarForDetailView: CalendarViewModel
-    @StateObject private var toast = ToastViewModel()
+    @State private var calendarForDetailView: CalendarViewModel
+    @State private var toast = ToastViewModel()
     private let repositoryForContentView: FakeCalendarRecordRepositoryForContentView
-    @StateObject private var calendarForContentView: CalendarViewModel
+    @State private var calendarForContentView: CalendarViewModel
     
     init() {
         formatter = DateFormatter()
@@ -70,17 +70,11 @@ struct UITestApp: App {
             ]
         )
         
-        let repositoryForDetailView = FakeCalendarRecordRepositoryForDetailView()
-        let calendarForDetailView = StateObject(wrappedValue: CalendarViewModel(repositoryForDetailView))
+        self.repositoryForDetailView = FakeCalendarRecordRepositoryForDetailView()
+        self.calendarForDetailView = CalendarViewModel(repositoryForDetailView)
         
-        let repositoryForContentView = FakeCalendarRecordRepositoryForContentView()
-        let calendarForContentView = StateObject(wrappedValue: CalendarViewModel(repositoryForContentView))
-        
-        self.repositoryForDetailView = repositoryForDetailView
-        self._calendarForDetailView = calendarForDetailView
-        
-        self.repositoryForContentView = repositoryForContentView
-        self._calendarForContentView = calendarForContentView
+        self.repositoryForContentView = FakeCalendarRecordRepositoryForContentView()
+        self.calendarForContentView = CalendarViewModel(repositoryForContentView)
     }
     
     var body: some Scene {
@@ -107,6 +101,7 @@ struct UITestApp: App {
                     }
                     NavigationLink {
                         CalendarDetailView(record: record, model: calendarForDetailView)
+                            .environment(toast)
                     } label: {
                         Text("link")
                     }

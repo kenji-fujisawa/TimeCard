@@ -7,13 +7,15 @@
 
 import Foundation
 
-class CalendarViewModel: ObservableObject {
-    @Published var now: Date = .now
-    @Published var records: [CalendarRecord] = []
-    @Published var loading: Bool = false
-    @Published var message: String = ""
-    private let repository: CalendarRecordRepository
-    private var fetchTask: Task<Void, Never>?
+@Observable
+class CalendarViewModel {
+    @ObservationIgnored private let repository: CalendarRecordRepository
+    @ObservationIgnored private var fetchTask: Task<Void, Never>?
+    
+    var now: Date = .now
+    var records: [CalendarRecord] = []
+    var loading: Bool = false
+    var message: String = ""
     
     init(_ repository: CalendarRecordRepository) {
         self.repository = repository

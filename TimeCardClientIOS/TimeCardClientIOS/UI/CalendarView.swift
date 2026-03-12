@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct CalendarView: View {
-    @EnvironmentObject private var toast: ToastViewModel
-    @ObservedObject var model: CalendarViewModel
+    @Environment(ToastViewModel.self) private var toast: ToastViewModel
+    @Bindable var model: CalendarViewModel
     
     var body: some View {
         NavigationStack {
@@ -69,7 +69,7 @@ struct CalendarView: View {
     let repository = FakeCalendarRecordRepository()
     let model = CalendarViewModel(repository)
     CalendarView(model: model)
-        .environmentObject(ToastViewModel())
+        .environment(ToastViewModel())
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {

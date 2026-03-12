@@ -7,13 +7,14 @@
 
 import SwiftUI
 
-class ToastViewModel: ObservableObject {
-    @Published var isPresented: Bool = false
-    @Published var message: String = ""
+@Observable
+class ToastViewModel {
+    var isPresented: Bool = false
+    var message: String = ""
 }
 
 struct ToastView: View {
-    @ObservedObject var model: ToastViewModel
+    @State var model: ToastViewModel
     
     var body: some View {
         VStack {
