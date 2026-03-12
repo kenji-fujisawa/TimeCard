@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
-    var calendar: CalendarViewModel
+    var viewModel: CalendarViewModel
     @State private var toast = ToastViewModel()
     
     var body: some View {
         VStack {
-            CalendarView(model: calendar)
+            CalendarView(viewModel: viewModel)
         }
         .padding()
         .overlay {
-            ToastView(model: toast)
+            ToastView(viewModel: toast)
         }
         .environment(toast)
     }
@@ -25,8 +25,8 @@ struct ContentView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let calendar = CalendarViewModel(repository)
-    ContentView(calendar: calendar)
+    let viewModel = CalendarViewModel(repository)
+    ContentView(viewModel: viewModel)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {

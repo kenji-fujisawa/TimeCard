@@ -9,17 +9,17 @@ import SwiftUI
 
 struct CalendarView: View {
     @Environment(ToastViewModel.self) private var toast: ToastViewModel
-    @Bindable var model: CalendarViewModel
+    @Bindable var viewModel: CalendarViewModel
     
     var body: some View {
         NavigationStack {
-            if model.loading {
+            if viewModel.loading {
                 ProgressView()
             } else {
-                MonthSelectorView(now: $model.now)
-                    .onChange(of: model.now) { _, _ in
+                MonthSelectorView(date: $viewModel.now)
+                    .onChange(of: viewModel.now) { _, _ in
                         withAnimation {
-                            model.fetchRecords()
+                            viewModel.fetchRecords()
                         }
                     }
                 
@@ -36,9 +36,9 @@ struct CalendarView: View {
                         
                         Divider()
                         
-                        ForEach(model.records) { record in
+                        ForEach(viewModel.records) { record in
                             NavigationLink {
-                                CalendarDetailView(record: record, model: model)
+                                CalendarDetailView(record: record, viewModel: viewModel)
                             } label: {
                                 CalendarRecordView(record: record)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -53,12 +53,12 @@ struct CalendarView: View {
                 .padding()
             }
         }
-        .onChange(of: model.message) { _, _ in
-            if !model.message.isEmpty {
+        .onChange(of: viewModel.message) { _, _ in
+            if !viewModel.message.isEmpty {
                 withAnimation {
                     toast.isPresented = true
-                    toast.message = model.message
-                    model.message = ""
+                    toast.message = viewModel.message
+                    viewModel.message = ""
                 }
             }
         }
@@ -67,8 +67,8 @@ struct CalendarView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let model = CalendarViewModel(repository)
-    CalendarView(model: model)
+    let viewModel = CalendarViewModel(repository)
+    CalendarView(viewModel: viewModel)
         .environment(ToastViewModel())
 }
 

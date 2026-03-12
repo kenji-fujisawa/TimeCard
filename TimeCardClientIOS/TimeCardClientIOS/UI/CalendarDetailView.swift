@@ -10,7 +10,7 @@ import SwiftUI
 struct CalendarDetailView: View {
     @Environment(ToastViewModel.self) private var toast: ToastViewModel
     @State var record: CalendarRecord
-    var model: CalendarViewModel
+    var viewModel: CalendarViewModel
     
     var body: some View {
         VStack {
@@ -39,7 +39,7 @@ struct CalendarDetailView: View {
         }
         .padding()
         .onDisappear() {
-            model.updateRecord(record)
+            viewModel.updateRecord(record)
         }
     }
     
@@ -135,9 +135,9 @@ struct CalendarDetailView: View {
         ]
     )
     let repository = FakeCalendarRecordRepository()
-    let model = CalendarViewModel(repository)
+    let viewModel = CalendarViewModel(repository)
     NavigationStack {
-        CalendarDetailView(record: record, model: model)
+        CalendarDetailView(record: record, viewModel: viewModel)
             .environment(ToastViewModel())
     }
 }

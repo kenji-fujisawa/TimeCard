@@ -10,7 +10,7 @@ import SwiftUI
 
 struct TimeCardClientIOSApp: App {
     private let container: ModelContainer
-    private let calendar: CalendarViewModel
+    private let viewModel: CalendarViewModel
     
     init() {
         let schema = Schema([LocalTimeRecord.self])
@@ -25,12 +25,12 @@ struct TimeCardClientIOSApp: App {
         let network = DefaultNetworkDataSource(url)
         let local = DefaultLocalDataSource(container.mainContext)
         let repository = DefaultCalendarRecordRepository(network, local)
-        self.calendar = CalendarViewModel(repository)
+        self.viewModel = CalendarViewModel(repository)
     }
     
     var body: some Scene {
         WindowGroup {
-            ContentView(calendar: calendar)
+            ContentView(viewModel: viewModel)
         }
     }
 }
@@ -38,7 +38,7 @@ struct TimeCardClientIOSApp: App {
 #if DEBUG
 struct UITestApp: App {
     private let formatter: DateFormatter
-    @State private var now: Date
+    @State private var date: Date
     @State private var record: CalendarRecord
     private let repositoryForDetailView: FakeCalendarRecordRepositoryForDetailView
     @State private var calendarForDetailView: CalendarViewModel
@@ -50,7 +50,7 @@ struct UITestApp: App {
         formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         
-        now = formatter.date(from: "2025-12-29 00:00:00") ?? .now
+        date = formatter.date(from: "2025-12-29 00:00:00") ?? .now
         
         record = CalendarRecord(
             date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
@@ -80,7 +80,7 @@ struct UITestApp: App {
     var body: some Scene {
         WindowGroup {
             if CommandLine.arguments.contains("MonthSelectorViewTests") {
-                MonthSelectorView(now: $now)
+                MonthSelectorView(date: $date)
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
                 CalendarRecordView(record: record)
             } else if CommandLine.arguments.contains("CalendarDetailViewTests") {
@@ -100,21 +100,21 @@ struct UITestApp: App {
                             .accessibilityIdentifier("break_time_count")
                     }
                     NavigationLink {
-                        CalendarDetailView(record: record, model: calendarForDetailView)
+                        CalendarDetailView(record: record, viewModel: calendarForDetailView)
                             .environment(toast)
                     } label: {
                         Text("link")
                     }
                 }
             } else if CommandLine.arguments.contains("ToastViewTests") {
-                ToastView(model: toast)
+                ToastView(viewModel: toast)
                 Button("show") {
                     toast.message = "test message"
                     toast.isPresented = true
                 }
                 .accessibilityIdentifier("button_show_toast")
             } else if CommandLine.arguments.contains("ContentViewTests") {
-                ContentView(calendar: calendarForContentView)
+                ContentView(viewModel: calendarForContentView)
             }
         }
     }
