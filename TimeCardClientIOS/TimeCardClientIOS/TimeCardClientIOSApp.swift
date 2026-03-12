@@ -21,7 +21,8 @@ struct TimeCardClientIOSApp: App {
             fatalError(error.localizedDescription)
         }
         
-        let network = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else { fatalError() }
+        let network = DefaultNetworkDataSource(url)
         let local = DefaultLocalDataSource(container.mainContext)
         let repository = DefaultCalendarRecordRepository(network, local)
         self.calendar = CalendarViewModel(repository)

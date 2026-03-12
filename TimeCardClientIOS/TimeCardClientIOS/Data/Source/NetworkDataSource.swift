@@ -19,11 +19,16 @@ class DefaultNetworkDataSource: NetworkDataSource {
         let status: Int?
     }
     
+    private let baseUrl: URL
+    
+    init(_ baseUrl: URL) {
+        self.baseUrl = baseUrl
+    }
+    
     func getRecords(year: Int, month: Int) async throws -> [TimeRecord] {
-        var url = URL(string: "http://192.168.4.33:8080/timecard/records")
-        url = url?.appending(queryItems: [.init(name: "year", value: String(year))])
-        url = url?.appending(queryItems: [.init(name: "month", value: String(month))])
-        guard let url = url else { throw NetworkError(status: nil) }
+        var url = baseUrl.appending(path: "timecard/records")
+        url = url.appending(queryItems: [.init(name: "year", value: String(year))])
+        url = url.appending(queryItems: [.init(name: "month", value: String(month))])
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -45,8 +50,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
     }
     
     func insertRecord(_ record: TimeRecord) async throws -> TimeRecord {
-        let url = URL(string: "http://192.168.4.33:8080/timecard/records")
-        guard let url = url else { throw NetworkError(status: nil) }
+        let url = baseUrl.appending(path: "timecard/records")
         
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -73,9 +77,8 @@ class DefaultNetworkDataSource: NetworkDataSource {
     }
     
     func updateRecord(_ record: TimeRecord) async throws -> TimeRecord {
-        var url = URL(string: "http://192.168.4.33:8080/timecard/records")
-        url = url?.appending(path: record.id.uuidString)
-        guard let url = url else { throw NetworkError(status: nil) }
+        var url = baseUrl.appending(path: "timecard/records")
+        url = url.appending(path: record.id.uuidString)
         
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -102,9 +105,8 @@ class DefaultNetworkDataSource: NetworkDataSource {
     }
     
     func deleteRecord(_ record: TimeRecord) async throws {
-        var url = URL(string: "http://192.168.4.33:8080/timecard/records")
-        url = url?.appendingPathComponent(record.id.uuidString)
-        guard let url = url else { throw NetworkError(status: nil) }
+        var url = baseUrl.appending(path: "timecard/records")
+        url = url.appendingPathComponent(record.id.uuidString)
         
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"

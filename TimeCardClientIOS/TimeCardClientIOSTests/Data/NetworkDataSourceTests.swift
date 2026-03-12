@@ -60,7 +60,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let records = try await source.getRecords(year: 2025, month: 12)
         
         #expect(request?.url?.path() == "/timecard/records")
@@ -98,7 +102,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.getRecords(year: 2025, month: 12)
         }
@@ -114,7 +122,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         let response = try await source.insertRecord(record)
         
@@ -150,7 +162,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.insertRecord(request)
@@ -167,7 +183,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         let response = try await source.updateRecord(record)
         
@@ -203,7 +223,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.updateRecord(request)
@@ -218,7 +242,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         try await source.deleteRecord(record)
         
@@ -231,7 +259,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.deleteRecord(request)
