@@ -14,7 +14,7 @@ class ToastViewModel {
 }
 
 struct ToastView: View {
-    @State var viewModel: ToastViewModel
+    let viewModel: ToastViewModel
     
     var body: some View {
         VStack {
