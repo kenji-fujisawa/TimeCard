@@ -10,7 +10,7 @@ import SwiftUI
 struct CalendarDetailView: View {
     @Environment(ToastViewModel.self) private var toast: ToastViewModel
     @State var record: CalendarRecord
-    var viewModel: CalendarViewModel
+    let viewModel: CalendarViewModel
     
     var body: some View {
         VStack {

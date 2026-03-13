@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    var viewModel: CalendarViewModel
+    let viewModel: CalendarViewModel
     @State private var toast = ToastViewModel()
     
     var body: some View {
