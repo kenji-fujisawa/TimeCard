@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CalendarBodyView: View {
     @Environment(\.calendarRecordRepository) private var repository
-    var viewModel: CalendarViewModel
+    let viewModel: CalendarViewModel
     @State private var recordToEdit: CalendarViewModel.CalendarRecord? = nil
     @State private var showFileExport: Bool = false
     
