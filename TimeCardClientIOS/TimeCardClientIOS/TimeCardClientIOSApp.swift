@@ -10,7 +10,7 @@ import SwiftUI
 
 struct TimeCardClientIOSApp: App {
     private let container: ModelContainer
-    private let viewModel: CalendarViewModel
+    @State private var viewModel: CalendarViewModel
     
     init() {
         let schema = Schema([LocalTimeRecord.self])
