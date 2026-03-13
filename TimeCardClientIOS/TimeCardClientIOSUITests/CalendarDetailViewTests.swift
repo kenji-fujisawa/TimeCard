@@ -86,6 +86,10 @@ final class CalendarDetailViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 3))
         app.buttons["Delete"].tap()
         
+        // close edit mode in order to refresh date picker
+        XCTAssertTrue(app.buttons["button_edit"].waitForExistence(timeout: 3))
+        app.buttons["button_edit"].tap()
+        
         sleep(1)
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_check_in").count, 1)
@@ -140,14 +144,14 @@ final class CalendarDetailViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 3))
         app.buttons["Delete"].tap()
         
+        // close edit mode in order to refresh date picker
+        XCTAssertTrue(app.buttons["button_edit"].waitForExistence(timeout: 3))
+        app.buttons["button_edit"].tap()
+        
         sleep(1)
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").count, 1)
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 0).buttons.firstMatch.value as! String, "09:12, Dec 29, 2025")
-        
-        // close edit mode in order to refresh date picker
-        XCTAssertTrue(app.buttons["button_edit"].waitForExistence(timeout: 3))
-        app.buttons["button_edit"].tap()
         
         // another parent
         XCTAssertTrue(app.buttons["button_add_time_record"].waitForExistence(timeout: 3))

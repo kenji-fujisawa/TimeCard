@@ -10,6 +10,7 @@ import SwiftUI
 
 struct TimeCardClientIOSApp: App {
     private let container: ModelContainer
+    private let repository: CalendarRecordRepository
     @State private var viewModel: CalendarViewModel
     
     init() {
@@ -24,15 +25,27 @@ struct TimeCardClientIOSApp: App {
         guard let url = URL(string: "http://192.168.4.33:8080") else { fatalError() }
         let network = DefaultNetworkDataSource(url)
         let local = DefaultLocalDataSource(container.mainContext)
-        let repository = DefaultCalendarRecordRepository(network, local)
+        self.repository = DefaultCalendarRecordRepository(network, local)
         self.viewModel = CalendarViewModel(repository)
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView(viewModel: viewModel)
+                .environment(\.calendarRecordRepository, repository)
         }
     }
+}
+
+extension EnvironmentValues {
+    @Entry var calendarRecordRepository: CalendarRecordRepository = FakeCalendarRecordRepository()
+}
+
+private class FakeCalendarRecordRepository: CalendarRecordRepository {
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+        AsyncThrowingStream { _ in }
+    }
+    func updateRecord(_ record: CalendarRecord) async throws {}
 }
 
 #if DEBUG
@@ -100,7 +113,7 @@ struct UITestApp: App {
                             .accessibilityIdentifier("break_time_count")
                     }
                     NavigationLink {
-                        CalendarDetailView(record: record, viewModel: calendarForDetailView)
+                        CalendarDetailView(viewModel: CalendarDetailViewModel(repositoryForDetailView, record))
                             .environment(toast)
                     } label: {
                         Text("link")

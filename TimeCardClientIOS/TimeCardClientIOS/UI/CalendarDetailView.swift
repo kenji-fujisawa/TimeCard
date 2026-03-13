@@ -9,23 +9,22 @@ import SwiftUI
 
 struct CalendarDetailView: View {
     @Environment(ToastViewModel.self) private var toast: ToastViewModel
-    @State var record: CalendarRecord
-    let viewModel: CalendarViewModel
+    let viewModel: CalendarDetailViewModel
     
     var body: some View {
         VStack {
-            Text(record.date, format: .dateTime.month().day().weekday())
-                .foregroundStyle(record.date.isHoliday() ? .red : .black)
+            Text(viewModel.date, format: .dateTime.month().day().weekday())
+                .foregroundStyle(viewModel.date.isHoliday() ? .red : .black)
                 .environment(\.locale, Locale(identifier: "ja_JP"))
             
             Form {
-                ForEach($record.records) { $record in
-                    TimeRecordView(record: $record)
+                ForEach(viewModel.records) { record in
+                    TimeRecordView(record: record)
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: viewModel.deleteItems)
                 
                 Button("勤怠を追加", systemImage: "plus") {
-                    addItem()
+                    viewModel.addItem()
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("button_add_time_record")
@@ -39,60 +38,47 @@ struct CalendarDetailView: View {
         }
         .padding()
         .onDisappear() {
-            viewModel.updateRecord(record)
+            viewModel.updateRecord()
         }
     }
     
-    private func addItem() {
-        let rec = TimeRecord(id: UUID(), checkIn: record.date, checkOut: record.date, breakTimes: [])
-        record.records.append(rec)
-    }
-    
-    private func deleteItems(indexes: IndexSet) {
-        record.records.remove(atOffsets: indexes)
-    }
-    
     private struct TimeRecordView: View {
-        @Binding var record: TimeRecord
+        @Bindable var record: CalendarDetailViewModel.TimeRecord
         
         var body: some View {
             Section {
                 VStack {
-                    DatePicker("出勤", selection: $record.checkIn.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("出勤", selection: $record.checkIn, displayedComponents: [.date, .hourAndMinute])
                         .accessibilityIdentifier("date_check_in")
                     Divider()
-                    DatePicker("退勤", selection: $record.checkOut.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("退勤", selection: $record.checkOut, displayedComponents: [.date, .hourAndMinute])
                         .accessibilityIdentifier("date_check_out")
                 }
                 
-                ForEach($record.breakTimes) { $breakTime in
-                    BreakTimeView(breakTime: $breakTime)
+                ForEach(record.breakTimes) { breakTime in
+                    BreakTimeView(breakTime: breakTime)
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: record.deleteItems)
                 
                 Button("休憩を追加", systemImage: "plus") {
-                    record.breakTimes.append(TimeRecord.BreakTime(id: UUID(), start: record.checkIn, end: record.checkIn))
+                    record.addItem()
                 }
                 .frame(maxWidth: .infinity)
                 .deleteDisabled(true)
                 .accessibilityIdentifier("button_add_break_time")
             }
         }
-        
-        private func deleteItems(indexes: IndexSet) {
-            record.breakTimes.remove(atOffsets: indexes)
-        }
     }
     
     private struct BreakTimeView: View {
-        @Binding var breakTime: TimeRecord.BreakTime
+        @Bindable var breakTime: CalendarDetailViewModel.BreakTime
         
         var body: some View {
             VStack {
-                DatePicker("休憩開始", selection: $breakTime.start.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                DatePicker("休憩開始", selection: $breakTime.start, displayedComponents: [.date, .hourAndMinute])
                     .accessibilityIdentifier("date_break_start")
                 Divider()
-                DatePicker("休憩終了", selection: $breakTime.end.bindUnwrap(defaultValue: .now), displayedComponents: [.date, .hourAndMinute])
+                DatePicker("休憩終了", selection: $breakTime.end, displayedComponents: [.date, .hourAndMinute])
                     .accessibilityIdentifier("date_break_end")
             }
         }
@@ -135,9 +121,9 @@ struct CalendarDetailView: View {
         ]
     )
     let repository = FakeCalendarRecordRepository()
-    let viewModel = CalendarViewModel(repository)
+    let viewModel = CalendarDetailViewModel(repository, record)
     NavigationStack {
-        CalendarDetailView(record: record, viewModel: viewModel)
+        CalendarDetailView(viewModel: viewModel)
             .environment(ToastViewModel())
     }
 }

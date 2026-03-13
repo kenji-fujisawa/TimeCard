@@ -48,16 +48,4 @@ class CalendarViewModel {
             }
         }
     }
-    
-    func updateRecord(_ record: CalendarRecord) {
-        Task {
-            do {
-                try await repository.updateRecord(record)
-            } catch {
-                await MainActor.run {
-                    self.message = "更新に失敗しました"
-                }
-            }
-        }
-    }
 }

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CalendarView: View {
+    @Environment(\.calendarRecordRepository) private var repository
     @Environment(ToastViewModel.self) private var toast: ToastViewModel
     @Bindable var viewModel: CalendarViewModel
     
@@ -38,7 +39,7 @@ struct CalendarView: View {
                         
                         ForEach(viewModel.records) { record in
                             NavigationLink {
-                                CalendarDetailView(record: record, viewModel: viewModel)
+                                CalendarDetailView(viewModel: CalendarDetailViewModel(repository, record))
                             } label: {
                                 CalendarRecordView(record: record)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
