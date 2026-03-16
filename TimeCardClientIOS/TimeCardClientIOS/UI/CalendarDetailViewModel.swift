@@ -44,6 +44,23 @@ class CalendarDetailViewModel {
         func deleteItems(indexes: IndexSet) {
             breakTimes.remove(atOffsets: indexes)
         }
+        
+        func isValid(_ breakTime: BreakTime) -> Bool {
+            if breakTime.start > breakTime.end { return false }
+            if breakTime.start < checkIn { return false }
+            if breakTime.end > checkOut { return false }
+            
+            let sorted = breakTimes.sorted { $0.start < $1.start }
+            for (a, b) in zip(sorted, sorted.dropFirst()) {
+                if a.end > b.start {
+                    if a.id == breakTime.id || b.id == breakTime.id {
+                        return false
+                    }
+                }
+            }
+            
+            return true
+        }
     }
     
     @ObservationIgnored private let repository: CalendarRecordRepository
@@ -81,6 +98,34 @@ class CalendarDetailViewModel {
     
     func deleteItems(indexes: IndexSet) {
         records.remove(atOffsets: indexes)
+    }
+    
+    func isValid() -> Bool {
+        if records.contains(where: { !isValid($0) }) { return false }
+        
+        for rec in records {
+            if rec.breakTimes.contains(where: { !rec.isValid($0) }) {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    func isValid(_ record: TimeRecord) -> Bool {
+        if record.checkIn > record.checkOut { return false }
+        if record.checkIn < date { return false }
+        
+        let sorted = records.sorted { $0.checkIn < $1.checkIn }
+        for (a, b) in zip(sorted, sorted.dropFirst()) {
+            if a.checkOut > b.checkIn {
+                if a.id == record.id || b.id == record.id {
+                    return false
+                }
+            }
+        }
+        
+        return true
     }
 }
 

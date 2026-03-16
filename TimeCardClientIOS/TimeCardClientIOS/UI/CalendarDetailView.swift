@@ -19,7 +19,7 @@ struct CalendarDetailView: View {
             
             Form {
                 ForEach(viewModel.records) { record in
-                    TimeRecordView(record: record)
+                    TimeRecordView(record: record, valid: viewModel.isValid(record))
                 }
                 .onDelete(perform: viewModel.deleteItems)
                 
@@ -34,29 +34,35 @@ struct CalendarDetailView: View {
                     EditButton()
                         .accessibilityIdentifier("button_edit")
                 }
+                ToolbarItem {
+                    Button("Save", systemImage: "square.and.arrow.down") {
+                        viewModel.updateRecord()
+                    }
+                    .disabled(!viewModel.isValid())
+                }
             }
         }
         .padding()
-        .onDisappear() {
-            viewModel.updateRecord()
-        }
     }
     
     private struct TimeRecordView: View {
         @Bindable var record: CalendarDetailViewModel.TimeRecord
+        let valid: Bool
         
         var body: some View {
             Section {
                 VStack {
                     DatePicker("出勤", selection: $record.checkIn, displayedComponents: [.date, .hourAndMinute])
+                        .isValid(valid)
                         .accessibilityIdentifier("date_check_in")
                     Divider()
                     DatePicker("退勤", selection: $record.checkOut, displayedComponents: [.date, .hourAndMinute])
+                        .isValid(valid)
                         .accessibilityIdentifier("date_check_out")
                 }
                 
                 ForEach(record.breakTimes) { breakTime in
-                    BreakTimeView(breakTime: breakTime)
+                    BreakTimeView(breakTime: breakTime, valid: record.isValid(breakTime))
                 }
                 .onDelete(perform: record.deleteItems)
                 
@@ -72,16 +78,41 @@ struct CalendarDetailView: View {
     
     private struct BreakTimeView: View {
         @Bindable var breakTime: CalendarDetailViewModel.BreakTime
+        let valid: Bool
         
         var body: some View {
             VStack {
                 DatePicker("休憩開始", selection: $breakTime.start, displayedComponents: [.date, .hourAndMinute])
+                    .isValid(valid)
                     .accessibilityIdentifier("date_break_start")
                 Divider()
                 DatePicker("休憩終了", selection: $breakTime.end, displayedComponents: [.date, .hourAndMinute])
+                    .isValid(valid)
                     .accessibilityIdentifier("date_break_end")
             }
         }
+    }
+}
+
+private struct ValidModifier: ViewModifier {
+    let valid: Bool
+    
+    func body(content: Content) -> some View {
+        if valid {
+            content
+        } else {
+            HStack {
+                content
+                Image(systemName: "exclamationmark.circle")
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+}
+
+private extension View {
+    func isValid(_ valid: Bool) -> some View {
+        self.modifier(ValidModifier(valid: valid))
     }
 }
 
