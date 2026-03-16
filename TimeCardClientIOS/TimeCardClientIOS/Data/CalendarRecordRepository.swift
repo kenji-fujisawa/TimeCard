@@ -9,6 +9,7 @@ import Foundation
 
 protocol CalendarRecordRepository {
     func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error>
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord
     func updateRecord(_ record: CalendarRecord) async throws
 }
 
@@ -69,6 +70,12 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         }
         
         publish?(results)
+    }
+    
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        let date = Calendar.current.date(from: DateComponents(year: year, month: month, day: day)) ?? .now
+        let records = try localDataSource.getRecords(year: year, month: month).filter { $0.checkIn?.day == day }
+        return CalendarRecord(date: date, records: records)
     }
     
     func updateRecord(_ record: CalendarRecord) async throws {

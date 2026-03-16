@@ -52,10 +52,13 @@ class CalendarDetailViewModel {
     var records: [TimeRecord] = []
     var message: String = ""
     
-    init(_ repository: CalendarRecordRepository, _ record: CalendarRecord) {
+    init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository
-        self.date = record.date
-        self.records = record.records.map { $0.asViewModel() }
+        self.date = date
+        
+        if let record = try? repository.getRecord(year: date.year, month: date.month, day: date.day) {
+            self.records = record.records.map { $0.asViewModel() }
+        }
     }
     
     func updateRecord() {

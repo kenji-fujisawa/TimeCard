@@ -86,42 +86,8 @@ struct CalendarDetailView: View {
 }
 
 #Preview {
-    let record = CalendarRecord(
-        date: .now,
-        records: [
-            TimeRecord(
-                id: UUID(),
-                checkIn: .now,
-                checkOut: .now,
-                breakTimes: [
-                    TimeRecord.BreakTime(
-                        id: UUID(),
-                        start: .now,
-                        end: .now
-                    ),
-                    TimeRecord.BreakTime(
-                        id: UUID(),
-                        start: .now,
-                        end: .now
-                    )
-                ]
-            ),
-            TimeRecord(
-                id: UUID(),
-                checkIn: .now,
-                checkOut: .now,
-                breakTimes: [
-                    TimeRecord.BreakTime(
-                        id: UUID(),
-                        start: .now,
-                        end: .now
-                    ),
-                ]
-            )
-        ]
-    )
     let repository = FakeCalendarRecordRepository()
-    let viewModel = CalendarDetailViewModel(repository, record)
+    let viewModel = CalendarDetailViewModel(repository, .now)
     NavigationStack {
         CalendarDetailView(viewModel: viewModel)
             .environment(ToastViewModel())
@@ -132,5 +98,43 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
     func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
         AsyncThrowingStream { _ in }
     }
+    
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(
+            date: .now,
+            records: [
+                TimeRecord(
+                    id: UUID(),
+                    checkIn: .now,
+                    checkOut: .now,
+                    breakTimes: [
+                        TimeRecord.BreakTime(
+                            id: UUID(),
+                            start: .now,
+                            end: .now
+                        ),
+                        TimeRecord.BreakTime(
+                            id: UUID(),
+                            start: .now,
+                            end: .now
+                        )
+                    ]
+                ),
+                TimeRecord(
+                    id: UUID(),
+                    checkIn: .now,
+                    checkOut: .now,
+                    breakTimes: [
+                        TimeRecord.BreakTime(
+                            id: UUID(),
+                            start: .now,
+                            end: .now
+                        ),
+                    ]
+                )
+            ]
+        )
+    }
+    
     func updateRecord(_ record: CalendarRecord) async throws {}
 }

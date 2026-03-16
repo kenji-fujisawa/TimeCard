@@ -39,5 +39,8 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, records: [])
+    }
     func updateRecord(_ record: CalendarRecord) async throws {}
 }

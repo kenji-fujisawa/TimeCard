@@ -81,6 +81,35 @@ struct CalendarRecordRepositoryTests {
         #expect(local.records == network.records)
     }
     
+    @Test func testGetRecord() async throws {
+        let network = FakeNetworkDataSource()
+        let local = FakeLocalDataSource()
+        local.initForGet()
+        
+        let repository = DefaultCalendarRecordRepository(network, local)
+        
+        var record = try repository.getRecord(year: 2025, month: 12, day: 1)
+        #expect(record.date.year == 2025)
+        #expect(record.date.month == 12)
+        #expect(record.date.day == 1)
+        #expect(record.records.count == 2)
+        #expect(record.records[0] == local.records[0])
+        #expect(record.records[1] == local.records[1])
+        
+        record = try repository.getRecord(year: 2025, month: 12, day: 2)
+        #expect(record.date.year == 2025)
+        #expect(record.date.month == 12)
+        #expect(record.date.day == 2)
+        #expect(record.records.count == 1)
+        #expect(record.records[0] == local.records[2])
+        
+        record = try repository.getRecord(year: 2025, month: 12, day: 3)
+        #expect(record.date.year == 2025)
+        #expect(record.date.month == 12)
+        #expect(record.date.day == 3)
+        #expect(record.records.count == 0)
+    }
+    
     @Test func testUpdateRecord() async throws {
         let network = FakeNetworkDataSource()
         let local = FakeLocalDataSource()

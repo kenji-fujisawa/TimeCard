@@ -45,6 +45,9 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
     func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
         AsyncThrowingStream { _ in }
     }
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, records: [])
+    }
     func updateRecord(_ record: CalendarRecord) async throws {}
 }
 
@@ -113,7 +116,7 @@ struct UITestApp: App {
                             .accessibilityIdentifier("break_time_count")
                     }
                     NavigationLink {
-                        CalendarDetailView(viewModel: CalendarDetailViewModel(repositoryForDetailView, record))
+                        CalendarDetailView(viewModel: CalendarDetailViewModel(repositoryForDetailView, date))
                             .environment(toast)
                     } label: {
                         Text("link")
@@ -141,6 +144,29 @@ private class FakeCalendarRecordRepositoryForDetailView: CalendarRecordRepositor
                 continuation.yield(records)
             }
         }
+    }
+    
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        
+        return CalendarRecord(
+            date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
+            records: [
+                TimeRecord(
+                    id: UUID(),
+                    checkIn: formatter.date(from: "2025-12-29 09:12:38"),
+                    checkOut: formatter.date(from: "2025-12-30 02:28:11"),
+                    breakTimes: [
+                        TimeRecord.BreakTime(
+                            id: UUID(),
+                            start: formatter.date(from: "2025-12-29 23:45:58"),
+                            end: formatter.date(from: "2025-12-30 01:30:45")
+                        )
+                    ]
+                )
+            ]
+        )
     }
     
     func updateRecord(_ record: CalendarRecord) async throws {
@@ -180,6 +206,9 @@ private class FakeCalendarRecordRepositoryForContentView: CalendarRecordReposito
         }
     }
     
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, records: [])
+    }
     func updateRecord(_ record: CalendarRecord) async throws {}
 }
 #endif
