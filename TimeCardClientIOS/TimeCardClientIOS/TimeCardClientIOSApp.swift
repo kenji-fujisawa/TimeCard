@@ -55,7 +55,7 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
 struct UITestApp: App {
     private let formatter: DateFormatter
     @State private var date: Date
-    @State private var record: CalendarRecord
+    @State private var record: CalendarViewModel.CalendarRecord
     private let repositoryForDetailView: FakeCalendarRecordRepositoryForDetailView
     @State private var calendarForDetailView: CalendarViewModel
     @State private var toast = ToastViewModel()
@@ -68,16 +68,14 @@ struct UITestApp: App {
         
         date = formatter.date(from: "2025-12-29 00:00:00") ?? .now
         
-        record = CalendarRecord(
+        record = CalendarViewModel.CalendarRecord(
             date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
             records: [
-                TimeRecord(
-                    id: UUID(),
+                CalendarViewModel.TimeRecord(
                     checkIn: formatter.date(from: "2025-12-29 09:12:38"),
                     checkOut: formatter.date(from: "2025-12-30 02:28:11"),
                     breakTimes: [
-                        TimeRecord.BreakTime(
-                            id: UUID(),
+                        CalendarViewModel.BreakTime(
                             start: formatter.date(from: "2025-12-29 23:45:58"),
                             end: formatter.date(from: "2025-12-30 01:30:45")
                         )

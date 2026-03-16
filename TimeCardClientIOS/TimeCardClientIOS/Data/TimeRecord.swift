@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct TimeRecord: Codable, Identifiable, Equatable {
-    struct BreakTime: Codable, Identifiable, Equatable {
+struct TimeRecord: Codable, Equatable {
+    struct BreakTime: Codable, Equatable {
         var id: UUID
         var start: Date?
         var end: Date?

@@ -7,9 +7,7 @@
 
 import Foundation
 
-struct CalendarRecord: Identifiable {
-    var id = UUID()
-    
+struct CalendarRecord {
     var date: Date
     var records: [TimeRecord]
 }
