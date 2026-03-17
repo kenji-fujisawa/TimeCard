@@ -27,7 +27,7 @@ class DefaultCalendarRecordRepository(
 ) : CalendarRecordRepository {
     override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
         return localDataSource.getRecords(year, month)
-            .map { it.map { entry -> entry.toTimeRecord() } }
+            .map { it.map { entry -> entry.asTimeRecord() } }
             .map {
                 val records = it.groupBy { rec -> rec.checkIn?.day() }
                 val dates = Calendar.getInstance().datesOf(year, month)
@@ -48,7 +48,7 @@ class DefaultCalendarRecordRepository(
                 val records = networkDataSource.getRecords(year, month)
                 localDataSource.deleteRecords(year, month)
                 records.forEach { record ->
-                    localDataSource.insert(record.toLocal())
+                    localDataSource.insert(record.asLocal())
                     record.localBreakTimes().forEach { localDataSource.insert(it) }
                 }
             } catch (ex: Exception) {
@@ -76,18 +76,18 @@ class DefaultCalendarRecordRepository(
 
         for (rec in inserted) {
             val record = networkDataSource.insertRecord(rec)
-            localDataSource.insert(record.toLocal())
+            localDataSource.insert(record.asLocal())
             record.localBreakTimes().forEach { localDataSource.insert(it) }
         }
         for (rec in updated) {
             val record = networkDataSource.updateRecord(rec)
-            localDataSource.delete(rec.toLocal())
-            localDataSource.insert(record.toLocal())
+            localDataSource.delete(rec.asLocal())
+            localDataSource.insert(record.asLocal())
             record.localBreakTimes().forEach { localDataSource.insert(it) }
         }
         for (rec in deleted) {
             networkDataSource.deleteRecord(rec)
-            localDataSource.delete(rec.toLocal())
+            localDataSource.delete(rec.asLocal())
         }
     }
 
@@ -96,7 +96,7 @@ class DefaultCalendarRecordRepository(
     }
 }
 
-fun Map.Entry<LocalTimeRecord, List<LocalBreakTime>>.toTimeRecord(): TimeRecord {
+fun Map.Entry<LocalTimeRecord, List<LocalBreakTime>>.asTimeRecord(): TimeRecord {
     return TimeRecord(
         id = this.key.id,
         checkIn = this.key.checkIn,
@@ -111,7 +111,7 @@ fun Map.Entry<LocalTimeRecord, List<LocalBreakTime>>.toTimeRecord(): TimeRecord 
     )
 }
 
-fun TimeRecord.toLocal(): LocalTimeRecord {
+fun TimeRecord.asLocal(): LocalTimeRecord {
     return LocalTimeRecord(
         id = this.id,
         year = this.checkIn?.year() ?: 0,
