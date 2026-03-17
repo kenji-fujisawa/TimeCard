@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CalendarRecordView: View {
-    let record: CalendarRecord
+    let record: CalendarViewModel.CalendarRecord
     
     var body: some View {
         GridRow {
@@ -28,7 +28,7 @@ struct CalendarRecordView: View {
             VStack {
                 ForEach(record.records) { record in
                     if record.checkOut != nil {
-                        Text(interval(record: record), format: .timeWorked)
+                        Text(record.interval, format: .timeWorked)
                             .accessibilityIdentifier("text_check_out")
                     }
                 }
@@ -49,7 +49,7 @@ struct CalendarRecordView: View {
                 ForEach(record.records) { record in
                     ForEach(record.breakTimes) { breakTime in
                         if breakTime.end != nil {
-                            Text(interval(breakTime: breakTime), format: .timeWorked)
+                            Text(breakTime.interval, format: .timeWorked)
                                 .accessibilityIdentifier("text_break_end")
                         }
                     }
@@ -57,52 +57,29 @@ struct CalendarRecordView: View {
             }
         }
     }
-    
-    private func interval(record: TimeRecord) -> TimeInterval {
-        interval(start: record.checkIn, end: record.checkOut)
-    }
-    
-    private func interval(breakTime: TimeRecord.BreakTime) -> TimeInterval {
-        interval(start: breakTime.start, end: breakTime.end)
-    }
-    
-    private func interval(start: Date?, end: Date?) -> TimeInterval {
-        guard let start = start else { return 0 }
-        guard let end = end else { return 0 }
-        return end.timeIntervalSince(Calendar.current.startOfDay(for: start))
-    }
 }
 
 #Preview {
-    let record = CalendarRecord(
+    let record = CalendarViewModel.CalendarRecord(
         date: .now,
         records: [
-            TimeRecord(
-                id: UUID(),
-                year: Date.now.year,
-                month: Date.now.month,
+            CalendarViewModel.TimeRecord(
                 checkIn: .now,
                 checkOut: Date(timeIntervalSinceNow: 26 * 60 * 60),
                 breakTimes: [
-                    TimeRecord.BreakTime(
-                        id: UUID(),
+                    CalendarViewModel.BreakTime(
                         start: .now,
                         end: Date(timeIntervalSinceNow: 25 * 60 * 60)
                     ),
-                    TimeRecord.BreakTime(
-                        id: UUID(),
+                    CalendarViewModel.BreakTime(
                         start: .now
                     )
                 ]
             ),
-            TimeRecord(
-                id: UUID(),
-                year: Date.now.year,
-                month: Date.now.month,
+            CalendarViewModel.TimeRecord(
                 checkIn: .now,
                 breakTimes: [
-                    TimeRecord.BreakTime(
-                        id: UUID(),
+                    CalendarViewModel.BreakTime(
                         start: .now,
                         end: Date(timeIntervalSinceNow: 25 * 60 * 60)
                     )

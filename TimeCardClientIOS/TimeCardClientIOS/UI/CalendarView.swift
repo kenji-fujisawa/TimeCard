@@ -8,18 +8,19 @@
 import SwiftUI
 
 struct CalendarView: View {
-    @EnvironmentObject private var toast: ToastViewModel
-    @ObservedObject var model: CalendarViewModel
+    @Environment(\.calendarRecordRepository) private var repository
+    @Environment(ToastViewModel.self) private var toast: ToastViewModel
+    @Bindable var viewModel: CalendarViewModel
     
     var body: some View {
         NavigationStack {
-            if model.loading {
+            if viewModel.loading {
                 ProgressView()
             } else {
-                MonthSelectorView(now: $model.now)
-                    .onChange(of: model.now) { _, _ in
+                MonthSelectorView(date: $viewModel.date)
+                    .onChange(of: viewModel.date) { _, _ in
                         withAnimation {
-                            model.fetchRecords()
+                            viewModel.fetchRecords()
                         }
                     }
                 
@@ -36,9 +37,9 @@ struct CalendarView: View {
                         
                         Divider()
                         
-                        ForEach(model.records) { record in
+                        ForEach(viewModel.records) { record in
                             NavigationLink {
-                                CalendarDetailView(record: record, model: model)
+                                CalendarDetailView(viewModel: CalendarDetailViewModel(repository, record.date))
                             } label: {
                                 CalendarRecordView(record: record)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -53,12 +54,12 @@ struct CalendarView: View {
                 .padding()
             }
         }
-        .onChange(of: model.message) { _, _ in
-            if !model.message.isEmpty {
+        .onChange(of: viewModel.message) { _, _ in
+            if !viewModel.message.isEmpty {
                 withAnimation {
                     toast.isPresented = true
-                    toast.message = model.message
-                    model.message = ""
+                    toast.message = viewModel.message
+                    viewModel.message = ""
                 }
             }
         }
@@ -67,13 +68,13 @@ struct CalendarView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let model = CalendarViewModel(repository: repository)
-    CalendarView(model: model)
-        .environmentObject(ToastViewModel())
+    let viewModel = CalendarViewModel(repository)
+    CalendarView(viewModel: viewModel)
+        .environment(ToastViewModel())
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecords(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
         AsyncThrowingStream { continuation in
             let records = Calendar.current.datesOf(year: year, month: month).map { date in
                 CalendarRecord(date: date, records: [])
@@ -82,6 +83,8 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         }
     }
     
-    func updateRecord(source: [CalendarRecord], record: CalendarRecord) async throws {
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, records: [])
     }
+    func updateRecord(_ record: CalendarRecord) async throws {}
 }

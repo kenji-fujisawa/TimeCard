@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RecordEditView: View {
     @Environment(\.dismiss) private var dismiss
-    var viewModel: RecordEditViewModel
+    let viewModel: RecordEditViewModel
     
     var body: some View {
         TabView {

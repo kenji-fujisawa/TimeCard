@@ -23,12 +23,12 @@ struct TimeRecordTests {
         #expect(b1 != b3)
         #expect(b3 == b4)
         
-        let t1 = TimeRecord(id: id, year: 2025, month: 11, checkIn: now, breakTimes: [])
-        let t2 = TimeRecord(id: id, year: 2025, month: 11, checkIn: now, breakTimes: [])
-        let t3 = TimeRecord(id: id, year: 2025, month: 11, checkIn: now, checkOut: now, breakTimes: [b1])
-        let t4 = TimeRecord(id: id, year: 2025, month: 11, checkIn: now, checkOut: now, breakTimes: [b2])
-        let t5 = TimeRecord(id: id, year: 2025, month: 11, checkIn: now, checkOut: now, breakTimes: [b1, b3])
-        let t6 = TimeRecord(id: id, year: 2025, month: 11, checkIn: now, checkOut: now, breakTimes: [b2, b4])
+        let t1 = TimeRecord(id: id, checkIn: now, breakTimes: [])
+        let t2 = TimeRecord(id: id, checkIn: now, breakTimes: [])
+        let t3 = TimeRecord(id: id, checkIn: now, checkOut: now, breakTimes: [b1])
+        let t4 = TimeRecord(id: id, checkIn: now, checkOut: now, breakTimes: [b2])
+        let t5 = TimeRecord(id: id, checkIn: now, checkOut: now, breakTimes: [b1, b3])
+        let t6 = TimeRecord(id: id, checkIn: now, checkOut: now, breakTimes: [b2, b4])
         #expect(t1 == t2)
         #expect(t1 != t3)
         #expect(t3 == t4)
@@ -50,8 +50,6 @@ struct TimeRecordTests {
         let records = [
             TimeRecord(
                 id: UUID(),
-                year: 2025,
-                month: 12,
                 checkIn: formatter.date(from: "2025-12-29 08:00:00"),
                 checkOut: formatter.date(from: "2025-12-29 18:00:00"),
                 breakTimes: [
@@ -69,8 +67,6 @@ struct TimeRecordTests {
             ),
             TimeRecord(
                 id: UUID(),
-                year: 2025,
-                month: 12,
                 checkIn: formatter.date(from: "2025-12-30 09:00:00"),
                 checkOut: nil,
                 breakTimes: []

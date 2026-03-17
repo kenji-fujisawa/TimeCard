@@ -13,6 +13,10 @@ struct TimeCardApp: App {
     private let timeRepository: TimeRecordRepository
     private let uptimeRepository: SystemUptimeRecordRepository
     private let calendarRepository: CalendarRecordRepository
+    @State private var timeViewModel: TimeRecordViewModel
+    @State private var uptimeViewModel: SystemUptimeRecordViewModel
+    @State private var calendarViewModel: CalendarViewModel
+    private let server: TimeCardServer
     
     init() {
         #if DEBUG
@@ -32,12 +36,15 @@ struct TimeCardApp: App {
         timeRepository = DefaultTimeRecordRepository(source)
         uptimeRepository = DefaultSystemUptimeRecordRepository(source)
         calendarRepository = DefaultCalendarRecordRepository(source)
+        timeViewModel = TimeRecordViewModel(timeRepository)
+        uptimeViewModel = SystemUptimeRecordViewModel(uptimeRepository)
+        calendarViewModel = CalendarViewModel(calendarRepository)
+        server = TimeCardServer(timeRepository)
     }
     
     var body: some Scene {
         MenuBarExtra {
-            ContentView()
-                .environment(\.timeRecordRepository, timeRepository)
+            ContentView(viewModel: timeViewModel)
                 .onReceive(NotificationCenter.default.publisher(for: Notification.exitApp)) { _ in
                     Task {
                         await AppTerminationManager.shared.performCleanup()
@@ -46,14 +53,14 @@ struct TimeCardApp: App {
                 }
         } label: {
             Image(systemName: "clock.badge.checkmark")
-            SystemUptimeView(viewModel: SystemUptimeRecordViewModel(uptimeRepository))
-            SleepView(viewModel: TimeRecordViewModel(timeRepository))
-            ServerView(server: TimeCardServer(timeRepository))
+            SystemUptimeView(viewModel: uptimeViewModel)
+            SleepView(viewModel: timeViewModel)
+            ServerView(server: server)
         }
         .menuBarExtraStyle(.window)
         
         Window("TimeCard", id: "calendar") {
-            CalendarView(viewModel: CalendarViewModel(calendarRepository))
+            CalendarView(viewModel: calendarViewModel)
                 .environment(\.calendarRecordRepository, calendarRepository)
         }
         
@@ -89,22 +96,7 @@ class AppTerminationManager {
 
 extension EnvironmentValues {
     @Entry var terminationManager = AppTerminationManager.shared
-    @Entry var timeRecordRepository: TimeRecordRepository = FakeTimeRecordRepository()
     @Entry var calendarRecordRepository: CalendarRecordRepository = FakeCalendarRecordRepository()
-}
-
-private class FakeTimeRecordRepository: TimeRecordRepository {
-    func getRecords(year: Int, month: Int) throws -> [TimeRecord] { [] }
-    func getRecord(id: UUID) throws -> TimeRecord? { nil }
-    func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? { nil }
-    func insert(_ record: TimeRecord) throws {}
-    func update(_ record: TimeRecord) throws {}
-    func delete(_ record: TimeRecord) throws {}
-    func getState() -> WorkState { .offWork }
-    func checkIn() throws {}
-    func checkOut() throws {}
-    func startBreak() throws {}
-    func endBreak() throws {}
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
@@ -186,7 +178,7 @@ struct UITestApp: App {
                 RecorderView(viewModel: TimeRecordViewModel(timeRepository))
                 CalendarView(viewModel: CalendarViewModel(calendarRepository))
             } else if CommandLine.arguments.contains("CalendarRecordViewTests") {
-                CalendarRecordView(record: record.toViewModel(), recordToEdit: $recordToEdit)
+                CalendarRecordView(record: record.asViewModel(), recordToEdit: $recordToEdit)
                 if let rec = recordToEdit {
                     Text(rec.date, format: .dateTime.month().day())
                         .accessibilityIdentifier("text_rec_to_edit")
@@ -205,13 +197,13 @@ struct UITestApp: App {
                     RecordEditView(viewModel: RecordEditViewModel(calendarRepository, record.date))
                 }
                 Button("update") {
-                    timeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalTimeRecord>()))?.map { $0.toTimeRecord() } ?? []
-                    uptimeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalUptimeRecord>()))?.map { $0.toUptimeRecord() } ?? []
+                    timeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalTimeRecord>()))?.map { $0.asTimeRecord() } ?? []
+                    uptimeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalUptimeRecord>()))?.map { $0.asUptimeRecord() } ?? []
                 }
             } else if CommandLine.arguments.contains("TimeRecordEditViewTests") {
-                TimeRecordEditView(viewModel: TimeRecordEditViewModel(date: record.date, records: record.timeRecords.map { $0.toViewModel() }))
+                TimeRecordEditView(viewModel: TimeRecordEditViewModel(date: record.date, records: record.timeRecords.map { $0.asViewModel() }))
             } else if CommandLine.arguments.contains("SystemUptimeRecordEditViewTests") {
-                SystemUptimeRecordEditView(viewModel: UptimeRecordEditViewModel(date: record.date, records: record.uptimeRecords.map { $0.toViewModel() }))
+                SystemUptimeRecordEditView(viewModel: UptimeRecordEditViewModel(date: record.date, records: record.uptimeRecords.map { $0.asViewModel() }))
             } else if CommandLine.arguments.contains("SleepViewTests") {
                 SleepView(viewModel: TimeRecordViewModel(timeRepository))
                 Text("\(String(describing: state))")
@@ -257,7 +249,7 @@ struct UITestApp: App {
                     let descriptor = FetchDescriptor<LocalUptimeRecord>(
                         sortBy: [.init(\.launch)]
                     )
-                    uptimeRecords = (try? container.mainContext.fetch(descriptor))?.map { $0.toUptimeRecord() } ?? []
+                    uptimeRecords = (try? container.mainContext.fetch(descriptor))?.map { $0.asUptimeRecord() } ?? []
                 }
             }
         }

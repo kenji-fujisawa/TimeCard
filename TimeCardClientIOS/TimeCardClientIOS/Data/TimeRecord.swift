@@ -7,16 +7,14 @@
 
 import Foundation
 
-struct TimeRecord: Codable, Identifiable, Equatable {
-    struct BreakTime: Codable, Identifiable, Equatable {
+struct TimeRecord: Codable, Equatable {
+    struct BreakTime: Codable, Equatable {
         var id: UUID
         var start: Date?
         var end: Date?
     }
     
     var id: UUID
-    var year: Int
-    var month: Int
     var checkIn: Date?
     var checkOut: Date?
     var breakTimes: [BreakTime]

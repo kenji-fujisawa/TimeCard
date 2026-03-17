@@ -1,8 +1,8 @@
 //
 //  CalendarViewModel.swift
-//  TimeCard
+//  TimeCardClientIOS
 //
-//  Created by uhimania on 2026/01/19.
+//  Created by uhimania on 2026/01/07.
 //
 
 import Foundation
@@ -31,7 +31,6 @@ class CalendarViewModel {
         let checkIn: Date?
         let checkOut: Date?
         let breakTimes: [BreakTime]
-        let timeWorked: TimeInterval
         
         var interval: TimeInterval {
             guard let checkIn = checkIn else { return 0 }
@@ -39,50 +38,35 @@ class CalendarViewModel {
             return checkOut.timeIntervalSince(Calendar.current.startOfDay(for: checkIn))
         }
         
-        init(checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = [], timeWorked: TimeInterval = 0) {
+        init(checkIn: Date? = nil, checkOut: Date? = nil, breakTimes: [BreakTime] = []) {
             self.checkIn = checkIn
             self.checkOut = checkOut
             self.breakTimes = breakTimes
-            self.timeWorked = timeWorked
         }
     }
     
     @Observable
     class CalendarRecord: Identifiable {
         let date: Date
-        let timeRecords: [TimeRecord]
-        let timeWorked: TimeInterval
-        let systemUptime: TimeInterval
+        let records: [TimeRecord]
         
-        var fixed: Bool {
-            let now = Date.now
-            if date.year == now.year && date.month == now.month && date.day == now.day {
-                let latest = timeRecords.last
-                return latest != nil && latest?.checkIn != nil && latest?.checkOut != nil
-            }
-            
-            return date < now
-        }
-        
-        init(date: Date, timeRecords: [TimeRecord] = [], timeWorked: TimeInterval = 0, systemUptime: TimeInterval = 0) {
+        init(date: Date, records: [TimeRecord] = []) {
             self.date = date
-            self.timeRecords = timeRecords
-            self.timeWorked = timeWorked
-            self.systemUptime = systemUptime
+            self.records = records
         }
     }
     
     @ObservationIgnored private let repository: CalendarRecordRepository
-    @ObservationIgnored private var fetchTask: Task<Void, Never>? = nil
+    @ObservationIgnored private var fetchTask: Task<Void, Never>?
     
     var date: Date = .now
     var records: [CalendarRecord] = []
-    private(set) var timeWorkedSum: TimeInterval = 0
-    private(set) var systemUptimeSum: TimeInterval = 0
+    var loading: Bool = false
+    var message: String = ""
     
     init(_ repository: CalendarRecordRepository) {
         self.repository = repository
-        self.fetchRecords()
+        fetchRecords()
     }
     
     deinit {
@@ -90,15 +74,23 @@ class CalendarViewModel {
     }
     
     func fetchRecords() {
+        self.loading = true
+        
         let stream = repository.getRecordsStream(year: date.year, month: date.month)
         
         fetchTask?.cancel()
         fetchTask = Task { [weak self] in
-            for await records in stream {
+            do {
+                for try await records in stream {
+                    await MainActor.run { [weak self] in
+                        self?.records = records.map { $0.asViewModel() }
+                        self?.loading = false
+                    }
+                }
+            } catch {
                 await MainActor.run { [weak self] in
-                    self?.records = records.map { $0.asViewModel() }
-                    self?.timeWorkedSum = records.timeWorkedSum
-                    self?.systemUptimeSum = records.systemUptimeSum
+                    self?.message = "データを取得できませんでした"
+                    self?.loading = false
                 }
             }
         }
@@ -109,9 +101,7 @@ extension CalendarRecord {
     func asViewModel() -> CalendarViewModel.CalendarRecord {
         CalendarViewModel.CalendarRecord(
             date: self.date,
-            timeRecords: self.timeRecords.map { $0.asViewModel() },
-            timeWorked: self.timeWorked,
-            systemUptime: self.systemUptime
+            records: self.records.map { $0.asViewModel() }
         )
     }
 }
@@ -121,8 +111,7 @@ extension TimeRecord {
         CalendarViewModel.TimeRecord(
             checkIn: self.checkIn,
             checkOut: self.checkOut,
-            breakTimes: self.breakTimes.map { $0.asViewModel() },
-            timeWorked: self.timeWorked
+            breakTimes: self.breakTimes.map { $0.asViewModel() }
         )
     }
 }

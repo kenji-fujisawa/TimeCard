@@ -34,14 +34,14 @@ class DefaultLocalDataSource: LocalDataSource {
         let descriptor = FetchDescriptor<LocalTimeRecord>(
             predicate: #Predicate { $0.id == id }
         )
-        return try context.fetch(descriptor).first?.toTimeRecord()
+        return try context.fetch(descriptor).first?.asTimeRecord()
     }
     
     func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? {
         let descriptor = FetchDescriptor<LocalTimeRecord.BreakTime>(
             predicate: #Predicate { $0.id == id }
         )
-        return try context.fetch(descriptor).first?.toBreakTime()
+        return try context.fetch(descriptor).first?.asBreakTime()
     }
     
     func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {
@@ -49,7 +49,7 @@ class DefaultLocalDataSource: LocalDataSource {
             predicate: #Predicate { $0.year == year && $0.month == month },
             sortBy: [.init(\.checkIn)]
         )
-        return try context.fetch(descriptor).map { $0.toTimeRecord() }
+        return try context.fetch(descriptor).map { $0.asTimeRecord() }
     }
     
     private func getLocalTimeRecord(id: UUID) throws -> LocalTimeRecord? {
@@ -60,7 +60,7 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func insertTimeRecord(_ record: TimeRecord) throws {
-        context.insert(record.toLocal())
+        context.insert(record.asLocal())
         try context.save()
     }
     
@@ -72,7 +72,7 @@ class DefaultLocalDataSource: LocalDataSource {
             }
             rec.checkIn = record.checkIn
             rec.checkOut = record.checkOut
-            rec.breakTimes = record.breakTimes.map { $0.toLocal() }
+            rec.breakTimes = record.breakTimes.map { $0.asLocal() }
             try context.save()
         }
     }
@@ -89,7 +89,7 @@ class DefaultLocalDataSource: LocalDataSource {
             predicate: #Predicate { $0.year == year && $0.month == month },
             sortBy: [.init(\.launch)]
         )
-        return try context.fetch(descriptor).map { $0.toUptimeRecord() }
+        return try context.fetch(descriptor).map { $0.asUptimeRecord() }
     }
     
     private func getLocalUptimeRecord(id: UUID) throws -> LocalUptimeRecord? {
@@ -100,7 +100,7 @@ class DefaultLocalDataSource: LocalDataSource {
     }
     
     func insertUptimeRecord(_ record: SystemUptimeRecord) throws {
-        context.insert(record.toLocal())
+        context.insert(record.asLocal())
         try context.save()
     }
     
@@ -111,7 +111,7 @@ class DefaultLocalDataSource: LocalDataSource {
             rec.day = record.launch.day
             rec.launch = record.launch
             rec.shutdown = record.shutdown
-            rec.sleepRecords = record.sleepRecords.map { $0.toLocal() }
+            rec.sleepRecords = record.sleepRecords.map { $0.asLocal() }
             try context.save()
         }
     }
@@ -125,20 +125,20 @@ class DefaultLocalDataSource: LocalDataSource {
 }
 
 extension TimeRecord {
-    func toLocal() -> LocalTimeRecord {
+    func asLocal() -> LocalTimeRecord {
         LocalTimeRecord(
             id: self.id,
             year: self.checkIn?.year ?? Date.now.year,
             month: self.checkIn?.month ?? Date.now.month,
             checkIn: self.checkIn,
             checkOut: self.checkOut,
-            breakTimes: self.breakTimes.map { $0.toLocal() }
+            breakTimes: self.breakTimes.map { $0.asLocal() }
         )
     }
 }
 
 extension TimeRecord.BreakTime {
-    func toLocal() -> LocalTimeRecord.BreakTime {
+    func asLocal() -> LocalTimeRecord.BreakTime {
         LocalTimeRecord.BreakTime(
             id: self.id,
             start: self.start,
@@ -148,7 +148,7 @@ extension TimeRecord.BreakTime {
 }
 
 extension SystemUptimeRecord {
-    func toLocal() -> LocalUptimeRecord {
+    func asLocal() -> LocalUptimeRecord {
         LocalUptimeRecord(
             id: self.id,
             year: self.launch.year,
@@ -156,13 +156,13 @@ extension SystemUptimeRecord {
             day: self.launch.day,
             launch: self.launch,
             shutdown: self.shutdown,
-            sleepRecords: self.sleepRecords.map { $0.toLocal() }
+            sleepRecords: self.sleepRecords.map { $0.asLocal() }
         )
     }
 }
 
 extension SystemUptimeRecord.SleepRecord {
-    func toLocal() -> LocalUptimeRecord.SleepRecord {
+    func asLocal() -> LocalUptimeRecord.SleepRecord {
         LocalUptimeRecord.SleepRecord(
             id: self.id,
             start: self.start,
@@ -172,20 +172,20 @@ extension SystemUptimeRecord.SleepRecord {
 }
 
 extension LocalTimeRecord {
-    func toTimeRecord() -> TimeRecord {
+    func asTimeRecord() -> TimeRecord {
         TimeRecord(
             id: self.id,
             checkIn: self.checkIn,
             checkOut: self.checkOut,
             breakTimes: self.breakTimes
                 .sorted { $0.start ?? .distantPast < $1.start ?? .distantPast }
-                .map { $0.toBreakTime() }
+                .map { $0.asBreakTime() }
         )
     }
 }
 
 extension LocalTimeRecord.BreakTime {
-    func toBreakTime() -> TimeRecord.BreakTime {
+    func asBreakTime() -> TimeRecord.BreakTime {
         TimeRecord.BreakTime(
             id: self.id,
             start: self.start,
@@ -195,20 +195,20 @@ extension LocalTimeRecord.BreakTime {
 }
 
 extension LocalUptimeRecord {
-    func toUptimeRecord() -> SystemUptimeRecord {
+    func asUptimeRecord() -> SystemUptimeRecord {
         SystemUptimeRecord(
             id: self.id,
             launch: self.launch,
             shutdown: self.shutdown,
             sleepRecords: self.sleepRecords
                 .sorted { $0.start < $1.start }
-                .map { $0.toSleepRecord() }
+                .map { $0.asSleepRecord() }
         )
     }
 }
 
 extension LocalUptimeRecord.SleepRecord {
-    func toSleepRecord() -> SystemUptimeRecord.SleepRecord {
+    func asSleepRecord() -> SystemUptimeRecord.SleepRecord {
         SystemUptimeRecord.SleepRecord(
             id: self.id,
             start: self.start,

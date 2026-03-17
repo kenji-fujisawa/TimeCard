@@ -95,7 +95,7 @@ struct ExportPDFView: View {
 }
 
 private struct PDFView: View {
-    var viewModel: CalendarViewModel
+    let viewModel: CalendarViewModel
     @State private var recordToEdit: CalendarViewModel.CalendarRecord?
     
     var body: some View {

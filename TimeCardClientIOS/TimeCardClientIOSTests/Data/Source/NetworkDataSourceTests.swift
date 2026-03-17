@@ -60,7 +60,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         let records = try await source.getRecords(year: 2025, month: 12)
         
         #expect(request?.url?.path() == "/timecard/records")
@@ -73,8 +77,6 @@ class NetworkDataSourceTests {
         #expect(records.count == 2)
         
         #expect(records[0].id.uuidString == "1B97D98D-A71E-4E57-B631-20F9AD492624")
-        #expect(records[0].year == 2025)
-        #expect(records[0].month == 12)
         #expect(formatter.string(for: records[0].checkIn) == "2025-12-01 09:48")
         #expect(formatter.string(for: records[0].checkOut) == "2025-12-01 19:20")
         #expect(records[0].breakTimes.count == 1)
@@ -83,8 +85,6 @@ class NetworkDataSourceTests {
         #expect(formatter.string(for: records[0].breakTimes[0].end) == "2025-12-01 13:22")
         
         #expect(records[1].id.uuidString == "4D1A3B51-D16F-486A-93FC-85C231DDACAD")
-        #expect(records[1].year == 2025)
-        #expect(records[1].month == 12)
         #expect(formatter.string(for: records[1].checkIn) == "2025-12-02 09:37")
         #expect(formatter.string(for: records[1].checkOut) == "2025-12-02 18:51")
         #expect(records[1].breakTimes.count == 1)
@@ -98,7 +98,11 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.getRecords(year: 2025, month: 12)
         }
@@ -114,9 +118,13 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
-        let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
-        let response = try await source.insertRecord(record: record)
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
+        let record = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
+        let response = try await source.insertRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records")
         #expect(request?.httpMethod == "POST")
@@ -125,8 +133,6 @@ class NetworkDataSourceTests {
         decoder.dateDecodingStrategy = .iso8601
         let rec = try? decoder.decode(TimeRecord.self, from: requestBody ?? Data())
         #expect(rec?.id == record.id)
-        #expect(rec?.year == record.year)
-        #expect(rec?.month == record.month)
         #expect(rec?.checkIn?.ISO8601Format() == record.checkIn?.ISO8601Format())
         #expect(rec?.checkOut?.ISO8601Format() == record.checkOut?.ISO8601Format())
         #expect(rec?.breakTimes == record.breakTimes)
@@ -135,8 +141,6 @@ class NetworkDataSourceTests {
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         
         #expect(response.id.uuidString == "1B97D98D-A71E-4E57-B631-20F9AD492624")
-        #expect(response.year == 2025)
-        #expect(response.month == 12)
         #expect(formatter.string(for: response.checkIn) == "2025-12-01 09:48")
         #expect(formatter.string(for: response.checkOut) == "2025-12-01 19:20")
         #expect(response.breakTimes.count == 1)
@@ -150,10 +154,14 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
-        let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
+        let request = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
-            try await source.insertRecord(record: request)
+            try await source.insertRecord(request)
         }
     }
     
@@ -167,9 +175,13 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
-        let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
-        let response = try await source.updateRecord(record: record)
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
+        let record = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
+        let response = try await source.updateRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records/\(record.id.uuidString)")
         #expect(request?.httpMethod == "PATCH")
@@ -178,8 +190,6 @@ class NetworkDataSourceTests {
         decoder.dateDecodingStrategy = .iso8601
         let rec = try? decoder.decode(TimeRecord.self, from: requestBody ?? Data())
         #expect(rec?.id == record.id)
-        #expect(rec?.year == record.year)
-        #expect(rec?.month == record.month)
         #expect(rec?.checkIn?.ISO8601Format() == record.checkIn?.ISO8601Format())
         #expect(rec?.checkOut?.ISO8601Format() == record.checkOut?.ISO8601Format())
         #expect(rec?.breakTimes == record.breakTimes)
@@ -188,8 +198,6 @@ class NetworkDataSourceTests {
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         
         #expect(response.id.uuidString == "1B97D98D-A71E-4E57-B631-20F9AD492624")
-        #expect(response.year == 2025)
-        #expect(response.month == 12)
         #expect(formatter.string(for: response.checkIn) == "2025-12-01 09:48")
         #expect(formatter.string(for: response.checkOut) == "2025-12-01 19:20")
         #expect(response.breakTimes.count == 1)
@@ -203,10 +211,14 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
-        let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
+        let request = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
-            try await source.updateRecord(record: request)
+            try await source.updateRecord(request)
         }
     }
     
@@ -218,9 +230,13 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: self.responseBody.data(using: .utf8) ?? Data(), statusCode: 200, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
-        let record = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
-        try await source.deleteRecord(record: record)
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
+        let record = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
+        try await source.deleteRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records/\(record.id.uuidString)")
         #expect(request?.httpMethod == "DELETE")
@@ -231,10 +247,14 @@ class NetworkDataSourceTests {
             return HTTPStubsResponse(data: Data(), statusCode: 404, headers: nil)
         }
         
-        let source = DefaultNetworkDataSource()
-        let request = TimeRecord(id: UUID(), year: Date.now.year, month: Date.now.month, checkIn: .now, checkOut: .now, breakTimes: [])
+        guard let url = URL(string: "http://192.168.4.33:8080") else {
+            Issue.record()
+            return
+        }
+        let source = DefaultNetworkDataSource(url)
+        let request = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
-            try await source.deleteRecord(record: request)
+            try await source.deleteRecord(request)
         }
     }
 }

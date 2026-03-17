@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MonthSelectorView: View {
-    @Binding var now: Date
+    @Binding var date: Date
     
     var body: some View {
         HStack {
@@ -18,7 +18,7 @@ struct MonthSelectorView: View {
             .labelStyle(.iconOnly)
             .accessibilityIdentifier("button_prev")
             
-            Text(now, format: .dateTime.year().month())
+            Text(date, format: .dateTime.year().month())
                 .font(.title)
                 .bold()
                 .environment(\.locale, Locale(identifier: "ja_JP"))
@@ -33,15 +33,15 @@ struct MonthSelectorView: View {
     }
     
     private func refresh(addMonths: Int) {
-        if let date = Calendar.current.date(from: DateComponents(year: now.year, month: now.month + addMonths)) {
+        if let date = Calendar.current.date(from: DateComponents(year: date.year, month: date.month + addMonths)) {
             withAnimation {
-                now = date
+                self.date = date
             }
         }
     }
 }
 
 #Preview {
-    @Previewable @State var now = Date.now
-    MonthSelectorView(now: $now)
+    @Previewable @State var date = Date.now
+    MonthSelectorView(date: $date)
 }

@@ -7,22 +7,23 @@
 
 import SwiftUI
 
-class ToastViewModel: ObservableObject {
-    @Published var isPresented: Bool = false
-    @Published var message: String = ""
+@Observable
+class ToastViewModel {
+    var isPresented: Bool = false
+    var message: String = ""
 }
 
 struct ToastView: View {
-    @ObservedObject var model: ToastViewModel
+    let viewModel: ToastViewModel
     
     var body: some View {
         VStack {
-            if model.isPresented {
+            if viewModel.isPresented {
                 Spacer()
                 HStack {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.red)
-                    Text(model.message)
+                    Text(viewModel.message)
                         .accessibilityIdentifier("text_message")
                 }
                 .frame(maxWidth: .infinity)
@@ -32,7 +33,7 @@ struct ToastView: View {
                 .padding()
             }
         }
-        .onChange(of: model.isPresented) { _, newValue in
+        .onChange(of: viewModel.isPresented) { _, newValue in
             if newValue == false {
                 return
             }
@@ -40,7 +41,7 @@ struct ToastView: View {
             Task {
                 try? await Task.sleep(for: .seconds(2))
                 withAnimation {
-                    model.isPresented = false
+                    viewModel.isPresented = false
                 }
             }
         }
@@ -48,8 +49,8 @@ struct ToastView: View {
 }
 
 #Preview {
-    let model = ToastViewModel()
-    model.isPresented = true
-    model.message = "test"
-    return ToastView(model: model)
+    let viewModel = ToastViewModel()
+    viewModel.isPresented = true
+    viewModel.message = "test"
+    return ToastView(viewModel: viewModel)
 }
