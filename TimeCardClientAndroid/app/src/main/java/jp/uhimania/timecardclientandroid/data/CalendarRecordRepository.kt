@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 interface CalendarRecordRepository {
-    fun getRecords(year: Int, month: Int): Flow<List<CalendarRecord>>
+    fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>>
 
     suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord)
 }
@@ -25,7 +25,7 @@ class DefaultCalendarRecordRepository(
     private val localDataSource: LocalDataSource,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CalendarRecordRepository {
-    override fun getRecords(year: Int, month: Int): Flow<List<CalendarRecord>> {
+    override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
         return localDataSource.getRecords(year, month)
             .map { it.map { entry -> entry.toTimeRecord() } }
             .map {

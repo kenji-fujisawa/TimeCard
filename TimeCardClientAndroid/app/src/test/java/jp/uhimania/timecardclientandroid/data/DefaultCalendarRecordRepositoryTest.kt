@@ -19,7 +19,7 @@ class DefaultCalendarRecordRepositoryTest {
         val network = FakeNetworkDataSource()
         val local = FakeLocalDataSource()
         val repository = DefaultCalendarRecordRepository(network, local)
-        val records = repository.getRecords(2025, 12).first()
+        val records = repository.getRecordsStream(2025, 12).first()
         assertEquals(31, records.count())
 
         for (i in 0..<31) {

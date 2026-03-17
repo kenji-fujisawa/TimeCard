@@ -144,7 +144,7 @@ private fun TimeCardViewPreview() {
 }
 
 private class FakeCalendarRecordRepository : CalendarRecordRepository {
-    override fun getRecords(year: Int, month: Int): Flow<List<CalendarRecord>> {
+    override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
         val records = Calendar.getInstance().datesOf(year, month).map {
             CalendarRecord(it, listOf())
         }

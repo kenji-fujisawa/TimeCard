@@ -40,7 +40,7 @@ class CalendarViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _records = _date
-        .flatMapLatest { calendarRecordRepository.getRecords(it.year(), it.month()) }
+        .flatMapLatest { calendarRecordRepository.getRecordsStream(it.year(), it.month()) }
         .onEach { _isLoading.value = false }
 
     val uiState = combine(_date, _isLoading, _records, _message) { date, loading, recs, msg ->
