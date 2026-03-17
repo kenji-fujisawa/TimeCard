@@ -39,6 +39,7 @@ struct CalendarDetailView: View {
                         viewModel.updateRecord()
                     }
                     .disabled(!viewModel.isValid())
+                    .accessibilityIdentifier("button_save")
                 }
             }
         }
