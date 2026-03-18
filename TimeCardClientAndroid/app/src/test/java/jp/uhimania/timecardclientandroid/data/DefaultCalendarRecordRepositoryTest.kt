@@ -49,7 +49,7 @@ class DefaultCalendarRecordRepositoryTest {
         assertEquals(2025, network.getRecordsYear)
         assertEquals(12, network.getRecordsMonth)
 
-        val recs = local.getRecords(2025, 12).first()
+        val recs = local.observeRecords(2025, 12).first()
         assertEquals(3, local.insertedTimeRecords.count())
         assertEquals(recs.keys.toList()[0], local.insertedTimeRecords[0])
         assertEquals(recs.keys.toList()[1], local.insertedTimeRecords[1])
@@ -222,7 +222,7 @@ class FakeLocalDataSource: LocalDataSource {
         )
     )
 
-    override fun getRecords(year: Int, month: Int): Flow<Map<LocalTimeRecord, List<LocalBreakTime>>> {
+    override fun observeRecords(year: Int, month: Int): Flow<Map<LocalTimeRecord, List<LocalBreakTime>>> {
         val records = mapOf(
             LocalTimeRecord(
                 id = records[0].id,
@@ -279,8 +279,8 @@ class FakeLocalDataSource: LocalDataSource {
         deleteMonth = month
     }
 
-    override fun getTimeRecords(): Flow<List<LocalTimeRecord>> { return flowOf() }
-    override fun getBreakTimes(): Flow<List<LocalBreakTime>> { return flowOf() }
+    override fun observeTimeRecords(): Flow<List<LocalTimeRecord>> { return flowOf() }
+    override fun observeBreakTimes(): Flow<List<LocalBreakTime>> { return flowOf() }
 
     val insertedTimeRecords = mutableListOf<LocalTimeRecord>()
     override suspend fun insert(record: LocalTimeRecord) {

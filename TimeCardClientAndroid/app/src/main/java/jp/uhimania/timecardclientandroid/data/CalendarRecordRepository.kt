@@ -26,7 +26,7 @@ class DefaultCalendarRecordRepository(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CalendarRecordRepository {
     override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
-        return localDataSource.getRecords(year, month)
+        return localDataSource.observeRecords(year, month)
             .map { it.map { entry -> entry.asTimeRecord() } }
             .map {
                 val records = it.groupBy { rec -> rec.checkIn?.day() }

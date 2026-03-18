@@ -25,16 +25,16 @@ interface LocalDataSource {
         AND                 t.month = :month
         ORDER BY            t.checkIn, b.start
     """)
-    fun getRecords(year: Int, month: Int): Flow<Map<LocalTimeRecord, List<LocalBreakTime>>>
+    fun observeRecords(year: Int, month: Int): Flow<Map<LocalTimeRecord, List<LocalBreakTime>>>
 
     @Query("DELETE FROM time_records WHERE year = :year AND month = :month")
     fun deleteRecords(year: Int, month: Int)
 
     @Query("SELECT * FROM time_records ORDER BY checkIn")
-    fun getTimeRecords(): Flow<List<LocalTimeRecord>>
+    fun observeTimeRecords(): Flow<List<LocalTimeRecord>>
 
     @Query("SELECT * FROM break_times ORDER BY start")
-    fun getBreakTimes(): Flow<List<LocalBreakTime>>
+    fun observeBreakTimes(): Flow<List<LocalBreakTime>>
 
     @Insert suspend fun insert(record: LocalTimeRecord)
     @Insert suspend fun insert(breakTime: LocalBreakTime)
