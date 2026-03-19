@@ -84,13 +84,13 @@ class LocalDataSourceTest {
         records.forEach { dataSource.insert(it) }
         breakTimes.forEach { dataSource.insert(it) }
 
-        val recs = dataSource.observeTimeRecords().first()
+        val recs = dataSource.getTimeRecords()
         assertEquals(3, recs.count())
         assertEquals(records[2], recs[0])
         assertEquals(records[0], recs[1])
         assertEquals(records[1], recs[2])
 
-        val breaks = dataSource.observeBreakTimes().first()
+        val breaks = dataSource.getBreakTimes()
         assertEquals(3, breaks.count())
         assertEquals(breakTimes[1], breaks[0])
         assertEquals(breakTimes[2], breaks[1])
@@ -108,13 +108,13 @@ class LocalDataSourceTest {
         val breakTime = breakTimes[0].copy(start = formatter.parse("2025-12-22 11:58:14"))
         dataSource.update(breakTime)
 
-        val recs = dataSource.observeTimeRecords().first()
+        val recs = dataSource.getTimeRecords()
         assertEquals(3, recs.count())
         assertEquals(records[2], recs[0])
         assertEquals(record, recs[1])
         assertEquals(records[1], recs[2])
 
-        val breaks = dataSource.observeBreakTimes().first()
+        val breaks = dataSource.getBreakTimes()
         assertEquals(3, breaks.count())
         assertEquals(breakTimes[1], breaks[0])
         assertEquals(breakTimes[2], breaks[1])
@@ -129,12 +129,12 @@ class LocalDataSourceTest {
         dataSource.delete(records[0])
         dataSource.delete(breakTimes[1])
 
-        val recs = dataSource.observeTimeRecords().first()
+        val recs = dataSource.getTimeRecords()
         assertEquals(2, recs.count())
         assertEquals(records[2], recs[0])
         assertEquals(records[1], recs[1])
 
-        val breaks = dataSource.observeBreakTimes().first()
+        val breaks = dataSource.getBreakTimes()
         assertEquals(1, breaks.count())
         assertEquals(breakTimes[2], breaks[0])
     }
@@ -173,11 +173,11 @@ class LocalDataSourceTest {
 
         dataSource.deleteRecords(2025, 12)
 
-        val recs = dataSource.observeTimeRecords().first()
+        val recs = dataSource.getTimeRecords()
         assertEquals(1, recs.count())
         assertEquals(records[2], recs[0])
 
-        val breaks = dataSource.observeBreakTimes().first()
+        val breaks = dataSource.getBreakTimes()
         assertEquals(2, breaks.count())
         assertEquals(breakTimes[1], breaks[0])
         assertEquals(breakTimes[2], breaks[1])

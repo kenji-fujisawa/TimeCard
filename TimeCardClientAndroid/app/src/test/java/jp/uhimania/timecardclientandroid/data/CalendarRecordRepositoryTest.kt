@@ -272,6 +272,8 @@ class FakeLocalDataSource: LocalDataSource {
         return flowOf(records)
     }
 
+    override suspend fun getRecords(year: Int, month: Int): Map<LocalTimeRecord, List<LocalBreakTime>> { return mapOf() }
+
     var deleteYear: Int = 0
     var deleteMonth: Int = 0
     override fun deleteRecords(year: Int, month: Int) {
@@ -279,8 +281,8 @@ class FakeLocalDataSource: LocalDataSource {
         deleteMonth = month
     }
 
-    override fun observeTimeRecords(): Flow<List<LocalTimeRecord>> { return flowOf() }
-    override fun observeBreakTimes(): Flow<List<LocalBreakTime>> { return flowOf() }
+    override suspend fun getTimeRecords(): List<LocalTimeRecord> { return listOf() }
+    override suspend fun getBreakTimes(): List<LocalBreakTime> { return listOf() }
 
     val insertedTimeRecords = mutableListOf<LocalTimeRecord>()
     override suspend fun insert(record: LocalTimeRecord) {

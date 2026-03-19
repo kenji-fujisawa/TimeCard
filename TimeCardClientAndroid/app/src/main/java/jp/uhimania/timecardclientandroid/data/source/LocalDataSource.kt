@@ -31,10 +31,10 @@ interface LocalDataSource {
     fun deleteRecords(year: Int, month: Int)
 
     @Query("SELECT * FROM time_records ORDER BY checkIn")
-    fun observeTimeRecords(): Flow<List<LocalTimeRecord>>
+    suspend fun getTimeRecords(): List<LocalTimeRecord>
 
     @Query("SELECT * FROM break_times ORDER BY start")
-    fun observeBreakTimes(): Flow<List<LocalBreakTime>>
+    suspend fun getBreakTimes(): List<LocalBreakTime>
 
     @Insert suspend fun insert(record: LocalTimeRecord)
     @Insert suspend fun insert(breakTime: LocalBreakTime)
