@@ -13,7 +13,7 @@ import retrofit2.HttpException
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class RetrofitNetworkDataSourceTest {
+class NetworkDataSourceTest {
     private lateinit var mockServer: MockWebServer
 
     private val responseBody = """

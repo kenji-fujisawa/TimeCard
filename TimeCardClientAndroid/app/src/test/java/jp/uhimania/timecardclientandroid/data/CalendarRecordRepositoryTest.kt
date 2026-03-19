@@ -13,7 +13,7 @@ import org.junit.Test
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-class DefaultCalendarRecordRepositoryTest {
+class CalendarRecordRepositoryTest {
     @Test
     fun testGetRecords() = runTest {
         val network = FakeNetworkDataSource()
