@@ -12,12 +12,15 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
 
 class CalendarRecordRepositoryTest {
     @Test
     fun testGetRecords() = runTest {
         val network = FakeNetworkDataSource()
         val local = FakeLocalDataSource()
+        local.initForGet()
+
         val repository = DefaultCalendarRecordRepository(network, local)
         val records = repository.getRecordsStream(2025, 12).first()
         assertEquals(31, records.count())
@@ -63,49 +66,16 @@ class CalendarRecordRepositoryTest {
 
     @Test
     fun testUpdateRecord() = runTest {
-        val records = Calendar.getInstance().datesOf(2025, 12).map {
-            CalendarRecord(
-                date = it,
-                records = listOf(
-                    TimeRecord(
-                        checkIn = it,
-                        checkOut = it,
-                        breakTimes = listOf(
-                            BreakTime(
-                                start = it,
-                                end = it
-                            )
-                        )
-                    ),
-                    TimeRecord(
-                        checkIn = it,
-                        checkOut = it,
-                        breakTimes = listOf(
-                            BreakTime(
-                                start = it,
-                                end = it
-                            )
-                        )
-                    ),
-                    TimeRecord(
-                        checkIn = it,
-                        checkOut = it,
-                        breakTimes = listOf(
-                            BreakTime(
-                                start = it,
-                                end = it
-                            )
-                        )
-                    )
-                )
-            )
-        }
+        val network = FakeNetworkDataSource()
+        val local = FakeLocalDataSource()
+        local.initForUpdate()
+
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
         val record = CalendarRecord(
-            date = records[0].date,
+            date = formatter.parse("2025-12-01 00:00:00") ?: Date(),
             records = listOf(
-                records[0].records[1],
-                records[0].records[2].copy(
+                local.records[1],
+                local.records[2].copy(
                     checkIn = formatter.parse("2025-12-01 12:00:00"),
                     checkOut = formatter.parse("2025-12-01 13:00:00")
                 ),
@@ -126,17 +96,15 @@ class CalendarRecordRepositoryTest {
             )
         )
 
-        val network = FakeNetworkDataSource()
-        val local = FakeLocalDataSource()
         val repository = DefaultCalendarRecordRepository(network, local)
-        repository.updateRecord(records, record)
+        repository.updateRecord(record)
 
         assertEquals(1, network.inserted.count())
         assertEquals(record.records[2], network.inserted[0])
         assertEquals(1, network.updated.count())
         assertEquals(record.records[1], network.updated[0])
         assertEquals(1, network.deleted.count())
-        assertEquals(records[0].records[0], network.deleted[0])
+        assertEquals(local.records[0], network.deleted[0])
 
         assertEquals(2, local.insertedTimeRecords.count())
         assertEquals(record.records[2].id.reversed(), local.insertedTimeRecords[0].id)
@@ -149,7 +117,7 @@ class CalendarRecordRepositoryTest {
         assertEquals(0, local.updatedBreakTimes.count())
         assertEquals(2, local.deletedTimeRecords.count())
         assertEquals(record.records[1].id, local.deletedTimeRecords[0].id)
-        assertEquals(records[0].records[0].id, local.deletedTimeRecords[1].id)
+        assertEquals(local.records[0].id, local.deletedTimeRecords[1].id)
         assertEquals(0, local.deletedBreakTimes.count())
     }
 }
@@ -160,7 +128,10 @@ class FakeNetworkDataSource : NetworkDataSource {
     override suspend fun getRecords(year: Int, month: Int): List<TimeRecord> {
         getRecordsYear = year
         getRecordsMonth = month
-        return FakeLocalDataSource().records
+        
+        val local = FakeLocalDataSource()
+        local.initForGet()
+        return local.records
     }
 
     val inserted = mutableListOf<TimeRecord>()
@@ -184,43 +155,89 @@ class FakeNetworkDataSource : NetworkDataSource {
 
 class FakeLocalDataSource: LocalDataSource {
     private val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-    val records = listOf(
-        TimeRecord(
-            id = "1",
-            checkIn = formatter.parse("2025-12-04 09:00:00"),
-            checkOut = formatter.parse("2025-12-04 19:00:00"),
-            breakTimes = listOf(
-                BreakTime(
-                    id = "1_1",
-                    start = formatter.parse("2025-12-04 12:00:00"),
-                    end = formatter.parse("2025-12-04 12:45:00")
-                ),
-                BreakTime(
-                    id = "1_2",
-                    start = formatter.parse("2025-12-04 17:30:00"),
-                    end = formatter.parse("2025-12-04 18:00:00"),
+    var records: List<TimeRecord> = listOf()
+
+    fun initForGet() {
+        records = listOf(
+            TimeRecord(
+                id = "1",
+                checkIn = formatter.parse("2025-12-04 09:00:00"),
+                checkOut = formatter.parse("2025-12-04 19:00:00"),
+                breakTimes = listOf(
+                    BreakTime(
+                        id = "1_1",
+                        start = formatter.parse("2025-12-04 12:00:00"),
+                        end = formatter.parse("2025-12-04 12:45:00")
+                    ),
+                    BreakTime(
+                        id = "1_2",
+                        start = formatter.parse("2025-12-04 17:30:00"),
+                        end = formatter.parse("2025-12-04 18:00:00"),
+                    )
                 )
-            )
-        ),
-        TimeRecord(
-            id = "2",
-            checkIn = formatter.parse("2025-12-04 22:00:00"),
-            checkOut = formatter.parse("2025-12-05 01:00:00"),
-            breakTimes = listOf(
-                BreakTime(
-                    id = "2_1",
-                    start = formatter.parse("2025-12-04 23:00:00"),
-                    end = formatter.parse("2025-12-05 00:30:00")
+            ),
+            TimeRecord(
+                id = "2",
+                checkIn = formatter.parse("2025-12-04 22:00:00"),
+                checkOut = formatter.parse("2025-12-05 01:00:00"),
+                breakTimes = listOf(
+                    BreakTime(
+                        id = "2_1",
+                        start = formatter.parse("2025-12-04 23:00:00"),
+                        end = formatter.parse("2025-12-05 00:30:00")
+                    )
                 )
+            ),
+            TimeRecord(
+                id = "3",
+                checkIn = formatter.parse("2025-12-05 08:30:00"),
+                checkOut = formatter.parse("2025-12-05 17:30:00"),
+                breakTimes = listOf()
             )
-        ),
-        TimeRecord(
-            id = "3",
-            checkIn = formatter.parse("2025-12-05 08:30:00"),
-            checkOut = formatter.parse("2025-12-05 17:30:00"),
-            breakTimes = listOf()
         )
-    )
+    }
+
+    fun initForUpdate() {
+        val date = formatter.parse("2025-12-01 00:00:00")
+        records = listOf(
+            TimeRecord(
+                id = "1",
+                checkIn = date,
+                checkOut = date,
+                breakTimes = listOf(
+                    BreakTime(
+                        id = "1_1",
+                        start = date,
+                        end = date
+                    )
+                )
+            ),
+            TimeRecord(
+                id = "2",
+                checkIn = date,
+                checkOut = date,
+                breakTimes = listOf(
+                    BreakTime(
+                        id = "2_1",
+                        start = date,
+                        end = date
+                    )
+                )
+            ),
+            TimeRecord(
+                id = "3",
+                checkIn = date,
+                checkOut = date,
+                breakTimes = listOf(
+                    BreakTime(
+                        id = "3_1",
+                        start = date,
+                        end = date
+                    )
+                )
+            ),
+        )
+    }
 
     override fun observeRecords(year: Int, month: Int): Flow<Map<LocalTimeRecord, List<LocalBreakTime>>> {
         val records = mapOf(
@@ -272,7 +289,54 @@ class FakeLocalDataSource: LocalDataSource {
         return flowOf(records)
     }
 
-    override suspend fun getRecords(year: Int, month: Int): Map<LocalTimeRecord, List<LocalBreakTime>> { return mapOf() }
+    override suspend fun getRecords(year: Int, month: Int): Map<LocalTimeRecord, List<LocalBreakTime>> {
+        return mapOf(
+            LocalTimeRecord(
+                id = records[0].id,
+                year = 2025,
+                month = 12,
+                checkIn = records[0].checkIn,
+                checkOut = records[0].checkOut
+            ) to listOf(
+                LocalBreakTime(
+                    id = records[0].breakTimes[0].id,
+                    start = records[0].breakTimes[0].start,
+                    end = records[0].breakTimes[0].end,
+                    timeRecordId = records[0].id
+                )
+            ),
+
+            LocalTimeRecord(
+                id = records[1].id,
+                year = 2025,
+                month = 12,
+                checkIn = records[1].checkIn,
+                checkOut = records[1].checkOut
+            ) to listOf(
+                LocalBreakTime(
+                    id = records[1].breakTimes[0].id,
+                    start = records[1].breakTimes[0].start,
+                    end = records[1].breakTimes[0].end,
+                    timeRecordId = records[1].id
+                )
+            ),
+
+            LocalTimeRecord(
+                id = records[2].id,
+                year = 2025,
+                month = 12,
+                checkIn = records[2].checkIn,
+                checkOut = records[2].checkOut
+            ) to listOf(
+                LocalBreakTime(
+                    id = records[2].breakTimes[0].id,
+                    start = records[2].breakTimes[0].start,
+                    end = records[2].breakTimes[0].end,
+                    timeRecordId = records[2].id
+                )
+            )
+        )
+    }
 
     var deleteYear: Int = 0
     var deleteMonth: Int = 0

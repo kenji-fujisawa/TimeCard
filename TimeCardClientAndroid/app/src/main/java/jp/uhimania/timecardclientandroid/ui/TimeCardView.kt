@@ -151,7 +151,7 @@ private class FakeCalendarRecordRepository : CalendarRecordRepository {
         return flowOf(records)
     }
 
-    override suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord) {}
+    override suspend fun updateRecord(record: CalendarRecord) {}
 }
 
 @Preview(showBackground = true)

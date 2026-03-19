@@ -17,7 +17,7 @@ import java.util.Calendar
 interface CalendarRecordRepository {
     fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>>
 
-    suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord)
+    suspend fun updateRecord(record: CalendarRecord)
 }
 
 class DefaultCalendarRecordRepository(
@@ -57,20 +57,22 @@ class DefaultCalendarRecordRepository(
         }
     }
 
-    override suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord) {
-        val before = source.find { it.date == record.date }
-        if (before == null) {
-            return
-        }
+    override suspend fun updateRecord(record: CalendarRecord) {
+        val year = record.date.year()
+        val month = record.date.month()
+        val day = record.date.day()
+        val original = localDataSource.getRecords(year, month)
+            .map { it.asTimeRecord() }
+            .filter { it.checkIn?.day() == day }
 
         val inserted = record.records.filter { item ->
-            before.records.find { item.id == it.id } == null
+            original.find { item.id == it.id } == null
         }
         val updated = record.records.filter { item ->
-            val rec = before.records.find { item.id == it.id }
+            val rec = original.find { item.id == it.id }
             rec != null && rec != item
         }
-        val deleted = before.records.filter { item ->
+        val deleted = original.filter { item ->
             record.records.find { item.id == it.id } == null
         }
 

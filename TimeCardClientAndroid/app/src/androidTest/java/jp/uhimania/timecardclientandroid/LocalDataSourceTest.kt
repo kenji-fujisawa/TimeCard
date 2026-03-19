@@ -140,7 +140,7 @@ class LocalDataSourceTest {
     }
 
     @Test
-    fun testGetRecords() = runBlocking {
+    fun testObserveRecords() = runBlocking {
         records.forEach { dataSource.insert(it) }
         breakTimes.forEach { dataSource.insert(it) }
 
@@ -155,6 +155,33 @@ class LocalDataSourceTest {
         assertEquals(0, recs[records[1]]?.count())
 
         recs = dataSource.observeRecords(2025, 11).first()
+        assertEquals(1, recs.count())
+
+        assertTrue(recs.keys.contains(records[2]))
+        assertEquals(2, recs[records[2]]?.count())
+        assertEquals(breakTimes[1], recs[records[2]]?.get(0))
+        assertEquals(breakTimes[2], recs[records[2]]?.get(1))
+
+        recs = dataSource.observeRecords(2025, 10).first()
+        assertEquals(0, recs.count())
+    }
+
+    @Test
+    fun testGetRecords() = runBlocking {
+        records.forEach { dataSource.insert(it) }
+        breakTimes.forEach { dataSource.insert(it) }
+
+        var recs = dataSource.getRecords(2025, 12)
+        assertEquals(2, recs.count())
+
+        assertTrue(recs.keys.contains(records[0]))
+        assertEquals(1, recs[records[0]]?.count())
+        assertEquals(breakTimes[0], recs[records[0]]?.get(0))
+
+        assertTrue(recs.keys.contains(records[1]))
+        assertEquals(0, recs[records[1]]?.count())
+
+        recs = dataSource.getRecords(2025, 11)
         assertEquals(1, recs.count())
 
         assertTrue(recs.keys.contains(records[2]))

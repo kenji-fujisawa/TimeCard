@@ -27,6 +27,17 @@ interface LocalDataSource {
     """)
     fun observeRecords(year: Int, month: Int): Flow<Map<LocalTimeRecord, List<LocalBreakTime>>>
 
+    @Query("""
+        SELECT              *
+        FROM                time_records t
+        LEFT OUTER JOIN     break_times b
+        ON                  t.id = b.timeRecordId
+        WHERE               t.year = :year
+        AND                 t.month = :month
+        ORDER BY            t.checkIn, b.start
+    """)
+    suspend fun getRecords(year: Int, month: Int): Map<LocalTimeRecord, List<LocalBreakTime>>
+
     @Query("DELETE FROM time_records WHERE year = :year AND month = :month")
     fun deleteRecords(year: Int, month: Int)
 

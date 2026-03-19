@@ -65,10 +65,7 @@ class CalendarViewModel(
     fun updateRecord(record: CalendarRecord) {
         viewModelScope.launch {
             try {
-                calendarRecordRepository.updateRecord(
-                    source = uiState.value.records,
-                    record = record
-                )
+                calendarRecordRepository.updateRecord(record)
             } catch (_: Exception) {
                 _message.value = R.string.error_update_record_failed
             }
