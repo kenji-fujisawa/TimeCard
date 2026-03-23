@@ -52,6 +52,10 @@ class CalendarDetailViewModel(
         _uiState.update { it.copy(record = record) }
     }
 
+    fun messageShown() {
+        _uiState.update { it.copy(message = null) }
+    }
+
     fun saveChanges() {
         viewModelScope.launch {
             try {

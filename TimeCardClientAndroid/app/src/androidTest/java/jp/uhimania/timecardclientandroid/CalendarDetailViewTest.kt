@@ -117,7 +117,11 @@ class CalendarDetailViewTest {
         }
 
         composeTestRule.onRoot().performTouchInput {
-            swipeUp()
+            swipeUp(
+                startY = 1000f,
+                endY = 0f,
+                durationMillis = 100
+            )
         }
         composeTestRule.onNodeWithText("勤怠を追加").performClick()
 
@@ -161,7 +165,11 @@ class CalendarDetailViewTest {
         assertEquals(record.records[1], result1.records[1])
 
         composeTestRule.onRoot().performTouchInput {
-            swipeUp()
+            swipeUp(
+                startY = 1000f,
+                endY = 0f,
+                durationMillis = 100
+            )
         }
         composeTestRule.onAllNodesWithText("休憩を追加")[1].performClick()
 
@@ -439,7 +447,11 @@ class CalendarDetailViewTest {
         assertEquals(record.records[1], result3.records[1])
 
         composeTestRule.onRoot().performTouchInput {
-            swipeUp()
+            swipeUp(
+                startY = 1000f,
+                endY = 0f,
+                durationMillis = 100
+            )
         }
         composeTestRule.onNodeWithText("00:27")
             .performTouchInput {

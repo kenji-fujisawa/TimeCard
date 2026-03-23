@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,12 +18,17 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,56 +55,83 @@ fun CalendarDetailView(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CalendarDetailViewModel = viewModel(factory = CalendarDetailViewModel.Factory),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDelete by rememberSaveable { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Header(
-            date = uiState.record.date,
-            showDelete = showDelete,
-            onBack = {
-                viewModel.saveChanges()
-                onBack()
-            },
-            onEdit = { showDelete = !showDelete }
-        )
-
-        LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
-            items(uiState.record.records) {
-                TimeRecordView(
-                    record = it,
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        if (uiState.isLoading) {
+            LoadingView(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            )
+        } else {
+            Column(
+                modifier = Modifier.padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Header(
+                    date = uiState.record.date,
                     showDelete = showDelete,
-                    onRecordChange = { timeRecord ->
-                        val recs = uiState.record.records.toMutableList()
-                        val index = recs.indexOfFirst { rec -> rec.id == timeRecord.id }
-                        recs[index] = timeRecord
-                        viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
+                    onBack = {
+                        viewModel.saveChanges()
+                        onBack()
                     },
-                    onDeleteRecord = { timeRecord ->
-                        val recs = uiState.record.records.toMutableList()
-                        recs.remove(timeRecord)
-                        viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
-                    }
+                    onEdit = { showDelete = !showDelete }
                 )
+
+                LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+                    items(uiState.record.records) {
+                        TimeRecordView(
+                            record = it,
+                            showDelete = showDelete,
+                            onRecordChange = { timeRecord ->
+                                val recs = uiState.record.records.toMutableList()
+                                val index = recs.indexOfFirst { rec -> rec.id == timeRecord.id }
+                                recs[index] = timeRecord
+                                viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
+                            },
+                            onDeleteRecord = { timeRecord ->
+                                val recs = uiState.record.records.toMutableList()
+                                recs.remove(timeRecord)
+                                viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
+                            }
+                        )
+                    }
+
+                    item {
+                        TextButton(
+                            onClick = {
+                                val rec = TimeRecord(
+                                    checkIn = uiState.record.date,
+                                    checkOut = uiState.record.date,
+                                    breakTimes = listOf()
+                                )
+                                val recs = uiState.record.records.plus(rec)
+                                viewModel.updateRecord(uiState.record.copy(records = recs))
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = Icons.Default.Add.name
+                            )
+                            Text(stringResource(R.string.caption_add_time_record))
+                        }
+                    }
+                }
             }
 
-            item {
-                TextButton(
-                    onClick = {
-                        val rec = TimeRecord(checkIn = uiState.record.date, checkOut = uiState.record.date, breakTimes = listOf())
-                        val recs = uiState.record.records.plus(rec)
-                        viewModel.updateRecord(uiState.record.copy(records = recs))
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = Icons.Default.Add.name
-                    )
-                    Text(stringResource(R.string.caption_add_time_record))
+            uiState.message?.let {
+                val message = stringResource(it)
+                LaunchedEffect(snackbarHostState,
+                    viewModel, message) {
+                    snackbarHostState.showSnackbar(message)
+                    viewModel.messageShown()
                 }
             }
         }
