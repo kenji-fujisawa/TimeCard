@@ -20,7 +20,7 @@ fun CalendarView(
     date: Date,
     records: List<CalendarRecord>,
     onDateChange: (Date) -> Unit,
-    onDateSelect: (CalendarRecord) -> Unit,
+    onDateSelect: (Date) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(

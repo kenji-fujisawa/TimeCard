@@ -21,11 +21,12 @@ import jp.uhimania.timecardclientandroid.data.TimeRecord
 import jp.uhimania.timecardclientandroid.data.datesOf
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 import java.util.Calendar
+import java.util.Date
 
 @Composable
 fun CalendarBodyView(
     records: List<CalendarRecord>,
-    onDateSelect: (CalendarRecord) -> Unit,
+    onDateSelect: (Date) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -53,7 +54,7 @@ fun CalendarBodyView(
             CalendarRecordView(
                 record = it,
                 modifier = Modifier.clickable(
-                    onClick = { onDateSelect(it) }
+                    onClick = { onDateSelect(it.date) }
                 )
             )
             HorizontalDivider(

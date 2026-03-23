@@ -1,5 +1,6 @@
 package jp.uhimania.timecardclientandroid.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,21 +31,26 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import jp.uhimania.timecardclientandroid.R
 import jp.uhimania.timecardclientandroid.data.BreakTime
 import jp.uhimania.timecardclientandroid.data.CalendarRecord
+import jp.uhimania.timecardclientandroid.data.CalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.TimeRecord
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.text.SimpleDateFormat
 import java.util.Date
 
 @Composable
 fun CalendarDetailView(
-    record: CalendarRecord,
-    onRecordChange: (CalendarRecord) -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: CalendarDetailViewModel = viewModel(factory = CalendarDetailViewModel.Factory),
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var showDelete by rememberSaveable { mutableStateOf(false) }
 
     Column(
@@ -51,27 +58,30 @@ fun CalendarDetailView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Header(
-            date = record.date,
+            date = uiState.record.date,
             showDelete = showDelete,
-            onBack = onBack,
+            onBack = {
+                viewModel.saveChanges()
+                onBack()
+            },
             onEdit = { showDelete = !showDelete }
         )
 
         LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
-            items(record.records) {
+            items(uiState.record.records) {
                 TimeRecordView(
                     record = it,
                     showDelete = showDelete,
                     onRecordChange = { timeRecord ->
-                        val recs = record.records.toMutableList()
+                        val recs = uiState.record.records.toMutableList()
                         val index = recs.indexOfFirst { rec -> rec.id == timeRecord.id }
                         recs[index] = timeRecord
-                        onRecordChange(record.copy(records = recs.toList()))
+                        viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
                     },
                     onDeleteRecord = { timeRecord ->
-                        val recs = record.records.toMutableList()
+                        val recs = uiState.record.records.toMutableList()
                         recs.remove(timeRecord)
-                        onRecordChange(record.copy(records = recs.toList()))
+                        viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
                     }
                 )
             }
@@ -79,9 +89,9 @@ fun CalendarDetailView(
             item {
                 TextButton(
                     onClick = {
-                        val rec = TimeRecord(checkIn = record.date, checkOut = record.date, breakTimes = listOf())
-                        val recs = record.records.plus(rec)
-                        onRecordChange(record.copy(records = recs))
+                        val rec = TimeRecord(checkIn = uiState.record.date, checkOut = uiState.record.date, breakTimes = listOf())
+                        val recs = uiState.record.records.plus(rec)
+                        viewModel.updateRecord(uiState.record.copy(records = recs))
                     }
                 ) {
                     Icon(
@@ -259,17 +269,31 @@ private fun BreakTimeView(
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 private fun CalendarDetailViewPreview() {
+    class FakeCalendarRecordRepository : CalendarRecordRepository {
+        override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
+            return flowOf()
+        }
+
+        override suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord {
+            val breakTime = BreakTime(start = Date(), end = Date())
+            val timeRecord = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf(breakTime))
+            return CalendarRecord(date = Date(), records = listOf(timeRecord))
+        }
+
+        override suspend fun updateRecord(record: CalendarRecord) {}
+    }
+
     TimeCardClientAndroidTheme {
-        val breakTime = BreakTime(start = Date(), end = Date())
-        val timeRecord = TimeRecord(checkIn = Date(), checkOut = Date(), breakTimes = listOf(breakTime))
-        val record = CalendarRecord(date = Date(), records = listOf(timeRecord))
+        val repository = FakeCalendarRecordRepository()
+        val handle = SavedStateHandle()
+        val viewModel = CalendarDetailViewModel(repository, handle)
         CalendarDetailView(
-            record = record,
-            onRecordChange = {},
-            onBack = {}
+            onBack = {},
+            viewModel = viewModel
         )
     }
 }

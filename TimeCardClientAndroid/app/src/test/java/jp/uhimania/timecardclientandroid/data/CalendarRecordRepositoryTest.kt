@@ -11,12 +11,11 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 
 class CalendarRecordRepositoryTest {
     @Test
-    fun testGetRecords() = runTest {
+    fun testGetRecordsStream() = runTest {
         val network = FakeNetworkDataSource()
         val local = FakeLocalDataSource()
         local.initForGet()
@@ -62,6 +61,35 @@ class CalendarRecordRepositoryTest {
         assertEquals(recs.values.toList()[0][0], local.insertedBreakTimes[0])
         assertEquals(recs.values.toList()[0][1], local.insertedBreakTimes[1])
         assertEquals(recs.values.toList()[1][0], local.insertedBreakTimes[2])
+    }
+
+    @Test
+    fun testGetRecord() = runTest {
+        val network = FakeNetworkDataSource()
+        val local = FakeLocalDataSource()
+        local.initForGet()
+
+        val repository = DefaultCalendarRecordRepository(network, local)
+        var record = repository.getRecord(2025, 12, 4)
+        assertEquals(2025, record.date.year())
+        assertEquals(12, record.date.month())
+        assertEquals(4, record.date.day())
+        assertEquals(2, record.records.count())
+        assertEquals(local.records[0], record.records[0])
+        assertEquals(local.records[1], record.records[1])
+
+        record = repository.getRecord(2025, 12, 5)
+        assertEquals(2025, record.date.year())
+        assertEquals(12, record.date.month())
+        assertEquals(5, record.date.day())
+        assertEquals(1, record.records.count())
+        assertEquals(local.records[2], record.records[0])
+
+        record = repository.getRecord(2025, 12, 6)
+        assertEquals(2025, record.date.year())
+        assertEquals(12, record.date.month())
+        assertEquals(6, record.date.day())
+        assertEquals(0, record.records.count())
     }
 
     @Test
@@ -128,7 +156,7 @@ class FakeNetworkDataSource : NetworkDataSource {
     override suspend fun getRecords(year: Int, month: Int): List<TimeRecord> {
         getRecordsYear = year
         getRecordsMonth = month
-        
+
         val local = FakeLocalDataSource()
         local.initForGet()
         return local.records
@@ -240,102 +268,11 @@ class FakeLocalDataSource: LocalDataSource {
     }
 
     override fun observeRecords(year: Int, month: Int): Flow<Map<LocalTimeRecord, List<LocalBreakTime>>> {
-        val records = mapOf(
-            LocalTimeRecord(
-                id = records[0].id,
-                year = 2025,
-                month = 12,
-                checkIn = records[0].checkIn,
-                checkOut = records[0].checkOut
-            ) to listOf(
-                LocalBreakTime(
-                    id = records[0].breakTimes[0].id,
-                    start = records[0].breakTimes[0].start,
-                    end = records[0].breakTimes[0].end,
-                    timeRecordId = records[0].id
-                ),
-                LocalBreakTime(
-                    id = records[0].breakTimes[1].id,
-                    start = records[0].breakTimes[1].start,
-                    end = records[0].breakTimes[1].end,
-                    timeRecordId = records[0].id
-                )
-            ),
-
-            LocalTimeRecord(
-                id = records[1].id,
-                year = 2025,
-                month = 12,
-                checkIn = records[1].checkIn,
-                checkOut = records[1].checkOut
-            ) to listOf(
-                LocalBreakTime(
-                    id = records[1].breakTimes[0].id,
-                    start = records[1].breakTimes[0].start,
-                    end = records[1].breakTimes[0].end,
-                    timeRecordId = records[1].id
-                )
-            ),
-
-            LocalTimeRecord(
-                id = records[2].id,
-                year = 2025,
-                month = 12,
-                checkIn = records[2].checkIn,
-                checkOut = records[2].checkOut
-            ) to listOf()
-        )
-
-        return flowOf(records)
+        return flowOf(records.asLocal())
     }
 
     override suspend fun getRecords(year: Int, month: Int): Map<LocalTimeRecord, List<LocalBreakTime>> {
-        return mapOf(
-            LocalTimeRecord(
-                id = records[0].id,
-                year = 2025,
-                month = 12,
-                checkIn = records[0].checkIn,
-                checkOut = records[0].checkOut
-            ) to listOf(
-                LocalBreakTime(
-                    id = records[0].breakTimes[0].id,
-                    start = records[0].breakTimes[0].start,
-                    end = records[0].breakTimes[0].end,
-                    timeRecordId = records[0].id
-                )
-            ),
-
-            LocalTimeRecord(
-                id = records[1].id,
-                year = 2025,
-                month = 12,
-                checkIn = records[1].checkIn,
-                checkOut = records[1].checkOut
-            ) to listOf(
-                LocalBreakTime(
-                    id = records[1].breakTimes[0].id,
-                    start = records[1].breakTimes[0].start,
-                    end = records[1].breakTimes[0].end,
-                    timeRecordId = records[1].id
-                )
-            ),
-
-            LocalTimeRecord(
-                id = records[2].id,
-                year = 2025,
-                month = 12,
-                checkIn = records[2].checkIn,
-                checkOut = records[2].checkOut
-            ) to listOf(
-                LocalBreakTime(
-                    id = records[2].breakTimes[0].id,
-                    start = records[2].breakTimes[0].start,
-                    end = records[2].breakTimes[0].end,
-                    timeRecordId = records[2].id
-                )
-            )
-        )
+        return records.asLocal()
     }
 
     var deleteYear: Int = 0
@@ -376,5 +313,24 @@ class FakeLocalDataSource: LocalDataSource {
     val deletedBreakTimes = mutableListOf<LocalBreakTime>()
     override suspend fun delete(breakTime: LocalBreakTime) {
         deletedBreakTimes.add(breakTime)
+    }
+}
+
+fun List<TimeRecord>.asLocal(): Map<LocalTimeRecord, List<LocalBreakTime>> {
+    return this.associate { timeRecord ->
+        LocalTimeRecord(
+            id = timeRecord.id,
+            year = timeRecord.checkIn?.year() ?: 0,
+            month = timeRecord.checkIn?.month() ?: 0,
+            checkIn = timeRecord.checkIn,
+            checkOut = timeRecord.checkOut
+        ) to timeRecord.breakTimes.map { breakTime ->
+            LocalBreakTime(
+                id = breakTime.id,
+                start = breakTime.start,
+                end = breakTime.end,
+                timeRecordId = timeRecord.id
+            )
+        }
     }
 }
