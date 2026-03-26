@@ -22,6 +22,7 @@ import jp.uhimania.timecardclientandroid.data.CalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.TimeRecord
 import jp.uhimania.timecardclientandroid.ui.CalendarDetailView
 import jp.uhimania.timecardclientandroid.ui.CalendarDetailViewModel
+import jp.uhimania.timecardclientandroid.ui.asTimeRecord
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
@@ -125,15 +126,15 @@ class CalendarDetailViewTest {
         }
         composeTestRule.onNodeWithText("勤怠を追加").performClick()
 
-        val result = viewModel.uiState.value.record
+        val result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(3, result.records.count())
-        assertEquals(record.records[0], result.records[0])
-        assertEquals(record.records[1], result.records[1])
-        assertEquals("2025-12-16 12:30:45", formatter.format(result.records[2].checkIn ?: Date()))
-        assertEquals("2025-12-16 12:30:45", formatter.format(result.records[2].checkOut ?: Date()))
-        assertEquals(0, result.records[2].breakTimes.count())
+        assertEquals(3, result.count())
+        assertEquals(record.records[0], result[0])
+        assertEquals(record.records[1], result[1])
+        assertEquals("2025-12-16 12:30:45", formatter.format(result[2].checkIn ?: Date()))
+        assertEquals("2025-12-16 12:30:45", formatter.format(result[2].checkOut ?: Date()))
+        assertEquals(0, result[2].breakTimes.count())
     }
 
     @Test
@@ -150,19 +151,19 @@ class CalendarDetailViewTest {
 
         composeTestRule.onAllNodesWithText("休憩を追加")[0].performClick()
 
-        val result1 = viewModel.uiState.value.record
+        val result1 = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result1.records.count())
-        assertEquals(record.records[0].checkIn, result1.records[0].checkIn)
-        assertEquals(record.records[0].checkOut, result1.records[0].checkOut)
+        assertEquals(2, result1.count())
+        assertEquals(record.records[0].checkIn, result1[0].checkIn)
+        assertEquals(record.records[0].checkOut, result1[0].checkOut)
         assertEquals(2, record.records[0].breakTimes.count())
-        assertEquals(3, result1.records[0].breakTimes.count())
-        assertEquals(record.records[0].breakTimes[0], result1.records[0].breakTimes[0])
-        assertEquals(record.records[0].breakTimes[1], result1.records[0].breakTimes[1])
-        assertEquals("2025-12-16 08:05:12", formatter.format(result1.records[0].breakTimes[2].start ?: Date()))
-        assertEquals("2025-12-16 08:05:12", formatter.format(result1.records[0].breakTimes[2].end ?: Date()))
-        assertEquals(record.records[1], result1.records[1])
+        assertEquals(3, result1[0].breakTimes.count())
+        assertEquals(record.records[0].breakTimes[0], result1[0].breakTimes[0])
+        assertEquals(record.records[0].breakTimes[1], result1[0].breakTimes[1])
+        assertEquals("2025-12-16 08:05:12", formatter.format(result1[0].breakTimes[2].start ?: Date()))
+        assertEquals("2025-12-16 08:05:12", formatter.format(result1[0].breakTimes[2].end ?: Date()))
+        assertEquals(record.records[1], result1[1])
 
         composeTestRule.onRoot().performTouchInput {
             swipeUp(
@@ -173,18 +174,18 @@ class CalendarDetailViewTest {
         }
         composeTestRule.onAllNodesWithText("休憩を追加")[1].performClick()
 
-        val result2 = viewModel.uiState.value.record
+        val result2 = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result2.records.count())
-        assertEquals(result1.records[0], result2.records[0])
-        assertEquals(record.records[1].checkIn, result2.records[1].checkIn)
-        assertEquals(record.records[1].checkOut, result2.records[1].checkOut)
+        assertEquals(2, result2.count())
+        assertEquals(result1[0], result2[0])
+        assertEquals(record.records[1].checkIn, result2[1].checkIn)
+        assertEquals(record.records[1].checkOut, result2[1].checkOut)
         assertEquals(1, record.records[1].breakTimes.count())
-        assertEquals(2, result2.records[1].breakTimes.count())
-        assertEquals(record.records[1].breakTimes[0], result2.records[1].breakTimes[0])
-        assertEquals("2025-12-16 22:30:18", formatter.format(result2.records[1].breakTimes[1].start ?: Date()))
-        assertEquals("2025-12-16 22:30:18", formatter.format(result2.records[1].breakTimes[1].end ?: Date()))
+        assertEquals(2, result2[1].breakTimes.count())
+        assertEquals(record.records[1].breakTimes[0], result2[1].breakTimes[0])
+        assertEquals("2025-12-16 22:30:18", formatter.format(result2[1].breakTimes[1].start ?: Date()))
+        assertEquals("2025-12-16 22:30:18", formatter.format(result2[1].breakTimes[1].end ?: Date()))
     }
 
     @Test
@@ -205,18 +206,18 @@ class CalendarDetailViewTest {
 
         composeTestRule.onAllNodesWithContentDescription(Icons.Default.DoNotDisturbOn.name)[0].performClick()
 
-        var result = viewModel.uiState.value.record
+        var result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(1, result.records.count())
-        assertEquals(record.records[1], result.records[0])
+        assertEquals(1, result.count())
+        assertEquals(record.records[1], result[0])
 
         composeTestRule.onAllNodesWithContentDescription(Icons.Default.DoNotDisturbOn.name)[0].performClick()
 
-        result = viewModel.uiState.value.record
+        result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(0, result.records.count())
+        assertEquals(0, result.count())
     }
 
     @Test
@@ -237,42 +238,42 @@ class CalendarDetailViewTest {
 
         composeTestRule.onAllNodesWithContentDescription(Icons.Default.DoNotDisturbOn.name)[1].performClick()
 
-        var result = viewModel.uiState.value.record
+        var result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result.records.count())
-        assertEquals(record.records[0].checkIn, result.records[0].checkIn)
-        assertEquals(record.records[0].checkOut, result.records[0].checkOut)
-        assertEquals(1, result.records[0].breakTimes.count())
-        assertEquals(record.records[0].breakTimes[1], result.records[0].breakTimes[0])
-        assertEquals(record.records[1], result.records[1])
+        assertEquals(2, result.count())
+        assertEquals(record.records[0].checkIn, result[0].checkIn)
+        assertEquals(record.records[0].checkOut, result[0].checkOut)
+        assertEquals(1, result[0].breakTimes.count())
+        assertEquals(record.records[0].breakTimes[1], result[0].breakTimes[0])
+        assertEquals(record.records[1], result[1])
 
         composeTestRule.onAllNodesWithContentDescription(Icons.Default.DoNotDisturbOn.name)[1].performClick()
 
-        result = viewModel.uiState.value.record
+        result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result.records.count())
-        assertEquals(record.records[0].checkIn, result.records[0].checkIn)
-        assertEquals(record.records[0].checkOut, result.records[0].checkOut)
-        assertEquals(0, result.records[0].breakTimes.count())
-        assertEquals(record.records[1], result.records[1])
+        assertEquals(2, result.count())
+        assertEquals(record.records[0].checkIn, result[0].checkIn)
+        assertEquals(record.records[0].checkOut, result[0].checkOut)
+        assertEquals(0, result[0].breakTimes.count())
+        assertEquals(record.records[1], result[1])
 
         composeTestRule.onRoot().performTouchInput {
             swipeUp()
         }
         composeTestRule.onAllNodesWithContentDescription(Icons.Default.DoNotDisturbOn.name)[2].performClick()
 
-        result = viewModel.uiState.value.record
+        result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result.records.count())
-        assertEquals(record.records[0].checkIn, result.records[0].checkIn)
-        assertEquals(record.records[0].checkOut, result.records[0].checkOut)
-        assertEquals(0, result.records[0].breakTimes.count())
-        assertEquals(record.records[1].checkIn, result.records[1].checkIn)
-        assertEquals(record.records[1].checkOut, result.records[1].checkOut)
-        assertEquals(0, result.records[1].breakTimes.count())
+        assertEquals(2, result.count())
+        assertEquals(record.records[0].checkIn, result[0].checkIn)
+        assertEquals(record.records[0].checkOut, result[0].checkOut)
+        assertEquals(0, result[0].breakTimes.count())
+        assertEquals(record.records[1].checkIn, result[1].checkIn)
+        assertEquals(record.records[1].checkOut, result[1].checkOut)
+        assertEquals(0, result[1].breakTimes.count())
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -298,14 +299,14 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("10 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        var result = viewModel.uiState.value.record
+        var result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result.records.count())
-        assertEquals("2025-12-16 09:10:12", formatter.format(result.records[0].checkIn ?: Date()))
-        assertEquals("2025-12-16 17:32:58", formatter.format(result.records[0].checkOut ?: Date()))
-        assertEquals(record.records[0].breakTimes, result.records[0].breakTimes)
-        assertEquals(record.records[1], result.records[1])
+        assertEquals(2, result.count())
+        assertEquals("2025-12-16 09:10:12", formatter.format(result[0].checkIn ?: Date()))
+        assertEquals("2025-12-16 17:32:58", formatter.format(result[0].checkOut ?: Date()))
+        assertEquals(record.records[0].breakTimes, result[0].breakTimes)
+        assertEquals(record.records[1], result[1])
 
         composeTestRule.onNodeWithText("17:32")
             .performTouchInput {
@@ -317,14 +318,14 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("40 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        result = viewModel.uiState.value.record
+        result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result.records.count())
-        assertEquals("2025-12-16 09:10:12", formatter.format(result.records[0].checkIn ?: Date()))
-        assertEquals("2025-12-16 18:40:58", formatter.format(result.records[0].checkOut ?: Date()))
-        assertEquals(record.records[0].breakTimes, result.records[0].breakTimes)
-        assertEquals(record.records[1], result.records[1])
+        assertEquals(2, result.count())
+        assertEquals("2025-12-16 09:10:12", formatter.format(result[0].checkIn ?: Date()))
+        assertEquals("2025-12-16 18:40:58", formatter.format(result[0].checkOut ?: Date()))
+        assertEquals(record.records[0].breakTimes, result[0].breakTimes)
+        assertEquals(record.records[1], result[1])
 
         composeTestRule.onNodeWithText("22:30")
             .performTouchInput {
@@ -336,16 +337,16 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("35 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        result = viewModel.uiState.value.record
+        result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result.records.count())
-        assertEquals("2025-12-16 09:10:12", formatter.format(result.records[0].checkIn ?: Date()))
-        assertEquals("2025-12-16 18:40:58", formatter.format(result.records[0].checkOut ?: Date()))
-        assertEquals(record.records[0].breakTimes, result.records[0].breakTimes)
-        assertEquals("2025-12-16 21:35:18", formatter.format(result.records[1].checkIn ?: Date()))
-        assertEquals("2025-12-17 02:01:37", formatter.format(result.records[1].checkOut ?: Date()))
-        assertEquals(record.records[1].breakTimes, result.records[1].breakTimes)
+        assertEquals(2, result.count())
+        assertEquals("2025-12-16 09:10:12", formatter.format(result[0].checkIn ?: Date()))
+        assertEquals("2025-12-16 18:40:58", formatter.format(result[0].checkOut ?: Date()))
+        assertEquals(record.records[0].breakTimes, result[0].breakTimes)
+        assertEquals("2025-12-16 21:35:18", formatter.format(result[1].checkIn ?: Date()))
+        assertEquals("2025-12-17 02:01:37", formatter.format(result[1].checkOut ?: Date()))
+        assertEquals(record.records[1].breakTimes, result[1].breakTimes)
 
         composeTestRule.onNodeWithText("02:01")
             .performTouchInput {
@@ -357,16 +358,16 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("5 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        result = viewModel.uiState.value.record
+        result = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result.records.count())
-        assertEquals("2025-12-16 09:10:12", formatter.format(result.records[0].checkIn ?: Date()))
-        assertEquals("2025-12-16 18:40:58", formatter.format(result.records[0].checkOut ?: Date()))
-        assertEquals(record.records[0].breakTimes, result.records[0].breakTimes)
-        assertEquals("2025-12-16 21:35:18", formatter.format(result.records[1].checkIn ?: Date()))
-        assertEquals("2025-12-17 03:05:37", formatter.format(result.records[1].checkOut ?: Date()))
-        assertEquals(record.records[1].breakTimes, result.records[1].breakTimes)
+        assertEquals(2, result.count())
+        assertEquals("2025-12-16 09:10:12", formatter.format(result[0].checkIn ?: Date()))
+        assertEquals("2025-12-16 18:40:58", formatter.format(result[0].checkOut ?: Date()))
+        assertEquals(record.records[0].breakTimes, result[0].breakTimes)
+        assertEquals("2025-12-16 21:35:18", formatter.format(result[1].checkIn ?: Date()))
+        assertEquals("2025-12-17 03:05:37", formatter.format(result[1].checkOut ?: Date()))
+        assertEquals(record.records[1].breakTimes, result[1].breakTimes)
     }
 
     @OptIn(ExperimentalTestApi::class)
@@ -392,16 +393,16 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("50 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        val result1 = viewModel.uiState.value.record
+        val result1 = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result1.records.count())
-        assertEquals(record.records[0].checkIn, result1.records[0].checkIn)
-        assertEquals(record.records[0].checkOut, result1.records[0].checkOut)
-        assertEquals("2025-12-16 11:50:34", formatter.format(result1.records[0].breakTimes[0].start ?: Date()))
-        assertEquals("2025-12-16 12:48:22", formatter.format(result1.records[0].breakTimes[0].end ?: Date()))
-        assertEquals(record.records[0].breakTimes[1], result1.records[0].breakTimes[1])
-        assertEquals(record.records[1], result1.records[1])
+        assertEquals(2, result1.count())
+        assertEquals(record.records[0].checkIn, result1[0].checkIn)
+        assertEquals(record.records[0].checkOut, result1[0].checkOut)
+        assertEquals("2025-12-16 11:50:34", formatter.format(result1[0].breakTimes[0].start ?: Date()))
+        assertEquals("2025-12-16 12:48:22", formatter.format(result1[0].breakTimes[0].end ?: Date()))
+        assertEquals(record.records[0].breakTimes[1], result1[0].breakTimes[1])
+        assertEquals(record.records[1], result1[1])
 
         composeTestRule.onNodeWithText("12:48")
             .performTouchInput {
@@ -413,16 +414,16 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("10 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        val result2 = viewModel.uiState.value.record
+        val result2 = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result2.records.count())
-        assertEquals(record.records[0].checkIn, result2.records[0].checkIn)
-        assertEquals(record.records[0].checkOut, result2.records[0].checkOut)
-        assertEquals("2025-12-16 11:50:34", formatter.format(result2.records[0].breakTimes[0].start ?: Date()))
-        assertEquals("2025-12-16 13:10:22", formatter.format(result2.records[0].breakTimes[0].end ?: Date()))
-        assertEquals(record.records[0].breakTimes[1], result2.records[0].breakTimes[1])
-        assertEquals(record.records[1], result2.records[1])
+        assertEquals(2, result2.count())
+        assertEquals(record.records[0].checkIn, result2[0].checkIn)
+        assertEquals(record.records[0].checkOut, result2[0].checkOut)
+        assertEquals("2025-12-16 11:50:34", formatter.format(result2[0].breakTimes[0].start ?: Date()))
+        assertEquals("2025-12-16 13:10:22", formatter.format(result2[0].breakTimes[0].end ?: Date()))
+        assertEquals(record.records[0].breakTimes[1], result2[0].breakTimes[1])
+        assertEquals(record.records[1], result2[1])
 
         composeTestRule.onNodeWithText("15:03")
             .performTouchInput {
@@ -434,17 +435,17 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("55 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        val result3 = viewModel.uiState.value.record
+        val result3 = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result3.records.count())
-        assertEquals(record.records[0].checkIn, result3.records[0].checkIn)
-        assertEquals(record.records[0].checkOut, result3.records[0].checkOut)
-        assertEquals("2025-12-16 11:50:34", formatter.format(result3.records[0].breakTimes[0].start ?: Date()))
-        assertEquals("2025-12-16 13:10:22", formatter.format(result3.records[0].breakTimes[0].end ?: Date()))
-        assertEquals("2025-12-16 14:55:42", formatter.format(result3.records[0].breakTimes[1].start ?: Date()))
-        assertEquals("2025-12-16 15:18:04", formatter.format(result3.records[0].breakTimes[1].end ?: Date()))
-        assertEquals(record.records[1], result3.records[1])
+        assertEquals(2, result3.count())
+        assertEquals(record.records[0].checkIn, result3[0].checkIn)
+        assertEquals(record.records[0].checkOut, result3[0].checkOut)
+        assertEquals("2025-12-16 11:50:34", formatter.format(result3[0].breakTimes[0].start ?: Date()))
+        assertEquals("2025-12-16 13:10:22", formatter.format(result3[0].breakTimes[0].end ?: Date()))
+        assertEquals("2025-12-16 14:55:42", formatter.format(result3[0].breakTimes[1].start ?: Date()))
+        assertEquals("2025-12-16 15:18:04", formatter.format(result3[0].breakTimes[1].end ?: Date()))
+        assertEquals(record.records[1], result3[1])
 
         composeTestRule.onRoot().performTouchInput {
             swipeUp(
@@ -463,15 +464,15 @@ class CalendarDetailViewTest {
         composeTestRule.onNodeWithContentDescription("15 minutes").performClick()
         composeTestRule.onNodeWithText("OK").performClick()
 
-        val result4 = viewModel.uiState.value.record
+        val result4 = viewModel.uiState.value.records.map { it.asTimeRecord() }
 
         assertEquals(2, record.records.count())
-        assertEquals(2, result4.records.count())
-        assertEquals(result3.records[0], result4.records[0])
-        assertEquals(record.records[1].checkIn, result4.records[1].checkIn)
-        assertEquals(record.records[1].checkOut, result4.records[1].checkOut)
-        assertEquals("2025-12-16 23:48:56", formatter.format(result4.records[1].breakTimes[0].start ?: Date()))
-        assertEquals("2025-12-17 01:15:39", formatter.format(result4.records[1].breakTimes[0].end ?: Date()))
+        assertEquals(2, result4.count())
+        assertEquals(result3[0], result4[0])
+        assertEquals(record.records[1].checkIn, result4[1].checkIn)
+        assertEquals(record.records[1].checkOut, result4[1].checkOut)
+        assertEquals("2025-12-16 23:48:56", formatter.format(result4[1].breakTimes[0].start ?: Date()))
+        assertEquals("2025-12-17 01:15:39", formatter.format(result4[1].breakTimes[0].end ?: Date()))
     }
 
     @Test

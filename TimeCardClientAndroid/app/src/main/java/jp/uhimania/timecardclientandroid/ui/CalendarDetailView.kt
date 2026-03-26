@@ -76,45 +76,27 @@ fun CalendarDetailView(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Header(
-                    date = uiState.record.date,
+                    date = uiState.date,
                     showDelete = showDelete,
                     onBack = {
-                        viewModel.saveChanges()
+                        viewModel.onEvent(CalendarDetailUiEvent.SaveChanges)
                         onBack()
                     },
                     onEdit = { showDelete = !showDelete }
                 )
 
                 LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
-                    items(uiState.record.records) {
+                    items(uiState.records) {
                         TimeRecordView(
                             record = it,
                             showDelete = showDelete,
-                            onRecordChange = { timeRecord ->
-                                val recs = uiState.record.records.toMutableList()
-                                val index = recs.indexOfFirst { rec -> rec.id == timeRecord.id }
-                                recs[index] = timeRecord
-                                viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
-                            },
-                            onDeleteRecord = { timeRecord ->
-                                val recs = uiState.record.records.toMutableList()
-                                recs.remove(timeRecord)
-                                viewModel.updateRecord(uiState.record.copy(records = recs.toList()))
-                            }
+                            onEvent = { event -> viewModel.onEvent(event) }
                         )
                     }
 
                     item {
                         TextButton(
-                            onClick = {
-                                val rec = TimeRecord(
-                                    checkIn = uiState.record.date,
-                                    checkOut = uiState.record.date,
-                                    breakTimes = listOf()
-                                )
-                                val recs = uiState.record.records.plus(rec)
-                                viewModel.updateRecord(uiState.record.copy(records = recs))
-                            }
+                            onClick = { viewModel.onEvent(CalendarDetailUiEvent.AddTimeRecord) }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
@@ -131,7 +113,7 @@ fun CalendarDetailView(
                 LaunchedEffect(snackbarHostState,
                     viewModel, message) {
                     snackbarHostState.showSnackbar(message)
-                    viewModel.messageShown()
+                    viewModel.onEvent(CalendarDetailUiEvent.MessageShown)
                 }
             }
         }
@@ -174,17 +156,16 @@ private fun Header(
 
 @Composable
 private fun TimeRecordView(
-    record: TimeRecord,
+    record: CalendarDetailUiState.TimeRecord,
     showDelete: Boolean,
-    onRecordChange: (TimeRecord) -> Unit,
-    onDeleteRecord: (TimeRecord) -> Unit,
+    onEvent: (CalendarDetailUiEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(modifier = modifier.padding(dimensionResource(R.dimen.padding_large))) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AnimatedVisibility(showDelete) {
                 IconButton(
-                    onClick = { onDeleteRecord(record) }
+                    onClick = { onEvent(CalendarDetailUiEvent.RemoveTimeRecord(record.id)) }
                 ) {
                     Icon(
                         imageVector = Icons.Default.DoNotDisturbOn,
@@ -199,7 +180,7 @@ private fun TimeRecordView(
                     DateTimePicker(
                         label = stringResource(R.string.label_check_in),
                         date = it,
-                        onDateChange = { date -> onRecordChange(record.copy(checkIn = date)) },
+                        onDateChange = { date -> onEvent(CalendarDetailUiEvent.UpdateTimeRecord(record.id, date, record.checkOut ?: Date())) },
                         modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
                     )
                 }
@@ -208,7 +189,7 @@ private fun TimeRecordView(
                     DateTimePicker(
                         label = stringResource(R.string.label_check_out),
                         date = it,
-                        onDateChange = { date -> onRecordChange(record.copy(checkOut = date)) },
+                        onDateChange = { date -> onEvent(CalendarDetailUiEvent.UpdateTimeRecord(record.id, record.checkIn ?: Date(), date)) },
                         modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
                     )
                 }
@@ -224,26 +205,17 @@ private fun TimeRecordView(
                 BreakTimeView(
                     breakTime = it,
                     showDelete = showDelete,
-                    onBreakTimeChange = { breakTime ->
-                        val recs = record.breakTimes.toMutableList()
-                        val index = recs.indexOfFirst { rec -> rec.id == breakTime.id }
-                        recs[index] = breakTime
-                        onRecordChange(record.copy(breakTimes = recs.toList()))
+                    onBreakTimeChange = { id, start, end ->
+                        onEvent(CalendarDetailUiEvent.UpdateBreakTime(record.id, id, start, end))
                     },
-                    onDeleteBreakTime = { breakTime ->
-                        val recs = record.breakTimes.toMutableList()
-                        recs.remove(breakTime)
-                        onRecordChange(record.copy(breakTimes = recs.toList()))
+                    onDeleteBreakTime = { id ->
+                        onEvent(CalendarDetailUiEvent.RemoveBreakTime(record.id, id))
                     }
                 )
             }
 
             TextButton(
-                onClick = {
-                    val rec = BreakTime(start = record.checkIn, end = record.checkIn)
-                    val recs = record.breakTimes.plus(rec)
-                    onRecordChange(record.copy(breakTimes = recs))
-                }
+                onClick = { onEvent(CalendarDetailUiEvent.AddBreakTime(record.id)) }
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -257,10 +229,10 @@ private fun TimeRecordView(
 
 @Composable
 private fun BreakTimeView(
-    breakTime: BreakTime,
+    breakTime: CalendarDetailUiState.BreakTime,
     showDelete: Boolean,
-    onBreakTimeChange: (BreakTime) -> Unit,
-    onDeleteBreakTime: (BreakTime) -> Unit,
+    onBreakTimeChange: (String, Date, Date) -> Unit,
+    onDeleteBreakTime: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -269,7 +241,7 @@ private fun BreakTimeView(
     ) {
         AnimatedVisibility(showDelete) {
             IconButton(
-                onClick = { onDeleteBreakTime(breakTime) }
+                onClick = { onDeleteBreakTime(breakTime.id) }
             ) {
                 Icon(
                     imageVector = Icons.Default.DoNotDisturbOn,
@@ -284,7 +256,7 @@ private fun BreakTimeView(
                 DateTimePicker(
                     label = stringResource(R.string.label_break_start),
                     date = it,
-                    onDateChange = { date -> onBreakTimeChange(breakTime.copy(start = date)) },
+                    onDateChange = { date -> onBreakTimeChange(breakTime.id, date, breakTime.end ?: Date()) },
                     modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
                 )
             }
@@ -293,7 +265,7 @@ private fun BreakTimeView(
                 DateTimePicker(
                     label = stringResource(R.string.label_break_end),
                     date = it,
-                    onDateChange = { date -> onBreakTimeChange(breakTime.copy(end = date)) },
+                    onDateChange = { date -> onBreakTimeChange(breakTime.id, breakTime.start ?: Date(), date) },
                     modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
                 )
             }
