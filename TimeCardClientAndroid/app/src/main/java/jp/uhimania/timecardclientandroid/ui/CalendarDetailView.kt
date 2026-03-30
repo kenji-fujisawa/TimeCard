@@ -14,10 +14,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DoNotDisturbOn
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -62,7 +66,24 @@ fun CalendarDetailView(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    if (uiState.valid) viewModel.onEvent(CalendarDetailUiEvent.SaveChanges)
+                },
+                containerColor = if (uiState.valid) {
+                    FloatingActionButtonDefaults.containerColor
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Done,
+                    contentDescription = Icons.Filled.Done.name
+                )
+            }
+        }
     ) { innerPadding ->
         if (uiState.isLoading) {
             LoadingView(
@@ -78,10 +99,7 @@ fun CalendarDetailView(
                 Header(
                     date = uiState.date,
                     showDelete = showDelete,
-                    onBack = {
-                        viewModel.onEvent(CalendarDetailUiEvent.SaveChanges)
-                        onBack()
-                    },
+                    onBack = onBack,
                     onEdit = { showDelete = !showDelete }
                 )
 
@@ -176,23 +194,21 @@ private fun TimeRecordView(
             }
 
             Column {
-                record.checkIn?.let {
-                    DateTimePicker(
-                        label = stringResource(R.string.label_check_in),
-                        date = it,
-                        onDateChange = { date -> onEvent(CalendarDetailUiEvent.UpdateTimeRecord(record.id, date, record.checkOut ?: Date())) },
-                        modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
-                    )
-                }
+                DateTimePicker(
+                    label = stringResource(R.string.label_check_in),
+                    date = record.checkIn,
+                    onDateChange = { date -> onEvent(CalendarDetailUiEvent.UpdateTimeRecord(record.id, date, record.checkOut)) },
+                    isError = !record.valid,
+                    modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
+                )
                 HorizontalDivider()
-                record.checkOut?.let {
-                    DateTimePicker(
-                        label = stringResource(R.string.label_check_out),
-                        date = it,
-                        onDateChange = { date -> onEvent(CalendarDetailUiEvent.UpdateTimeRecord(record.id, record.checkIn ?: Date(), date)) },
-                        modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
-                    )
-                }
+                DateTimePicker(
+                    label = stringResource(R.string.label_check_out),
+                    date = record.checkOut,
+                    onDateChange = { date -> onEvent(CalendarDetailUiEvent.UpdateTimeRecord(record.id, record.checkIn, date)) },
+                    isError = !record.valid,
+                    modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
+                )
                 HorizontalDivider()
             }
         }
@@ -252,23 +268,21 @@ private fun BreakTimeView(
         }
 
         Column {
-            breakTime.start?.let {
-                DateTimePicker(
-                    label = stringResource(R.string.label_break_start),
-                    date = it,
-                    onDateChange = { date -> onBreakTimeChange(breakTime.id, date, breakTime.end ?: Date()) },
-                    modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
-                )
-            }
+            DateTimePicker(
+                label = stringResource(R.string.label_break_start),
+                date = breakTime.start,
+                onDateChange = { date -> onBreakTimeChange(breakTime.id, date, breakTime.end) },
+                isError = !breakTime.valid,
+                modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
+            )
             HorizontalDivider()
-            breakTime.end?.let {
-                DateTimePicker(
-                    label = stringResource(R.string.label_break_end),
-                    date = it,
-                    onDateChange = { date -> onBreakTimeChange(breakTime.id, breakTime.start ?: Date(), date) },
-                    modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
-                )
-            }
+            DateTimePicker(
+                label = stringResource(R.string.label_break_end),
+                date = breakTime.end,
+                onDateChange = { date -> onBreakTimeChange(breakTime.id, breakTime.start, date) },
+                isError = !breakTime.valid,
+                modifier = modifier.padding(dimensionResource(R.dimen.padding_large))
+            )
             HorizontalDivider()
         }
     }

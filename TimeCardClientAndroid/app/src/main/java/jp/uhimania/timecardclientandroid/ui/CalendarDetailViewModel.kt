@@ -30,20 +30,21 @@ import kotlin.uuid.Uuid
 data class CalendarDetailUiState(
     val date: Date = Date(),
     val records: List<TimeRecord> = listOf(),
+    val valid: Boolean = true,
     val isLoading: Boolean = false,
     @param:StringRes val message: Int? = null
 ) {
     data class BreakTime @OptIn(ExperimentalUuidApi::class) constructor(
         val id: String = Uuid.random().toString(),
-        val start: Date? = null,
-        val end: Date? = null,
+        val start: Date = Date(),
+        val end: Date = Date(),
         val valid: Boolean = true
     )
 
     data class TimeRecord @OptIn(ExperimentalUuidApi::class) constructor(
         val id: String = Uuid.random().toString(),
-        val checkIn: Date? = null,
-        val checkOut: Date? = null,
+        val checkIn: Date = Date(),
+        val checkOut: Date = Date(),
         val breakTimes: List<BreakTime> = listOf(),
         val valid: Boolean = true
     )
@@ -74,11 +75,8 @@ class CalendarDetailViewModel(
         viewModelScope.launch {
             val record = calendarRecordRepository.getRecord(date.year(), date.month(), date.day())
             _uiState.update {
-                it.copy(
-                    date = record.date,
-                    records = record.records.map { rec -> rec.asUiState() },
-                    isLoading = false
-                )
+                validate(record.date, record.records.map { it.asUiState() })
+                    .copy(isLoading = false)
             }
         }
     }
@@ -100,20 +98,20 @@ class CalendarDetailViewModel(
         val list = _uiState.value.records.toMutableList()
         val date = _uiState.value.date
         list.add(CalendarDetailUiState.TimeRecord(checkIn = date, checkOut = date))
-        _uiState.update { it.copy(records = list) }
+        _uiState.update { validate(_uiState.value.date, list) }
     }
 
     private fun updateTimeRecord(id: String, checkIn: Date, checkOut: Date) {
         val list = _uiState.value.records.toMutableList()
         val index = list.indexOfFirst { it.id == id }
         list[index] = list[index].copy(checkIn = checkIn, checkOut = checkOut)
-        _uiState.update { it.copy(records = list) }
+        _uiState.update { validate(_uiState.value.date, list) }
     }
 
     private fun removeTimeRecord(id: String) {
         val list = _uiState.value.records.toMutableList()
         list.removeAll { it.id == id }
-        _uiState.update { it.copy(records = list) }
+        _uiState.update { validate(_uiState.value.date, list) }
     }
 
     private fun addBreakTimeTo(timeRecordId: String) {
@@ -123,7 +121,7 @@ class CalendarDetailViewModel(
         val date = timeList[timeIndex].checkIn
         breakList.add(CalendarDetailUiState.BreakTime(start = date, end = date))
         timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
-        _uiState.update { it.copy(records = timeList) }
+        _uiState.update { validate(_uiState.value.date, timeList) }
     }
 
     private fun updateBreakTime(timeRecordId: String, breakTimeId: String, start: Date, end: Date) {
@@ -133,7 +131,7 @@ class CalendarDetailViewModel(
         val breakIndex = breakList.indexOfFirst { it.id == breakTimeId }
         breakList[breakIndex] = breakList[breakIndex].copy(start = start, end = end)
         timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
-        _uiState.update { it.copy(records = timeList) }
+        _uiState.update { validate(_uiState.value.date, timeList) }
     }
 
     private fun removeBreakTime(timeRecordId: String, breakTimeId: String) {
@@ -142,7 +140,54 @@ class CalendarDetailViewModel(
         val breakList = timeList[timeIndex].breakTimes.toMutableList()
         breakList.removeAll { it.id == breakTimeId }
         timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
-        _uiState.update { it.copy(records = timeList) }
+        _uiState.update { validate(_uiState.value.date, timeList) }
+    }
+
+    private fun validate(date: Date, records: List<CalendarDetailUiState.TimeRecord>): CalendarDetailUiState {
+        var valid = true
+
+        val list = records.toMutableList()
+        for (i in list.indices) {
+            var recValid = true
+            if (list[i].checkIn > list[i].checkOut) recValid = false
+            if (list[i].checkIn < date) recValid = false
+
+            for (rec in list) {
+                if (list[i].id == rec.id) continue
+
+                if (list[i].checkIn <= rec.checkIn && list[i].checkOut >= rec.checkIn ||
+                    rec.checkIn <= list[i].checkIn && rec.checkOut >= list[i].checkIn) {
+                    recValid = false
+                    break
+                }
+            }
+
+            val breakList = list[i].breakTimes.toMutableList()
+            for (j in breakList.indices) {
+                var breakValid = true
+                if (breakList[j].start > breakList[j].end) breakValid = false
+                if (breakList[j].start < list[i].checkIn) breakValid = false
+                if (breakList[j].end > list[i].checkOut) breakValid = false
+
+                for (rec in breakList) {
+                    if (breakList[j].id == rec.id) continue
+
+                    if (breakList[j].start <= rec.start && breakList[j].end >= rec.start ||
+                        rec.start <= breakList[j].start && rec.end >= breakList[j].start) {
+                        breakValid = false
+                        break
+                    }
+                }
+
+                breakList[j] = breakList[j].copy(valid = breakValid)
+                valid = valid && breakValid
+            }
+
+            list[i] = list[i].copy(breakTimes = breakList, valid = recValid)
+            valid = valid && recValid
+        }
+
+        return _uiState.value.copy(date = date, records = list, valid = valid)
     }
 
     private fun saveChanges() {
@@ -178,8 +223,8 @@ class CalendarDetailViewModel(
 fun TimeRecord.asUiState(): CalendarDetailUiState.TimeRecord {
     return CalendarDetailUiState.TimeRecord(
         id = this.id,
-        checkIn = this.checkIn,
-        checkOut = this.checkOut,
+        checkIn = this.checkIn ?: Date(),
+        checkOut = this.checkOut ?: Date(),
         breakTimes = this.breakTimes.map { it.asUiState() }
     )
 }
@@ -187,8 +232,8 @@ fun TimeRecord.asUiState(): CalendarDetailUiState.TimeRecord {
 fun BreakTime.asUiState(): CalendarDetailUiState.BreakTime {
     return CalendarDetailUiState.BreakTime(
         id = this.id,
-        start = this.start,
-        end = this.end
+        start = this.start ?: Date(),
+        end = this.end ?: Date()
     )
 }
 
