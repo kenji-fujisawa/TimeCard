@@ -350,7 +350,7 @@ class CalendarDetailViewTest {
 
         composeTestRule.onNodeWithText("02:01")
             .performTouchInput {
-                down(percentOffset(.5f, .5f))
+                down(percentOffset(.25f, .5f))
                 up()
             }
         composeTestRule.onNodeWithContentDescription("3 hours").performClick()
