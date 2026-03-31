@@ -48,6 +48,7 @@ import jp.uhimania.timecardclientandroid.data.BreakTime
 import jp.uhimania.timecardclientandroid.data.CalendarRecord
 import jp.uhimania.timecardclientandroid.data.CalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.TimeRecord
+import jp.uhimania.timecardclientandroid.data.isHoliday
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -160,7 +161,11 @@ private fun Header(
         Spacer(modifier = Modifier.weight(1f))
 
         val formatter = SimpleDateFormat(stringResource(R.string.format_month_day))
-        Text(formatter.format(date))
+        val style = MaterialTheme.typography.bodyLarge
+        Text(
+            text = formatter.format(date),
+            style = if (date.isHoliday()) style.copy(color = Color.Red) else style
+        )
 
         Spacer(modifier = Modifier.weight(1f))
 
