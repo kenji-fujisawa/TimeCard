@@ -68,6 +68,17 @@ class CalendarDetailViewModelTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
 
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateTimeRecord(
+            id = "id",
+            checkIn = Date(),
+            checkOut = Date()
+        ))
+        assertEquals(2, viewModel.uiState.value.records.count())
+        assertEquals(record1.checkIn, viewModel.uiState.value.records[0].checkIn)
+        assertEquals(record1.checkOut, viewModel.uiState.value.records[0].checkOut)
+        assertEquals(record2.checkIn, viewModel.uiState.value.records[1].checkIn)
+        assertEquals(record2.checkOut, viewModel.uiState.value.records[1].checkOut)
+
         val date1 = Date(date.time + 90)
         viewModel.onEvent(CalendarDetailUiEvent.UpdateTimeRecord(
             id = record1.id,
@@ -114,6 +125,11 @@ class CalendarDetailViewModelTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
 
+        viewModel.onEvent(CalendarDetailUiEvent.RemoveTimeRecord("id"))
+        assertEquals(2, viewModel.uiState.value.records.count())
+        assertEquals(record1.id, viewModel.uiState.value.records[0].id)
+        assertEquals(record2.id, viewModel.uiState.value.records[1].id)
+
         viewModel.onEvent(CalendarDetailUiEvent.RemoveTimeRecord(record2.id))
         assertEquals(1, viewModel.uiState.value.records.count())
         assertEquals(record1.id, viewModel.uiState.value.records[0].id)
@@ -138,6 +154,9 @@ class CalendarDetailViewModelTest {
 
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
+
+        viewModel.onEvent(CalendarDetailUiEvent.AddBreakTime("id"))
+        assertEquals(0, viewModel.uiState.value.records[0].breakTimes.count())
 
         viewModel.onEvent(CalendarDetailUiEvent.AddBreakTime(record.id))
         assertEquals(1, viewModel.uiState.value.records[0].breakTimes.count())
@@ -175,6 +194,28 @@ class CalendarDetailViewModelTest {
 
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
+
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateBreakTime(
+            timeRecordId = "id",
+            breakTimeId = breakTime1.id,
+            start = Date(),
+            end = Date()
+        ))
+        assertEquals(breakTime1.start, viewModel.uiState.value.records[0].breakTimes[0].start)
+        assertEquals(breakTime1.end, viewModel.uiState.value.records[0].breakTimes[0].end)
+        assertEquals(breakTime2.start, viewModel.uiState.value.records[0].breakTimes[1].start)
+        assertEquals(breakTime2.end, viewModel.uiState.value.records[0].breakTimes[1].end)
+
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateBreakTime(
+            timeRecordId = record.id,
+            breakTimeId = "id",
+            start = Date(),
+            end = Date()
+        ))
+        assertEquals(breakTime1.start, viewModel.uiState.value.records[0].breakTimes[0].start)
+        assertEquals(breakTime1.end, viewModel.uiState.value.records[0].breakTimes[0].end)
+        assertEquals(breakTime2.start, viewModel.uiState.value.records[0].breakTimes[1].start)
+        assertEquals(breakTime2.end, viewModel.uiState.value.records[0].breakTimes[1].end)
 
         val date1 = Date(date.time + 90)
         viewModel.onEvent(CalendarDetailUiEvent.UpdateBreakTime(
@@ -226,6 +267,16 @@ class CalendarDetailViewModelTest {
 
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
+
+        viewModel.onEvent(CalendarDetailUiEvent.RemoveBreakTime("id", breakTime1.id))
+        assertEquals(2, viewModel.uiState.value.records[0].breakTimes.count())
+        assertEquals(breakTime1.id, viewModel.uiState.value.records[0].breakTimes[0].id)
+        assertEquals(breakTime2.id, viewModel.uiState.value.records[0].breakTimes[1].id)
+
+        viewModel.onEvent(CalendarDetailUiEvent.RemoveBreakTime(record.id, "id"))
+        assertEquals(2, viewModel.uiState.value.records[0].breakTimes.count())
+        assertEquals(breakTime1.id, viewModel.uiState.value.records[0].breakTimes[0].id)
+        assertEquals(breakTime2.id, viewModel.uiState.value.records[0].breakTimes[1].id)
 
         viewModel.onEvent(CalendarDetailUiEvent.RemoveBreakTime(record.id, breakTime1.id))
         assertEquals(1, viewModel.uiState.value.records[0].breakTimes.count())

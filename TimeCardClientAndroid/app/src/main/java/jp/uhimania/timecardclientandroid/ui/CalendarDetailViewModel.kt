@@ -104,8 +104,10 @@ class CalendarDetailViewModel(
     private fun updateTimeRecord(id: String, checkIn: Date, checkOut: Date) {
         val list = _uiState.value.records.toMutableList()
         val index = list.indexOfFirst { it.id == id }
-        list[index] = list[index].copy(checkIn = checkIn, checkOut = checkOut)
-        _uiState.update { validate(_uiState.value.date, list) }
+        if (index != -1) {
+            list[index] = list[index].copy(checkIn = checkIn, checkOut = checkOut)
+            _uiState.update { validate(_uiState.value.date, list) }
+        }
     }
 
     private fun removeTimeRecord(id: String) {
@@ -117,30 +119,38 @@ class CalendarDetailViewModel(
     private fun addBreakTimeTo(timeRecordId: String) {
         val timeList = _uiState.value.records.toMutableList()
         val timeIndex = timeList.indexOfFirst { it.id == timeRecordId }
-        val breakList = timeList[timeIndex].breakTimes.toMutableList()
-        val date = timeList[timeIndex].checkIn
-        breakList.add(CalendarDetailUiState.BreakTime(start = date, end = date))
-        timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
-        _uiState.update { validate(_uiState.value.date, timeList) }
+        if (timeIndex != -1) {
+            val breakList = timeList[timeIndex].breakTimes.toMutableList()
+            val date = timeList[timeIndex].checkIn
+            breakList.add(CalendarDetailUiState.BreakTime(start = date, end = date))
+            timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
+            _uiState.update { validate(_uiState.value.date, timeList) }
+        }
     }
 
     private fun updateBreakTime(timeRecordId: String, breakTimeId: String, start: Date, end: Date) {
         val timeList = _uiState.value.records.toMutableList()
         val timeIndex = timeList.indexOfFirst { it.id == timeRecordId }
-        val breakList = timeList[timeIndex].breakTimes.toMutableList()
-        val breakIndex = breakList.indexOfFirst { it.id == breakTimeId }
-        breakList[breakIndex] = breakList[breakIndex].copy(start = start, end = end)
-        timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
-        _uiState.update { validate(_uiState.value.date, timeList) }
+        if (timeIndex != -1) {
+            val breakList = timeList[timeIndex].breakTimes.toMutableList()
+            val breakIndex = breakList.indexOfFirst { it.id == breakTimeId }
+            if (breakIndex != -1) {
+                breakList[breakIndex] = breakList[breakIndex].copy(start = start, end = end)
+                timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
+                _uiState.update { validate(_uiState.value.date, timeList) }
+            }
+        }
     }
 
     private fun removeBreakTime(timeRecordId: String, breakTimeId: String) {
         val timeList = _uiState.value.records.toMutableList()
         val timeIndex = timeList.indexOfFirst { it.id == timeRecordId }
-        val breakList = timeList[timeIndex].breakTimes.toMutableList()
-        breakList.removeAll { it.id == breakTimeId }
-        timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
-        _uiState.update { validate(_uiState.value.date, timeList) }
+        if (timeIndex != -1) {
+            val breakList = timeList[timeIndex].breakTimes.toMutableList()
+            breakList.removeAll { it.id == breakTimeId }
+            timeList[timeIndex] = timeList[timeIndex].copy(breakTimes = breakList)
+            _uiState.update { validate(_uiState.value.date, timeList) }
+        }
     }
 
     private fun validate(date: Date, records: List<CalendarDetailUiState.TimeRecord>): CalendarDetailUiState {
