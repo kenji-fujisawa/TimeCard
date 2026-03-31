@@ -144,50 +144,60 @@ class CalendarDetailViewModel(
     }
 
     private fun validate(date: Date, records: List<CalendarDetailUiState.TimeRecord>): CalendarDetailUiState {
-        var valid = true
+        val invalidTimeRecordIds = mutableSetOf<String>()
+        val timeList = records.sortedBy { it.checkIn }
+        timeList.filter { !isValid(date, it) }
+            .forEach { invalidTimeRecordIds.add(it.id) }
 
-        val list = records.toMutableList()
-        for (i in list.indices) {
-            var recValid = true
-            if (list[i].checkIn > list[i].checkOut) recValid = false
-            if (list[i].checkIn < date) recValid = false
-
-            for (rec in list) {
-                if (list[i].id == rec.id) continue
-
-                if (list[i].checkIn <= rec.checkIn && list[i].checkOut >= rec.checkIn ||
-                    rec.checkIn <= list[i].checkIn && rec.checkOut >= list[i].checkIn) {
-                    recValid = false
-                    break
-                }
+        for ((a, b) in timeList.zip(timeList.drop(1))) {
+            if (a.checkOut > b.checkIn) {
+                invalidTimeRecordIds.add(a.id)
+                invalidTimeRecordIds.add(b.id)
             }
-
-            val breakList = list[i].breakTimes.toMutableList()
-            for (j in breakList.indices) {
-                var breakValid = true
-                if (breakList[j].start > breakList[j].end) breakValid = false
-                if (breakList[j].start < list[i].checkIn) breakValid = false
-                if (breakList[j].end > list[i].checkOut) breakValid = false
-
-                for (rec in breakList) {
-                    if (breakList[j].id == rec.id) continue
-
-                    if (breakList[j].start <= rec.start && breakList[j].end >= rec.start ||
-                        rec.start <= breakList[j].start && rec.end >= breakList[j].start) {
-                        breakValid = false
-                        break
-                    }
-                }
-
-                breakList[j] = breakList[j].copy(valid = breakValid)
-                valid = valid && breakValid
-            }
-
-            list[i] = list[i].copy(breakTimes = breakList, valid = recValid)
-            valid = valid && recValid
         }
 
-        return _uiState.value.copy(date = date, records = list, valid = valid)
+        val invalidBreakTimeIds = mutableSetOf<String>()
+        for (rec in timeList) {
+            val breakList = rec.breakTimes.sortedBy { it.start }
+            breakList.filter { !isValid(rec, it) }
+                .forEach { invalidBreakTimeIds.add(it.id) }
+
+            for ((a, b) in breakList.zip(breakList.drop(1))) {
+                if (a.end > b.start) {
+                    invalidBreakTimeIds.add(a.id)
+                    invalidBreakTimeIds.add(b.id)
+                }
+            }
+        }
+
+        val list = records.map { rec ->
+            val breakList = rec.breakTimes.map { it.copy(valid = !invalidBreakTimeIds.contains(it.id)) }
+            rec.copy(
+                breakTimes = breakList,
+                valid = !invalidTimeRecordIds.contains(rec.id)
+            )
+        }
+
+        return _uiState.value.copy(
+            date = date,
+            records = list,
+            valid = invalidTimeRecordIds.isEmpty() && invalidBreakTimeIds.isEmpty()
+        )
+    }
+
+    private fun isValid(date: Date, record: CalendarDetailUiState.TimeRecord): Boolean {
+        if (record.checkIn > record.checkOut) return false
+        if (record.checkIn < date) return false
+
+        return true
+    }
+
+    private fun isValid(timeRecord: CalendarDetailUiState.TimeRecord, breakTime: CalendarDetailUiState.BreakTime): Boolean {
+        if (breakTime.start > breakTime.end) return false
+        if (breakTime.start < timeRecord.checkIn) return false
+        if (breakTime.end > timeRecord.checkOut) return false
+
+        return true
     }
 
     private fun saveChanges() {
