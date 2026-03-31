@@ -37,6 +37,7 @@ import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun DateTimePicker(
@@ -78,7 +79,7 @@ private fun DateFieldWithPicker(
         initialSelectedDateMillis = date.time
     )
 
-    val formatter = SimpleDateFormat("yyyy-MM-dd")
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     OutlinedTextField(
         value = formatter.format(date),
         onValueChange = {},
@@ -141,7 +142,7 @@ private fun TimeFieldWithPicker(
         is24Hour = true
     )
 
-    val formatter = SimpleDateFormat("HH:mm")
+    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     OutlinedTextField(
         value = formatter.format(date),
         onValueChange = {},

@@ -22,13 +22,14 @@ import jp.uhimania.timecardclientandroid.data.timeIntervalSince
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun CalendarRecordView(
     record: CalendarRecord,
     modifier: Modifier = Modifier
 ) {
-    val formatter = SimpleDateFormat(stringResource(R.string.format_hour_minute))
+    val formatter = SimpleDateFormat(stringResource(R.string.format_hour_minute), Locale.getDefault())
 
     Row(
         modifier = modifier.padding(dimensionResource(R.dimen.padding_small))
@@ -37,7 +38,7 @@ fun CalendarRecordView(
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val formatter = SimpleDateFormat(stringResource(R.string.format_day))
+            val formatter = SimpleDateFormat(stringResource(R.string.format_day), Locale.getDefault())
             val style = MaterialTheme.typography.bodyLarge
             Text(
                 text = formatter.format(record.date),
@@ -97,7 +98,7 @@ fun CalendarRecordView(
 @Composable
 private fun CalendarRecordPreview() {
     TimeCardClientAndroidTheme {
-        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val break1 = BreakTime(start = formatter.parse("2025-12-04 12:00:00") ?: Date(), end = formatter.parse("2025-12-04 12:45:00") ?: Date())
         val break2 = BreakTime(start = formatter.parse("2025-12-04 17:30:00") ?: Date(), end = formatter.parse("2025-12-04 18:00:00") ?: Date())
         val record1 = TimeRecord(checkIn = formatter.parse("2025-12-04 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-04 19:00:00") ?: Date(), breakTimes = listOf(break1, break2))
@@ -111,7 +112,7 @@ private fun CalendarRecordPreview() {
 @Composable
 private fun CalendarRecordPreviewSingleLine() {
     TimeCardClientAndroidTheme {
-        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val break1 = BreakTime(start = formatter.parse("2025-12-07 12:00:00") ?: Date(), end = formatter.parse("2025-12-07 12:45:00") ?: Date())
         val record1 = TimeRecord(checkIn = formatter.parse("2025-12-07 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-07 19:00:00") ?: Date(), breakTimes = listOf(break1))
         CalendarRecordView(CalendarRecord(date = formatter.parse("2025-12-07 00:00:00") ?: Date(), records = listOf(record1)))

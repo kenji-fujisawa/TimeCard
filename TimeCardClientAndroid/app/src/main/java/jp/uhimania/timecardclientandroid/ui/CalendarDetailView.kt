@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun CalendarDetailView(
@@ -160,7 +161,7 @@ private fun Header(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        val formatter = SimpleDateFormat(stringResource(R.string.format_month_day))
+        val formatter = SimpleDateFormat(stringResource(R.string.format_month_day), Locale.getDefault())
         val style = MaterialTheme.typography.bodyLarge
         Text(
             text = formatter.format(date),
