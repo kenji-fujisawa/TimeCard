@@ -15,9 +15,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import jp.uhimania.timecardclientandroid.R
-import jp.uhimania.timecardclientandroid.data.BreakTime
-import jp.uhimania.timecardclientandroid.data.CalendarRecord
-import jp.uhimania.timecardclientandroid.data.TimeRecord
+import jp.uhimania.timecardclientandroid.data.TimeInterval
 import jp.uhimania.timecardclientandroid.data.datesOf
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 import java.util.Calendar
@@ -25,7 +23,7 @@ import java.util.Date
 
 @Composable
 fun CalendarBodyView(
-    records: List<CalendarRecord>,
+    records: List<CalendarUiState.CalendarRecord>,
     onDateSelect: (Date) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -72,9 +70,9 @@ fun CalendarBodyView(
 private fun CalendarBodyViewPreview() {
     TimeCardClientAndroidTheme {
         val records = Calendar.getInstance().datesOf(2025, 12).map {
-            val breakTime = BreakTime(start = it, end = it)
-            val record = TimeRecord(checkIn = it, checkOut = it, breakTimes = listOf(breakTime))
-            CalendarRecord(date = it, records = listOf(record))
+            val breakTime = CalendarUiState.BreakTime(start = it, end = it, elapsed = TimeInterval(0))
+            val record = CalendarUiState.TimeRecord(checkIn = it, checkOut = it, elapsed = TimeInterval(0), breakTimes = listOf(breakTime))
+            CalendarUiState.CalendarRecord(date = it, records = listOf(record))
         }
         CalendarBodyView(
             records = records,

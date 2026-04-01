@@ -8,10 +8,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import jp.uhimania.timecardclientandroid.TimeCardClientApplication
+import jp.uhimania.timecardclientandroid.data.BreakTime
 import jp.uhimania.timecardclientandroid.data.CalendarRecord
 import jp.uhimania.timecardclientandroid.data.CalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.DefaultCalendarRecordRepository
+import jp.uhimania.timecardclientandroid.data.TimeInterval
+import jp.uhimania.timecardclientandroid.data.TimeRecord
 import jp.uhimania.timecardclientandroid.data.month
+import jp.uhimania.timecardclientandroid.data.startOfDay
+import jp.uhimania.timecardclientandroid.data.timeIntervalSince
 import jp.uhimania.timecardclientandroid.data.year
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +32,25 @@ data class CalendarUiState(
     val isLoading: Boolean = false,
     val records: List<CalendarRecord> = listOf(),
     @param:StringRes val message: Int? = null
-)
+) {
+    data class BreakTime(
+        val start: Date? = null,
+        val end: Date? = null,
+        val elapsed: TimeInterval? = null
+    )
+
+    data class TimeRecord(
+        val checkIn: Date? = null,
+        val checkOut: Date? = null,
+        val elapsed: TimeInterval? = null,
+        val breakTimes: List<BreakTime> = listOf()
+    )
+
+    data class CalendarRecord(
+        val date: Date = Date(),
+        val records: List<TimeRecord> = listOf()
+    )
+}
 
 class CalendarViewModel(
     private val calendarRecordRepository: CalendarRecordRepository
@@ -45,7 +68,7 @@ class CalendarViewModel(
         CalendarUiState(
             date = date,
             isLoading = loading,
-            records = recs,
+            records = recs.map { it.asUiState() },
             message = msg
         )
     }
@@ -73,4 +96,28 @@ class CalendarViewModel(
             }
         }
     }
+}
+
+fun CalendarRecord.asUiState(): CalendarUiState.CalendarRecord {
+    return CalendarUiState.CalendarRecord(
+        date = this.date,
+        records = this.records.map { it.asUiState() }
+    )
+}
+
+fun TimeRecord.asUiState(): CalendarUiState.TimeRecord {
+    return CalendarUiState.TimeRecord(
+        checkIn = this.checkIn,
+        checkOut = this.checkOut,
+        elapsed = this.checkOut?.timeIntervalSince(this.checkIn?.startOfDay() ?: Date()),
+        breakTimes = this.breakTimes.map { it.asUiState() }
+    )
+}
+
+fun BreakTime.asUiState(): CalendarUiState.BreakTime {
+    return CalendarUiState.BreakTime(
+        start = this.start,
+        end = this.end,
+        elapsed = this.end?.timeIntervalSince(this.start?.startOfDay() ?: Date())
+    )
 }

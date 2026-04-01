@@ -13,12 +13,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import jp.uhimania.timecardclientandroid.R
-import jp.uhimania.timecardclientandroid.data.BreakTime
-import jp.uhimania.timecardclientandroid.data.CalendarRecord
-import jp.uhimania.timecardclientandroid.data.TimeRecord
+import jp.uhimania.timecardclientandroid.data.TimeInterval
 import jp.uhimania.timecardclientandroid.data.isHoliday
-import jp.uhimania.timecardclientandroid.data.startOfDay
-import jp.uhimania.timecardclientandroid.data.timeIntervalSince
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -26,7 +22,7 @@ import java.util.Locale
 
 @Composable
 fun CalendarRecordView(
-    record: CalendarRecord,
+    record: CalendarUiState.CalendarRecord,
     modifier: Modifier = Modifier
 ) {
     val formatter = SimpleDateFormat(stringResource(R.string.format_hour_minute), Locale.getDefault())
@@ -61,9 +57,7 @@ fun CalendarRecordView(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             record.records.forEach { record ->
-                val from = record.checkIn?.startOfDay()
-                val elapsed = record.checkOut?.timeIntervalSince(from ?: Date())
-                Text(elapsed?.format() ?: "")
+                Text(record.elapsed?.format() ?: "")
             }
         }
 
@@ -85,9 +79,7 @@ fun CalendarRecordView(
         ) {
             record.records.forEach { record ->
                 record.breakTimes.forEach { breakTime ->
-                    val from = breakTime.start?.startOfDay()
-                    val elapsed = breakTime.end?.timeIntervalSince(from ?: Date())
-                    Text(elapsed?.format() ?: "")
+                    Text(breakTime.elapsed?.format() ?: "")
                 }
             }
         }
@@ -99,12 +91,12 @@ fun CalendarRecordView(
 private fun CalendarRecordPreview() {
     TimeCardClientAndroidTheme {
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val break1 = BreakTime(start = formatter.parse("2025-12-04 12:00:00") ?: Date(), end = formatter.parse("2025-12-04 12:45:00") ?: Date())
-        val break2 = BreakTime(start = formatter.parse("2025-12-04 17:30:00") ?: Date(), end = formatter.parse("2025-12-04 18:00:00") ?: Date())
-        val record1 = TimeRecord(checkIn = formatter.parse("2025-12-04 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-04 19:00:00") ?: Date(), breakTimes = listOf(break1, break2))
-        val break3 = BreakTime(start = formatter.parse("2025-12-04 23:00:00") ?: Date(), end = formatter.parse("2025-12-05 00:30:00") ?: Date())
-        val record2 = TimeRecord(checkIn = formatter.parse("2025-12-04 22:00:00") ?: Date(), checkOut = formatter.parse("2025-12-05 01:00:00") ?: Date(), breakTimes = listOf(break3))
-        CalendarRecordView(CalendarRecord(date = formatter.parse("2025-12-04 00:00:00") ?: Date(), records = listOf(record1, record2)))
+        val break1 = CalendarUiState.BreakTime(start = formatter.parse("2025-12-04 12:00:00") ?: Date(), end = formatter.parse("2025-12-04 12:45:00") ?: Date(), elapsed = TimeInterval(12 * 60 * 60 + 45 * 60))
+        val break2 = CalendarUiState.BreakTime(start = formatter.parse("2025-12-04 17:30:00") ?: Date(), end = formatter.parse("2025-12-04 18:00:00") ?: Date(), elapsed = TimeInterval(18 * 60 * 60))
+        val record1 = CalendarUiState.TimeRecord(checkIn = formatter.parse("2025-12-04 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-04 19:00:00") ?: Date(), elapsed = TimeInterval(19 * 60 * 60), breakTimes = listOf(break1, break2))
+        val break3 = CalendarUiState.BreakTime(start = formatter.parse("2025-12-04 23:00:00") ?: Date(), end = formatter.parse("2025-12-05 00:30:00") ?: Date(), elapsed = TimeInterval(24 * 60 * 60 + 30 * 60))
+        val record2 = CalendarUiState.TimeRecord(checkIn = formatter.parse("2025-12-04 22:00:00") ?: Date(), checkOut = formatter.parse("2025-12-05 01:00:00") ?: Date(), elapsed = TimeInterval(25 * 60 * 60), breakTimes = listOf(break3))
+        CalendarRecordView(CalendarUiState.CalendarRecord(date = formatter.parse("2025-12-04 00:00:00") ?: Date(), records = listOf(record1, record2)))
     }
 }
 
@@ -113,8 +105,8 @@ private fun CalendarRecordPreview() {
 private fun CalendarRecordPreviewSingleLine() {
     TimeCardClientAndroidTheme {
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val break1 = BreakTime(start = formatter.parse("2025-12-07 12:00:00") ?: Date(), end = formatter.parse("2025-12-07 12:45:00") ?: Date())
-        val record1 = TimeRecord(checkIn = formatter.parse("2025-12-07 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-07 19:00:00") ?: Date(), breakTimes = listOf(break1))
-        CalendarRecordView(CalendarRecord(date = formatter.parse("2025-12-07 00:00:00") ?: Date(), records = listOf(record1)))
+        val break1 = CalendarUiState.BreakTime(start = formatter.parse("2025-12-07 12:00:00") ?: Date(), end = formatter.parse("2025-12-07 12:45:00") ?: Date(), elapsed = TimeInterval(12 * 60 * 60 + 45 * 60))
+        val record1 = CalendarUiState.TimeRecord(checkIn = formatter.parse("2025-12-07 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-07 19:00:00") ?: Date(), elapsed = TimeInterval(19 * 60 * 60), breakTimes = listOf(break1))
+        CalendarRecordView(CalendarUiState.CalendarRecord(date = formatter.parse("2025-12-07 00:00:00") ?: Date(), records = listOf(record1)))
     }
 }

@@ -75,7 +75,7 @@ class CalendarDetailViewModel(
         viewModelScope.launch {
             val record = calendarRecordRepository.getRecord(date.year(), date.month(), date.day())
             _uiState.update {
-                validate(record.date, record.records.map { it.asUiState() })
+                validate(record.date, record.records.map { it.asDetailUiState() })
                     .copy(isLoading = false)
             }
         }
@@ -240,16 +240,16 @@ class CalendarDetailViewModel(
     }
 }
 
-fun TimeRecord.asUiState(): CalendarDetailUiState.TimeRecord {
+fun TimeRecord.asDetailUiState(): CalendarDetailUiState.TimeRecord {
     return CalendarDetailUiState.TimeRecord(
         id = this.id,
         checkIn = this.checkIn ?: Date(),
         checkOut = this.checkOut ?: Date(),
-        breakTimes = this.breakTimes.map { it.asUiState() }
+        breakTimes = this.breakTimes.map { it.asDetailUiState() }
     )
 }
 
-fun BreakTime.asUiState(): CalendarDetailUiState.BreakTime {
+fun BreakTime.asDetailUiState(): CalendarDetailUiState.BreakTime {
     return CalendarDetailUiState.BreakTime(
         id = this.id,
         start = this.start ?: Date(),
