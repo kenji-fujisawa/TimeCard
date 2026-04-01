@@ -4,8 +4,10 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import jp.uhimania.timecardclientandroid.data.BreakTime
 import jp.uhimania.timecardclientandroid.data.CalendarRecord
+import jp.uhimania.timecardclientandroid.data.TimeInterval
 import jp.uhimania.timecardclientandroid.data.TimeRecord
 import jp.uhimania.timecardclientandroid.ui.CalendarRecordView
+import jp.uhimania.timecardclientandroid.ui.CalendarUiState
 import org.junit.Rule
 import org.junit.Test
 import java.text.SimpleDateFormat
@@ -18,12 +20,12 @@ class CalendarRecordTest {
     @Test
     fun testCalendarRecordView() {
         val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-        val break1 = BreakTime(start = formatter.parse("2025-12-04 12:00:00") ?: Date(), end = formatter.parse("2025-12-04 12:45:00") ?: Date())
-        val break2 = BreakTime(start = formatter.parse("2025-12-04 17:30:00") ?: Date(), end = formatter.parse("2025-12-04 18:00:00") ?: Date())
-        val record1 = TimeRecord(checkIn = formatter.parse("2025-12-04 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-04 19:00:00") ?: Date(), breakTimes = listOf(break1, break2))
-        val break3 = BreakTime(start = formatter.parse("2025-12-04 23:00:00") ?: Date(), end = formatter.parse("2025-12-05 00:30:00") ?: Date())
-        val record2 = TimeRecord(checkIn = formatter.parse("2025-12-04 22:00:00") ?: Date(), checkOut = formatter.parse("2025-12-05 01:00:00") ?: Date(), breakTimes = listOf(break3))
-        val record = CalendarRecord(date = formatter.parse("2025-12-04 00:00:00") ?: Date(), records = listOf(record1, record2))
+        val break1 = CalendarUiState.BreakTime(start = formatter.parse("2025-12-04 12:00:00") ?: Date(), end = formatter.parse("2025-12-04 12:45:00") ?: Date(), elapsed = TimeInterval(12 * 60 * 60 + 45 * 60))
+        val break2 = CalendarUiState.BreakTime(start = formatter.parse("2025-12-04 17:30:00") ?: Date(), end = formatter.parse("2025-12-04 18:00:00") ?: Date(), elapsed = TimeInterval(18 * 60 * 60))
+        val record1 = CalendarUiState.TimeRecord(checkIn = formatter.parse("2025-12-04 09:00:00") ?: Date(), checkOut = formatter.parse("2025-12-04 19:00:00") ?: Date(), elapsed = TimeInterval(19 * 60 * 60), breakTimes = listOf(break1, break2))
+        val break3 = CalendarUiState.BreakTime(start = formatter.parse("2025-12-04 23:00:00") ?: Date(), end = formatter.parse("2025-12-05 00:30:00") ?: Date(), elapsed = TimeInterval(24 * 60 * 60 + 30 * 60))
+        val record2 = CalendarUiState.TimeRecord(checkIn = formatter.parse("2025-12-04 22:00:00") ?: Date(), checkOut = formatter.parse("2025-12-05 01:00:00") ?: Date(), elapsed = TimeInterval(25 * 60 * 60), breakTimes = listOf(break3))
+        val record = CalendarUiState.CalendarRecord(date = formatter.parse("2025-12-04 00:00:00") ?: Date(), records = listOf(record1, record2))
 
         composeTestRule.setContent {
             CalendarRecordView(record)
