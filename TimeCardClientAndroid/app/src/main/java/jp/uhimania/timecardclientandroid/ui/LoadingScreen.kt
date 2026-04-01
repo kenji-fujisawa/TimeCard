@@ -9,7 +9,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 
 @Composable
-fun LoadingView(
+fun LoadingScreen(
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -22,8 +22,8 @@ fun LoadingView(
 
 @Preview(showBackground = true)
 @Composable
-private fun LoadingViewPreview() {
+private fun LoadingScreenPreview() {
     TimeCardClientAndroidTheme {
-        LoadingView()
+        LoadingScreen()
     }
 }

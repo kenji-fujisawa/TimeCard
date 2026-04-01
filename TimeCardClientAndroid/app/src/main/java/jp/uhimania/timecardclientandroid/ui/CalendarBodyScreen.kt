@@ -22,7 +22,7 @@ import java.util.Calendar
 import java.util.Date
 
 @Composable
-fun CalendarBodyView(
+fun CalendarBodyScreen(
     records: List<CalendarUiState.CalendarRecord>,
     onDateSelect: (Date) -> Unit,
     modifier: Modifier = Modifier
@@ -49,7 +49,7 @@ fun CalendarBodyView(
         }
 
         items(records) {
-            CalendarRecordView(
+            CalendarRecordScreen(
                 record = it,
                 modifier = Modifier.clickable(
                     onClick = { onDateSelect(it.date) }
@@ -74,7 +74,7 @@ private fun CalendarBodyViewPreview() {
             val record = CalendarUiState.TimeRecord(checkIn = it, checkOut = it, elapsed = TimeInterval(0), breakTimes = listOf(breakTime))
             CalendarUiState.CalendarRecord(date = it, records = listOf(record))
         }
-        CalendarBodyView(
+        CalendarBodyScreen(
             records = records,
             onDateSelect = {}
         )

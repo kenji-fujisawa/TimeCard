@@ -29,7 +29,7 @@ import java.util.Calendar
 import java.util.Date
 
 @Composable
-fun CalendarView(
+fun CalendarScreen(
     onDateSelect: (Date) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CalendarViewModel = viewModel(factory = CalendarViewModel.Factory),
@@ -42,7 +42,7 @@ fun CalendarView(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         if (uiState.isLoading) {
-            LoadingView(
+            LoadingScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -57,7 +57,7 @@ fun CalendarView(
                     onDateChange = { viewModel.updateDate(it) },
                     modifier = Modifier.padding(dimensionResource(R.dimen.padding_large))
                 )
-                CalendarBodyView(
+                CalendarBodyScreen(
                     records = uiState.records,
                     onDateSelect = onDateSelect
                 )
@@ -78,7 +78,7 @@ fun CalendarView(
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
-private fun CalendarViewPreview() {
+private fun CalendarScreenPreview() {
     class FakeCalendarRecordRepository : CalendarRecordRepository {
         override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
             val records = Calendar.getInstance().datesOf(year, month).map {
@@ -96,7 +96,7 @@ private fun CalendarViewPreview() {
     TimeCardClientAndroidTheme {
         val repository = FakeCalendarRecordRepository()
         val viewModel = CalendarViewModel(repository)
-        CalendarView(
+        CalendarScreen(
             onDateSelect = {},
             viewModel = viewModel
         )

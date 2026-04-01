@@ -11,12 +11,12 @@ import androidx.navigation.navArgument
 import jp.uhimania.timecardclientandroid.ui.NavigationArgs.DATE_ARG
 import jp.uhimania.timecardclientandroid.ui.NavigationRoutes.CALENDAR_DETAIL_ROUTE
 import jp.uhimania.timecardclientandroid.ui.NavigationRoutes.CALENDAR_ROUTE
-import jp.uhimania.timecardclientandroid.ui.NavigationViews.CALENDAR_DETAIL_VIEW
-import jp.uhimania.timecardclientandroid.ui.NavigationViews.CALENDAR_VIEW
+import jp.uhimania.timecardclientandroid.ui.NavigationViews.CALENDAR_DETAIL_SCREEN
+import jp.uhimania.timecardclientandroid.ui.NavigationViews.CALENDAR_SCREEN
 
 object NavigationViews {
-    const val CALENDAR_VIEW = "calendar"
-    const val CALENDAR_DETAIL_VIEW = "detail"
+    const val CALENDAR_SCREEN = "calendar"
+    const val CALENDAR_DETAIL_SCREEN = "detail"
 }
 
 object NavigationArgs {
@@ -24,12 +24,12 @@ object NavigationArgs {
 }
 
 object NavigationRoutes {
-    const val CALENDAR_ROUTE = CALENDAR_VIEW
-    const val CALENDAR_DETAIL_ROUTE = "$CALENDAR_DETAIL_VIEW/{$DATE_ARG}"
+    const val CALENDAR_ROUTE = CALENDAR_SCREEN
+    const val CALENDAR_DETAIL_ROUTE = "$CALENDAR_DETAIL_SCREEN/{$DATE_ARG}"
 }
 
 @Composable
-fun TimeCardView(
+fun TimeCardNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController()
 ) {
@@ -39,8 +39,8 @@ fun TimeCardView(
         modifier = modifier
     ) {
         composable(CALENDAR_ROUTE) {
-            CalendarView(
-                onDateSelect = { navController.navigate("$CALENDAR_DETAIL_VIEW/${it.time}") }
+            CalendarScreen(
+                onDateSelect = { navController.navigate("$CALENDAR_DETAIL_SCREEN/${it.time}") }
             )
         }
         composable(
@@ -49,7 +49,7 @@ fun TimeCardView(
                 navArgument(DATE_ARG) { type = NavType.LongType }
             )
         ) {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {
                     navController.popBackStack()
                 }

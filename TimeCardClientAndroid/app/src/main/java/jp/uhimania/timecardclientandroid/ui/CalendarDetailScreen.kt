@@ -57,7 +57,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun CalendarDetailView(
+fun CalendarDetailScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CalendarDetailViewModel = viewModel(factory = CalendarDetailViewModel.Factory),
@@ -88,7 +88,7 @@ fun CalendarDetailView(
         }
     ) { innerPadding ->
         if (uiState.isLoading) {
-            LoadingView(
+            LoadingScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -316,7 +316,7 @@ private fun CalendarDetailViewPreview() {
         val repository = FakeCalendarRecordRepository()
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
-        CalendarDetailView(
+        CalendarDetailScreen(
             onBack = {},
             viewModel = viewModel
         )

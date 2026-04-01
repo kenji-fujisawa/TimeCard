@@ -20,7 +20,7 @@ import jp.uhimania.timecardclientandroid.data.BreakTime
 import jp.uhimania.timecardclientandroid.data.CalendarRecord
 import jp.uhimania.timecardclientandroid.data.CalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.TimeRecord
-import jp.uhimania.timecardclientandroid.ui.CalendarDetailView
+import jp.uhimania.timecardclientandroid.ui.CalendarDetailScreen
 import jp.uhimania.timecardclientandroid.ui.CalendarDetailViewModel
 import jp.uhimania.timecardclientandroid.ui.asTimeRecord
 import kotlinx.coroutines.flow.Flow
@@ -31,7 +31,7 @@ import org.junit.Test
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class CalendarDetailViewTest {
+class CalendarDetailScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -84,7 +84,7 @@ class CalendarDetailViewTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {},
                 viewModel = viewModel
             )
@@ -111,7 +111,7 @@ class CalendarDetailViewTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {},
                 viewModel = viewModel
             )
@@ -143,7 +143,7 @@ class CalendarDetailViewTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {},
                 viewModel = viewModel
             )
@@ -194,7 +194,7 @@ class CalendarDetailViewTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {},
                 viewModel = viewModel
             )
@@ -226,7 +226,7 @@ class CalendarDetailViewTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {},
                 viewModel = viewModel
             )
@@ -283,7 +283,7 @@ class CalendarDetailViewTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {},
                 viewModel = viewModel
             )
@@ -377,7 +377,7 @@ class CalendarDetailViewTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = {},
                 viewModel = viewModel
             )
@@ -479,7 +479,7 @@ class CalendarDetailViewTest {
     fun testCalendarDetailView_back() {
         var backed = false
         composeTestRule.setContent {
-            CalendarDetailView(
+            CalendarDetailScreen(
                 onBack = { backed = true }
             )
         }

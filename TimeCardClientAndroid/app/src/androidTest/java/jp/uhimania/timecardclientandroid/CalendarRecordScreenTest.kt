@@ -2,18 +2,15 @@ package jp.uhimania.timecardclientandroid
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import jp.uhimania.timecardclientandroid.data.BreakTime
-import jp.uhimania.timecardclientandroid.data.CalendarRecord
 import jp.uhimania.timecardclientandroid.data.TimeInterval
-import jp.uhimania.timecardclientandroid.data.TimeRecord
-import jp.uhimania.timecardclientandroid.ui.CalendarRecordView
+import jp.uhimania.timecardclientandroid.ui.CalendarRecordScreen
 import jp.uhimania.timecardclientandroid.ui.CalendarUiState
 import org.junit.Rule
 import org.junit.Test
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class CalendarRecordTest {
+class CalendarRecordScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -28,7 +25,7 @@ class CalendarRecordTest {
         val record = CalendarUiState.CalendarRecord(date = formatter.parse("2025-12-04 00:00:00") ?: Date(), records = listOf(record1, record2))
 
         composeTestRule.setContent {
-            CalendarRecordView(record)
+            CalendarRecordScreen(record)
         }
 
         composeTestRule.onNodeWithText("04(Thu)").assertExists()
