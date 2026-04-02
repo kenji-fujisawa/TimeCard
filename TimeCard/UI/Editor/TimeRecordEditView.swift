@@ -17,6 +17,7 @@ struct TimeRecordEditView: View {
             if let index = viewModel.records.firstIndex(where: { $0.id == viewModel.selectedId }) {
                 let record = viewModel.records[index]
                 DetailView(record: record, valid: viewModel.isValid(record))
+                    .disabled(!record.editable)
             }
         }
         .frame(minWidth: 400, minHeight: 300)

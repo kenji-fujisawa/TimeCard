@@ -406,6 +406,35 @@ struct RecordEditViewModelTests {
         #expect(viewModel.isValid() == true)
     }
     
+    @Test func testEditableTimeRecord() async throws {
+        // checkIn, checkOut is nil
+        var record = TimeRecord()
+        #expect(record.asViewModel().editable == false)
+        
+        // checkOut is nil
+        record.checkIn = Date(timeIntervalSinceNow: -60)
+        #expect(record.asViewModel().editable == false)
+        
+        // ok
+        record.checkOut = Date(timeIntervalSinceNow: -60)
+        #expect(record.asViewModel().editable == true)
+        
+        // future is not editable
+        record.checkOut = Date(timeIntervalSinceNow: 60)
+        #expect(record.asViewModel().editable == false)
+    }
+    
+    @Test func testEditableSystemUptimeRecord() async throws {
+        // today is not editable
+        var record = SystemUptimeRecord(launch: .now, shutdown: .now)
+        #expect(record.asViewModel().editable == false)
+        
+        // yesterday is ok
+        let date = Date(timeInterval: -60, since: Calendar.current.startOfDay(for: .now))
+        record = SystemUptimeRecord(launch: date, shutdown: date)
+        #expect(record.asViewModel().editable == true)
+    }
+    
     class FakeCalendarRecordRepository: CalendarRecordRepository {
         func getRecordsStream(year: Int, month: Int) -> AsyncStream<[TimeCard.CalendarRecord]> {
             AsyncStream { _ in }
