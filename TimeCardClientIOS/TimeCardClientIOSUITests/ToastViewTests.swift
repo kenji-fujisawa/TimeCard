@@ -23,8 +23,8 @@ final class ToastViewTests: XCTestCase {
 
         XCTAssertEqual(app.staticTexts.matching(identifier: "text_message").count, 0)
         
-        XCTAssertTrue(app.buttons["button_show_toast"].waitForExistence(timeout: 3))
-        app.buttons["button_show_toast"].tap()
+        XCTAssertTrue(app.buttons["show"].waitForExistence(timeout: 3))
+        app.buttons["show"].tap()
         
         XCTAssertTrue(app.staticTexts["text_message"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["text_message"].label, "test message")

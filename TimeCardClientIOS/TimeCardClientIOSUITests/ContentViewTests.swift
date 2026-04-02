@@ -18,7 +18,7 @@ final class ContentViewTests: XCTestCase {
 
     func testLoading() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITests", "ContentViewTests"]
+        app.launchArguments = ["-UITests", "ContentViewTests", "testLoading"]
         app.launch()
 
         // show loading
@@ -48,7 +48,7 @@ final class ContentViewTests: XCTestCase {
     
     func testToast() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITests", "ContentViewTests"]
+        app.launchArguments = ["-UITests", "ContentViewTests", "testToast"]
         app.launch()
 
         XCTAssertTrue(app.buttons["button_prev"].waitForExistence(timeout: 5))

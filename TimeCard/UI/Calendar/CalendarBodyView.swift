@@ -1,0 +1,83 @@
+//
+//  CalendarBodyView.swift
+//  TimeCard
+//
+//  Created by uhimania on 2025/10/03.
+//
+
+import SwiftUI
+
+struct CalendarBodyView: View {
+    @Environment(\.calendarRecordRepository) private var repository
+    let viewModel: CalendarViewModel
+    @State private var recordToEdit: CalendarViewModel.CalendarRecord? = nil
+    @State private var showFileExport: Bool = false
+    
+    var body: some View {
+        List {
+            Grid(alignment: .leading) {
+                GridRow {
+                    Text("")
+                    Text("出勤")
+                        .bold()
+                    Text("退勤")
+                        .bold()
+                    Text("休憩開始")
+                        .bold()
+                    Text("休憩終了")
+                        .bold()
+                    Text("労働時間")
+                        .bold()
+                    Text("システム稼働時間")
+                        .bold()
+                        .frame(width: 60, height: 35)
+                }
+                Divider()
+                
+                ForEach(viewModel.records) { record in
+                    CalendarRecordView(record: record, recordToEdit: $recordToEdit)
+                    Divider()
+                }
+                
+                GridRow {
+                    Text("")
+                    Text("")
+                    Text("")
+                    Text("")
+                    Text("")
+                    Text(viewModel.timeWorkedSum, format: .timeWorked)
+                    Text(viewModel.systemUptimeSum, format: .timeWorked)
+                }
+                .font(.system(.headline, design: .monospaced))
+                .fontWeight(.regular)
+            }
+        }
+        .sheet(item: $recordToEdit) { record in
+            RecordEditView(viewModel: RecordEditViewModel(repository, record.date))
+        }
+        .fileExporter(isPresented: $showFileExport, document: PdfDocument(), contentType: .pdf, onCompletion: { _ in })
+        .focusedSceneValue(\.exportPDFAction, ExportPDFAction(viewModel: viewModel, showExporter: { showFileExport = true }))
+    }
+}
+
+#Preview {
+    let repository = FakeCalendarRecordRepository()
+    let viewModel = CalendarViewModel(repository)
+    CalendarBodyView(viewModel: viewModel)
+}
+
+private class FakeCalendarRecordRepository: CalendarRecordRepository {
+    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
+        AsyncStream { continuation in
+            let records = Calendar.current.datesOf(year: year, month: month).map { date in
+                CalendarRecord(date: date, timeRecords: [], uptimeRecords: [])
+            }
+            continuation.yield(records)
+        }
+    }
+    
+    func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
+        CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])
+    }
+    func updateRecord(_ record: CalendarRecord) throws {}
+}

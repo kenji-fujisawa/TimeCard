@@ -37,13 +37,15 @@ import jp.uhimania.timecardclientandroid.ui.theme.TimeCardClientAndroidTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun DateTimePicker(
     label: String,
     date: Date,
     onDateChange: (Date) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
 ) {
     Row(
         modifier = modifier,
@@ -53,11 +55,13 @@ fun DateTimePicker(
         Spacer(modifier = Modifier.weight(1f))
         DateFieldWithPicker(
             date = date,
-            onDateChange = onDateChange
+            onDateChange = onDateChange,
+            isError = isError
         )
         TimeFieldWithPicker(
             date = date,
-            onDateChange = onDateChange
+            onDateChange = onDateChange,
+            isError = isError
         )
     }
 }
@@ -67,18 +71,20 @@ fun DateTimePicker(
 private fun DateFieldWithPicker(
     date: Date,
     onDateChange: (Date) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
 ) {
     var showModal by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = date.time
     )
 
-    val formatter = SimpleDateFormat("yyyy-MM-dd")
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     OutlinedTextField(
         value = formatter.format(date),
         onValueChange = {},
         readOnly = true,
+        isError = isError,
         modifier = modifier
             .width(dimensionResource(R.dimen.date_field_width))
             .pointerInput(date) {
@@ -126,7 +132,8 @@ private fun DateFieldWithPicker(
 private fun TimeFieldWithPicker(
     date: Date,
     onDateChange: (Date) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
 ) {
     var showModal by remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState(
@@ -135,11 +142,12 @@ private fun TimeFieldWithPicker(
         is24Hour = true
     )
 
-    val formatter = SimpleDateFormat("HH:mm")
+    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     OutlinedTextField(
         value = formatter.format(date),
         onValueChange = {},
         readOnly = true,
+        isError = isError,
         modifier = modifier
             .padding(start = dimensionResource(R.dimen.padding_small))
             .width(dimensionResource(R.dimen.time_field_width))

@@ -86,6 +86,10 @@ final class CalendarDetailViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 3))
         app.buttons["Delete"].tap()
         
+        // close edit mode in order to refresh date picker
+        XCTAssertTrue(app.buttons["button_edit"].waitForExistence(timeout: 3))
+        app.buttons["button_edit"].tap()
+        
         sleep(1)
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_check_in").count, 1)
@@ -140,14 +144,14 @@ final class CalendarDetailViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 3))
         app.buttons["Delete"].tap()
         
+        // close edit mode in order to refresh date picker
+        XCTAssertTrue(app.buttons["button_edit"].waitForExistence(timeout: 3))
+        app.buttons["button_edit"].tap()
+        
         sleep(1)
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").count, 1)
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 0).buttons.firstMatch.value as! String, "09:12, Dec 29, 2025")
-        
-        // close edit mode in order to refresh date picker
-        XCTAssertTrue(app.buttons["button_edit"].waitForExistence(timeout: 3))
-        app.buttons["button_edit"].tap()
         
         // another parent
         XCTAssertTrue(app.buttons["button_add_time_record"].waitForExistence(timeout: 3))
@@ -181,8 +185,25 @@ final class CalendarDetailViewTests: XCTestCase {
         app.launch()
         
         // initial value
-        XCTAssertTrue(app.staticTexts["calendar_count"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["calendar_count"].label, "0")
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
+        sleep(1)
+        
+        XCTAssertTrue(app.staticTexts["calendar_date"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["calendar_date"].label, "Dec 29")
+        
+        XCTAssertTrue(app.staticTexts["record_count"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["record_count"].label, "1")
+        
+        XCTAssertTrue(app.staticTexts["record_check_in"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["record_check_in"].label, "09:12")
+        
+        XCTAssertTrue(app.staticTexts["record_check_out"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["record_check_out"].label, "02:28")
+        
+        XCTAssertTrue(app.staticTexts["break_time_count"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["break_time_count"].label, "1")
         
         // navigate to detail view
         XCTAssertTrue(app.buttons["link"].waitForExistence(timeout: 3))
@@ -198,14 +219,17 @@ final class CalendarDetailViewTests: XCTestCase {
         XCTAssertTrue(app.buttons["Delete"].waitForExistence(timeout: 3))
         app.buttons["Delete"].tap()
         
+        XCTAssertTrue(app.buttons["button_save"].waitForExistence(timeout: 3))
+        app.buttons["button_save"].tap()
+        
         // navigate back
         XCTAssertTrue(app.buttons["BackButton"].waitForExistence(timeout: 3))
         app.buttons["BackButton"].tap()
         
-        sleep(1)
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
         
-        XCTAssertTrue(app.staticTexts["calendar_count"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["calendar_count"].label, "1")
+        sleep(1)
         
         XCTAssertTrue(app.staticTexts["calendar_date"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["calendar_date"].label, "Dec 29")

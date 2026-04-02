@@ -22,6 +22,7 @@ import jp.uhimania.timecardclientandroid.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 @Composable
 fun MonthSelector(
@@ -45,7 +46,7 @@ fun MonthSelector(
         }
 
         Text(
-            text = SimpleDateFormat(formatter).format(date),
+            text = SimpleDateFormat(formatter, Locale.getDefault()).format(date),
             style = MaterialTheme.typography.displaySmall
         )
 

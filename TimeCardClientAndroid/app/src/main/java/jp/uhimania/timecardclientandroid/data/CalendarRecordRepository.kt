@@ -15,9 +15,11 @@ import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 interface CalendarRecordRepository {
-    fun getRecords(year: Int, month: Int): Flow<List<CalendarRecord>>
+    fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>>
 
-    suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord)
+    suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord
+
+    suspend fun updateRecord(record: CalendarRecord)
 }
 
 class DefaultCalendarRecordRepository(
@@ -25,9 +27,9 @@ class DefaultCalendarRecordRepository(
     private val localDataSource: LocalDataSource,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CalendarRecordRepository {
-    override fun getRecords(year: Int, month: Int): Flow<List<CalendarRecord>> {
-        return localDataSource.getRecords(year, month)
-            .map { it.map { entry -> entry.toTimeRecord() } }
+    override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
+        return localDataSource.observeRecords(year, month)
+            .map { it.map { entry -> entry.asTimeRecord() } }
             .map {
                 val records = it.groupBy { rec -> rec.checkIn?.day() }
                 val dates = Calendar.getInstance().datesOf(year, month)
@@ -48,7 +50,7 @@ class DefaultCalendarRecordRepository(
                 val records = networkDataSource.getRecords(year, month)
                 localDataSource.deleteRecords(year, month)
                 records.forEach { record ->
-                    localDataSource.insert(record.toLocal())
+                    localDataSource.insert(record.asLocal())
                     record.localBreakTimes().forEach { localDataSource.insert(it) }
                 }
             } catch (ex: Exception) {
@@ -57,37 +59,54 @@ class DefaultCalendarRecordRepository(
         }
     }
 
-    override suspend fun updateRecord(source: List<CalendarRecord>, record: CalendarRecord) {
-        val before = source.find { it.date == record.date }
-        if (before == null) {
-            return
-        }
+    override suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord {
+        val calendar = Calendar.getInstance()
+        calendar.clear()
+        calendar.set(year, month - 1, day)
+
+        val records = localDataSource.getRecords(year, month)
+            .map { it.asTimeRecord() }
+            .filter { it.checkIn?.day() == day }
+
+        return CalendarRecord(
+            date = calendar.time,
+            records = records
+        )
+    }
+
+    override suspend fun updateRecord(record: CalendarRecord) {
+        val year = record.date.year()
+        val month = record.date.month()
+        val day = record.date.day()
+        val original = localDataSource.getRecords(year, month)
+            .map { it.asTimeRecord() }
+            .filter { it.checkIn?.day() == day }
 
         val inserted = record.records.filter { item ->
-            before.records.find { item.id == it.id } == null
+            original.find { item.id == it.id } == null
         }
         val updated = record.records.filter { item ->
-            val rec = before.records.find { item.id == it.id }
+            val rec = original.find { item.id == it.id }
             rec != null && rec != item
         }
-        val deleted = before.records.filter { item ->
+        val deleted = original.filter { item ->
             record.records.find { item.id == it.id } == null
         }
 
         for (rec in inserted) {
             val record = networkDataSource.insertRecord(rec)
-            localDataSource.insert(record.toLocal())
+            localDataSource.insert(record.asLocal())
             record.localBreakTimes().forEach { localDataSource.insert(it) }
         }
         for (rec in updated) {
             val record = networkDataSource.updateRecord(rec)
-            localDataSource.delete(rec.toLocal())
-            localDataSource.insert(record.toLocal())
+            localDataSource.delete(rec.asLocal())
+            localDataSource.insert(record.asLocal())
             record.localBreakTimes().forEach { localDataSource.insert(it) }
         }
         for (rec in deleted) {
             networkDataSource.deleteRecord(rec)
-            localDataSource.delete(rec.toLocal())
+            localDataSource.delete(rec.asLocal())
         }
     }
 
@@ -96,7 +115,7 @@ class DefaultCalendarRecordRepository(
     }
 }
 
-fun Map.Entry<LocalTimeRecord, List<LocalBreakTime>>.toTimeRecord(): TimeRecord {
+fun Map.Entry<LocalTimeRecord, List<LocalBreakTime>>.asTimeRecord(): TimeRecord {
     return TimeRecord(
         id = this.key.id,
         checkIn = this.key.checkIn,
@@ -111,7 +130,7 @@ fun Map.Entry<LocalTimeRecord, List<LocalBreakTime>>.toTimeRecord(): TimeRecord 
     )
 }
 
-fun TimeRecord.toLocal(): LocalTimeRecord {
+fun TimeRecord.asLocal(): LocalTimeRecord {
     return LocalTimeRecord(
         id = this.id,
         year = this.checkIn?.year() ?: 0,

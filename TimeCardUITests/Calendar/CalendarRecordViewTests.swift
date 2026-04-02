@@ -26,7 +26,7 @@ final class CalendarRecordViewTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["text_date"].value as! String, "29(月)")
         
         XCTAssertTrue(app.staticTexts["text_check_in"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["text_check_in"].value as! String, "09:45")
+        XCTAssertEqual(app.staticTexts["text_check_in"].value as! String, "10:45")
         
         XCTAssertTrue(app.staticTexts["text_check_out"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["text_check_out"].value as! String, "26:12")
@@ -38,7 +38,7 @@ final class CalendarRecordViewTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["text_break_end"].value as! String, "25:33")
         
         XCTAssertTrue(app.staticTexts["text_time_worked"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["text_time_worked"].value as! String, "14:41")
+        XCTAssertEqual(app.staticTexts["text_time_worked"].value as! String, "13:41")
         
         XCTAssertTrue(app.staticTexts["text_system_uptime"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["text_system_uptime"].value as! String, "14:47")

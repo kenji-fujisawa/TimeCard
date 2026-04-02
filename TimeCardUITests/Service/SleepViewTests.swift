@@ -22,31 +22,46 @@ final class SleepViewTests: XCTestCase {
         app.launch()
         app.activate()
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         XCTAssertTrue(app.staticTexts["state"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["state"].value as! String, "OffWork")
+        XCTAssertEqual(app.staticTexts["state"].value as! String, "offWork")
         
         XCTAssertTrue(app.buttons["sleep"].waitForExistence(timeout: 3))
         app.buttons["sleep"].tap()
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         XCTAssertTrue(app.staticTexts["state"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["state"].value as! String, "OffWork")
+        XCTAssertEqual(app.staticTexts["state"].value as! String, "offWork")
         
         XCTAssertTrue(app.buttons["checkIn"].waitForExistence(timeout: 3))
         app.buttons["checkIn"].tap()
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         XCTAssertTrue(app.staticTexts["state"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["state"].value as! String, "AtWork")
+        XCTAssertEqual(app.staticTexts["state"].value as! String, "atWork")
         
         XCTAssertTrue(app.buttons["sleep"].waitForExistence(timeout: 3))
         app.buttons["sleep"].tap()
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         XCTAssertTrue(app.staticTexts["state"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["state"].value as! String, "AtBreak")
+        XCTAssertEqual(app.staticTexts["state"].value as! String, "atBreak")
         
         XCTAssertTrue(app.buttons["wake"].waitForExistence(timeout: 3))
         app.buttons["wake"].tap()
         
+        XCTAssertTrue(app.buttons["update"].waitForExistence(timeout: 3))
+        app.buttons["update"].tap()
+        
         XCTAssertTrue(app.staticTexts["state"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["state"].value as! String, "AtWork")
+        XCTAssertEqual(app.staticTexts["state"].value as! String, "atWork")
     }
 }
