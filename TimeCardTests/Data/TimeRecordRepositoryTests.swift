@@ -304,6 +304,7 @@ struct TimeRecordRepositoryTests {
         }
         
         func getUptimeRecords(year: Int, month: Int) throws -> [SystemUptimeRecord] { [] }
+        func getUptimeRecord(id: UUID) throws -> SystemUptimeRecord? { nil }
         func insertUptimeRecord(_ record: SystemUptimeRecord) throws {}
         func updateUptimeRecord(_ record: SystemUptimeRecord) throws {}
         func deleteUptimeRecord(_ record: SystemUptimeRecord) throws {}

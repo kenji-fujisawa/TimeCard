@@ -24,8 +24,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testLaunch() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         
@@ -41,8 +42,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testLaunch_fail() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         
@@ -58,8 +60,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testShutdown() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         
@@ -81,8 +84,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testShutdown_inSleep() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         try repository.sleep()
@@ -102,8 +106,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testShutdown_fail() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notRecording) {
             try repository.shutdown()
@@ -118,8 +123,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testSleep() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         try repository.sleep()
@@ -133,8 +139,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testSleep_fail() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.self) {
             try repository.sleep()
@@ -149,8 +156,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testWake() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         try repository.sleep()
@@ -172,8 +180,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testWake_fail() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notSleeping) {
             try repository.wake()
@@ -194,8 +203,9 @@ struct SystemUptimeRecordRepositoryTests {
     }
     
     @Test func testUpdate() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         
@@ -209,11 +219,14 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.update()
         
         #expect(record.shutdown.equals(.now))
+        
+        #expect(fileSource.records == [record.asUptimeRecord()])
     }
     
     @Test func testUpdate_inSleep() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         try repository.sleep()
@@ -230,11 +243,14 @@ struct SystemUptimeRecordRepositoryTests {
         
         #expect(record.shutdown.equals(.now))
         #expect(record.sleepRecords[0].end.equals(.now))
+        
+        #expect(fileSource.records == [record.asUptimeRecord()])
     }
     
     @Test func testUpdate_dateChanged() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         
@@ -261,11 +277,14 @@ struct SystemUptimeRecordRepositoryTests {
         #expect(results[1].launch.equals(.now))
         #expect(results[1].shutdown.equals(.now))
         #expect(results[1].sleepRecords.count == 0)
+        
+        #expect(fileSource.records == results.map { $0.asUptimeRecord() })
     }
     
     @Test func testUpdate_dateChanged_InSleep() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         try repository.launch()
         try repository.sleep()
@@ -297,14 +316,57 @@ struct SystemUptimeRecordRepositoryTests {
         #expect(results[1].sleepRecords.count == 1)
         #expect(results[1].sleepRecords[0].start.equals(.now))
         #expect(results[1].sleepRecords[0].end.equals(.now))
+        
+        #expect(fileSource.records == results.map { $0.asUptimeRecord() })
     }
     
     @Test func testUpdate_fail() async throws {
-        let source = DefaultLocalDataSource(context)
-        let repository = DefaultSystemUptimeRecordRepository(source)
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notRecording) {
             try repository.update()
+        }
+        
+        #expect(fileSource.records.isEmpty)
+    }
+    
+    @Test func testRestoreBackup() async throws {
+        let localSource = DefaultLocalDataSource(context)
+        let fileSource = FakeFileDataSource()
+        let repository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
+        
+        var records = [SystemUptimeRecord(launch: .now, shutdown: .now)]
+        fileSource.records = records
+        try repository.restoreBackup()
+        
+        let descriptor = FetchDescriptor<LocalUptimeRecord>()
+        var results = try context.fetch(descriptor)
+        #expect(results.map { $0.asUptimeRecord() } == records)
+        #expect(fileSource.records.isEmpty)
+        
+        records[0].sleepRecords.append(SystemUptimeRecord.SleepRecord(start: .now, end: .now))
+        fileSource.records = records
+        try repository.restoreBackup()
+        
+        results = try context.fetch(descriptor)
+        #expect(results.map { $0.asUptimeRecord() } == records)
+        #expect(fileSource.records.isEmpty)
+    }
+    
+    class FakeFileDataSource: FileDataSource {
+        var records: [SystemUptimeRecord] = []
+        func getUptimeRecords() throws -> [TimeCard.SystemUptimeRecord] {
+            records
+        }
+        
+        func saveUptimeRecords(_ records: [TimeCard.SystemUptimeRecord]) throws {
+            self.records = records
+        }
+        
+        func removeUptimeRecords() throws {
+            records.removeAll()
         }
     }
 }

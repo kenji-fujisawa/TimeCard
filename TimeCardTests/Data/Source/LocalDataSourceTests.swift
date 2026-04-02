@@ -233,6 +233,23 @@ struct LocalDataSourceTests {
         #expect(results.count == 0)
     }
     
+    @Test func testGetUptimeRecord() async throws {
+        uptimeRecords.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        var result = try source.getUptimeRecord(id: uptimeRecords[0].id)
+        #expect(result == uptimeRecords[0])
+        
+        result = try source.getUptimeRecord(id: uptimeRecords[1].id)
+        #expect(result == uptimeRecords[1])
+        
+        result = try source.getUptimeRecord(id: uptimeRecords[2].id)
+        #expect(result == uptimeRecords[2])
+        
+        result = try source.getUptimeRecord(id: UUID())
+        #expect(result == nil)
+    }
+    
     @Test func testInsertUptimeRecord() async throws {
         let source = DefaultLocalDataSource(context)
         try uptimeRecords.forEach { try source.insertUptimeRecord($0) }

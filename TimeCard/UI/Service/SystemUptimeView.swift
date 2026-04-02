@@ -52,4 +52,5 @@ private class FakeUptimeRepository: SystemUptimeRecordRepository {
     func sleep() throws {}
     func wake() throws {}
     func update() throws {}
+    func restoreBackup() throws {}
 }
