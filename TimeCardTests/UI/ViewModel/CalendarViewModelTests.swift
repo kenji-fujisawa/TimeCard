@@ -99,50 +99,50 @@ struct CalendarViewModelTests {
         #expect(viewModel.systemUptimeSum == records.systemUptimeSum)
     }
     
-    @Test func testFixed() async throws {
-        // future is not fixed
+    @Test func testEditable() async throws {
+        // future is not editable
         var record = CalendarViewModel.CalendarRecord(date: Date(timeIntervalSinceNow: 24 * 60 * 60))
-        #expect(record.fixed == false)
+        #expect(record.editable == false)
         
-        // past is fixed
+        // past is editable
         record = CalendarViewModel.CalendarRecord(date: Date(timeIntervalSinceNow: -24 * 60 * 60))
-        #expect(record.fixed == true)
+        #expect(record.editable == true)
         
         // time record is empty
         record = CalendarViewModel.CalendarRecord(date: .now)
-        #expect(record.fixed == false)
+        #expect(record.editable == true)
         
         // not check in
         record = CalendarViewModel.CalendarRecord(date: .now, timeRecords: [
             CalendarViewModel.TimeRecord()
         ])
-        #expect(record.fixed == false)
+        #expect(record.editable == true)
         
         // not check out
         record = CalendarViewModel.CalendarRecord(date: .now, timeRecords: [
             CalendarViewModel.TimeRecord(checkIn: .now)
         ])
-        #expect(record.fixed == false)
+        #expect(record.editable == true)
         
         // fixed
         record = CalendarViewModel.CalendarRecord(date: .now, timeRecords: [
             CalendarViewModel.TimeRecord(checkIn: .now, checkOut: .now)
         ])
-        #expect(record.fixed == true)
+        #expect(record.editable == true)
         
         // multipul time record
         record = CalendarViewModel.CalendarRecord(date: .now, timeRecords: [
             CalendarViewModel.TimeRecord(checkIn: .now, checkOut: .now),
             CalendarViewModel.TimeRecord(checkIn: .now)
         ])
-        #expect(record.fixed == false)
+        #expect(record.editable == true)
         
         // multipul time record, fixed
         record = CalendarViewModel.CalendarRecord(date: .now, timeRecords: [
             CalendarViewModel.TimeRecord(checkIn: .now, checkOut: .now),
             CalendarViewModel.TimeRecord(checkIn: .now, checkOut: .now)
         ])
-        #expect(record.fixed == true)
+        #expect(record.editable == true)
     }
 
     @Test func testInterval() async throws {

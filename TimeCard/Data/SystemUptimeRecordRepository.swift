@@ -13,6 +13,7 @@ protocol SystemUptimeRecordRepository {
     func sleep() throws
     func wake() throws
     func update() throws
+    func restoreBackup() throws
 }
 
 class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
@@ -29,16 +30,18 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         case sleep
     }
     
-    private let source: LocalDataSource
+    private let localSource: LocalDataSource
+    private let fileSource: FileDataSource
     private var state: State = .shutdown
     
-    init(_ source: LocalDataSource) {
-        self.source = source
+    init(_ localSource: LocalDataSource, _ fileSource: FileDataSource) {
+        self.localSource = localSource
+        self.fileSource = fileSource
     }
     
     private func getRecord() throws -> SystemUptimeRecord? {
         let now = Date.now
-        return try source.getUptimeRecords(year: now.year, month: now.month).last
+        return try localSource.getUptimeRecords(year: now.year, month: now.month).last
     }
     
     func launch() throws {
@@ -48,7 +51,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         
         let now = Date.now
         let record = SystemUptimeRecord(launch: now, shutdown: now)
-        try source.insertUptimeRecord(record)
+        try localSource.insertUptimeRecord(record)
         
         state = .running
     }
@@ -68,7 +71,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
             record.sleepRecords[index].end = .now
         }
         
-        try source.updateUptimeRecord(record)
+        try localSource.updateUptimeRecord(record)
         
         state = .shutdown
     }
@@ -84,7 +87,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         let now = Date.now
         let sleep = SystemUptimeRecord.SleepRecord(start: now, end: now)
         record.sleepRecords.append(sleep)
-        try source.updateUptimeRecord(record)
+        try localSource.updateUptimeRecord(record)
         
         state = .sleep
     }
@@ -99,7 +102,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         
         let index = record.sleepRecords.count - 1
         record.sleepRecords[index].end = .now
-        try source.updateUptimeRecord(record)
+        try localSource.updateUptimeRecord(record)
         
         state = .running
     }
@@ -117,7 +120,8 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
             record.sleepRecords[index].end = now
         }
         
-        try source.updateUptimeRecord(record)
+        try localSource.updateUptimeRecord(record)
+        try saveBackup(record)
         
         if record.launch.day != now.day {
             var record = SystemUptimeRecord(launch: now, shutdown: now)
@@ -127,7 +131,30 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
                 record.sleepRecords.append(sleep)
             }
             
-            try source.insertUptimeRecord(record)
+            try localSource.insertUptimeRecord(record)
+            try saveBackup(record)
         }
+    }
+    
+    private func saveBackup(_ record: SystemUptimeRecord) throws {
+        var records = try fileSource.getUptimeRecords()
+        records.removeAll { $0.id == record.id }
+        records.append(record)
+        try fileSource.saveUptimeRecords(records)
+    }
+    
+    func restoreBackup() throws {
+        let records = try fileSource.getUptimeRecords()
+        try records.forEach {
+            if let record = try localSource.getUptimeRecord(id: $0.id) {
+                if record != $0 {
+                    try localSource.updateUptimeRecord($0)
+                }
+            } else {
+                try localSource.insertUptimeRecord($0)
+            }
+        }
+        
+        try fileSource.removeUptimeRecords()
     }
 }

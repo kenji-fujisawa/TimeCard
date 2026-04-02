@@ -54,14 +54,8 @@ class CalendarViewModel {
         let timeWorked: TimeInterval
         let systemUptime: TimeInterval
         
-        var fixed: Bool {
-            let now = Date.now
-            if date.year == now.year && date.month == now.month && date.day == now.day {
-                let latest = timeRecords.last
-                return latest != nil && latest?.checkIn != nil && latest?.checkOut != nil
-            }
-            
-            return date < now
+        var editable: Bool {
+            date <= Date.now
         }
         
         init(date: Date, timeRecords: [TimeRecord] = [], timeWorked: TimeInterval = 0, systemUptime: TimeInterval = 0) {

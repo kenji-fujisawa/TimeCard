@@ -306,6 +306,7 @@ struct CalendarRecordRepositoryTests {
         func getUptimeRecords(year: Int, month: Int) throws -> [SystemUptimeRecord] {
             uptimeRecords
         }
+        func getUptimeRecord(id: UUID) throws -> SystemUptimeRecord? { nil }
         
         var uptimeInserted: [SystemUptimeRecord] = []
         func insertUptimeRecord(_ record: SystemUptimeRecord) throws {

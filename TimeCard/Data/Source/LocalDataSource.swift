@@ -18,6 +18,7 @@ protocol LocalDataSource {
     func deleteTimeRecord(_ record: TimeRecord) throws
     
     func getUptimeRecords(year: Int, month: Int) throws -> [SystemUptimeRecord]
+    func getUptimeRecord(id: UUID) throws -> SystemUptimeRecord?
     func insertUptimeRecord(_ record: SystemUptimeRecord) throws
     func updateUptimeRecord(_ record: SystemUptimeRecord) throws
     func deleteUptimeRecord(_ record: SystemUptimeRecord) throws
@@ -90,6 +91,10 @@ class DefaultLocalDataSource: LocalDataSource {
             sortBy: [.init(\.launch)]
         )
         return try context.fetch(descriptor).map { $0.asUptimeRecord() }
+    }
+    
+    func getUptimeRecord(id: UUID) throws -> SystemUptimeRecord? {
+        return try getLocalUptimeRecord(id: id)?.asUptimeRecord()
     }
     
     private func getLocalUptimeRecord(id: UUID) throws -> LocalUptimeRecord? {

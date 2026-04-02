@@ -32,14 +32,23 @@ struct TimeCardApp: App {
             fatalError(error.localizedDescription)
         }
         
-        let source = DefaultLocalDataSource(container.mainContext)
-        timeRepository = DefaultTimeRecordRepository(source)
-        uptimeRepository = DefaultSystemUptimeRecordRepository(source)
-        calendarRepository = DefaultCalendarRecordRepository(source)
+        let localSource = DefaultLocalDataSource(container.mainContext)
+        
+        #if DEBUG
+        let fileSource = FakeFileDataSource()
+        #else
+        let fileSource = DefaultFileDataSource()
+        #endif
+        
+        timeRepository = DefaultTimeRecordRepository(localSource)
+        uptimeRepository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
+        calendarRepository = DefaultCalendarRecordRepository(localSource)
         timeViewModel = TimeRecordViewModel(timeRepository)
         uptimeViewModel = SystemUptimeRecordViewModel(uptimeRepository)
         calendarViewModel = CalendarViewModel(calendarRepository)
         server = TimeCardServer(timeRepository)
+        
+        try? uptimeRepository.restoreBackup()
     }
     
     var body: some Scene {
@@ -109,6 +118,12 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
     func updateRecord(_ record: CalendarRecord) throws {}
 }
 
+private class FakeFileDataSource: FileDataSource {
+    func getUptimeRecords() throws -> [SystemUptimeRecord] { [] }
+    func saveUptimeRecords(_ records: [SystemUptimeRecord]) throws {}
+    func removeUptimeRecords() throws {}
+}
+
 #if DEBUG
 struct UITestApp: App {
     private let container: ModelContainer
@@ -131,10 +146,11 @@ struct UITestApp: App {
             fatalError(error.localizedDescription)
         }
         
-        let source = DefaultLocalDataSource(container.mainContext)
-        timeRepository = DefaultTimeRecordRepository(source)
-        uptimeRepository = DefaultSystemUptimeRecordRepository(source)
-        calendarRepository = DefaultCalendarRecordRepository(source)
+        let localSource = DefaultLocalDataSource(container.mainContext)
+        let fileSource = FakeFileDataSource()
+        timeRepository = DefaultTimeRecordRepository(localSource)
+        uptimeRepository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
+        calendarRepository = DefaultCalendarRecordRepository(localSource)
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -143,7 +159,7 @@ struct UITestApp: App {
             date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
             timeRecords: [
                 TimeRecord(
-                    checkIn: formatter.date(from: "2025-12-29 09:45:30"),
+                    checkIn: formatter.date(from: "2025-12-29 10:45:30"),
                     checkOut: formatter.date(from: "2025-12-30 02:12:38"),
                     breakTimes: [
                         TimeRecord.BreakTime(

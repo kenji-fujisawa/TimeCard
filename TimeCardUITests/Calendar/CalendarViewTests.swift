@@ -43,7 +43,7 @@ final class CalendarViewTests: XCTestCase {
         
         let day = Calendar.current.component(.day, from: .now)
         
-        XCTAssertEqual(app.buttons.matching(identifier: "button_edit").count, day - 1)
+        XCTAssertEqual(app.buttons.matching(identifier: "button_edit").count, day)
         
         XCTAssertTrue(app.buttons["button_check_in"].waitForExistence(timeout: 3))
         app.buttons["button_check_in"].tap()

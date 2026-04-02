@@ -91,7 +91,7 @@ struct CalendarRecordView: View {
                     .opacity(0)
             }
             
-            if record.fixed {
+            if record.editable {
                 Button("edit") {
                     recordToEdit = record
                 }

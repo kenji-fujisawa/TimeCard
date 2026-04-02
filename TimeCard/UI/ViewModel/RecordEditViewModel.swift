@@ -70,13 +70,15 @@ class TimeRecordEditViewModel {
         var checkIn: Date
         var checkOut: Date
         var breakTimes: [BreakTime]
+        var editable: Bool
         var removeId: BreakTime.ID? = nil
         
-        init(id: UUID = UUID(), checkIn: Date, checkOut: Date, breakTimes: [BreakTime] = []) {
+        init(id: UUID = UUID(), checkIn: Date, checkOut: Date, breakTimes: [BreakTime] = [], editable: Bool = true) {
             self.id = id
             self.checkIn = checkIn
             self.checkOut = checkOut
             self.breakTimes = breakTimes
+            self.editable = editable
         }
         
         func addBreakTime() {
@@ -196,6 +198,7 @@ class UptimeRecordEditViewModel {
         var launch: Date
         var shutdown: Date
         var sleepRecords: [SleepRecord]
+        var editable: Bool
         var removeId: SleepRecord.ID? = nil
         
         var uptime: TimeInterval {
@@ -207,11 +210,12 @@ class UptimeRecordEditViewModel {
             return interval
         }
         
-        init(id: UUID = UUID(), launch: Date, shutdown: Date, sleepRecords: [SleepRecord] = []) {
+        init(id: UUID = UUID(), launch: Date, shutdown: Date, sleepRecords: [SleepRecord] = [], editable: Bool = true) {
             self.id = id
             self.launch = launch
             self.shutdown = shutdown
             self.sleepRecords = sleepRecords
+            self.editable = editable
         }
         
         func addSleep() {
@@ -310,7 +314,8 @@ extension TimeRecord {
             id: self.id,
             checkIn: self.checkIn ?? .now,
             checkOut: self.checkOut ?? .now,
-            breakTimes: self.breakTimes.map { $0.asViewModel() }
+            breakTimes: self.breakTimes.map { $0.asViewModel() },
+            editable: max(self.checkIn ?? .distantFuture, self.checkOut ?? .distantFuture) < .now
         )
     }
 }
@@ -331,7 +336,8 @@ extension SystemUptimeRecord {
             id: self.id,
             launch: self.launch,
             shutdown: self.shutdown,
-            sleepRecords: self.sleepRecords.map { $0.asViewModel() }
+            sleepRecords: self.sleepRecords.map { $0.asViewModel() },
+            editable: max(self.launch, self.shutdown) < Calendar.current.startOfDay(for: .now)
         )
     }
 }
