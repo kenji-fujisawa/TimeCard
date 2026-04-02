@@ -24,7 +24,7 @@ final class TimeRecordEditViewTests: XCTestCase {
         
         // check initial value
         XCTAssertTrue(app.staticTexts["nav_link"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["nav_link"].value as! String, "09:45")
+        XCTAssertEqual(app.staticTexts["nav_link"].value as! String, "10:45")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 0).isSelected, true)
         
         // add time record
@@ -32,9 +32,9 @@ final class TimeRecordEditViewTests: XCTestCase {
         app.buttons["button_add_time_record"].tap()
         
         XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").count, 2)
-        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "09:45")
+        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "10:45")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 0).isSelected, false)
-        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 1).value as! String, "00:00")
+        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 1).value as! String, "0:00")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 1).isSelected, true)
         
         XCTAssertTrue(app.datePickers["date_check_in"].waitForExistence(timeout: 3))
@@ -44,7 +44,7 @@ final class TimeRecordEditViewTests: XCTestCase {
         app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).tap()
         
         XCTAssertTrue(app.datePickers["date_check_in"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.datePickers["date_check_in"].value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
+        XCTAssertEqual(app.datePickers["date_check_in"].value as! String, "Unsafe value, description '2025-12-29 01:45:30 +0000'")
         
         // remove time record
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_time_confirm").count, 2)
@@ -54,7 +54,7 @@ final class TimeRecordEditViewTests: XCTestCase {
         app.buttons["button_remove_time_record"].tap()
         
         XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").count, 1)
-        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "09:45")
+        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "10:45")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 0).isSelected, true)
         
         // re-add and remove another record
@@ -70,7 +70,7 @@ final class TimeRecordEditViewTests: XCTestCase {
         app.buttons["button_remove_time_record"].tap()
         
         XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").count, 1)
-        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "00:00")
+        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "0:00")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 0).isSelected, true)
         
         // edit check in
@@ -90,7 +90,7 @@ final class TimeRecordEditViewTests: XCTestCase {
         
         // check initial value
         XCTAssertTrue(app.datePickers["date_check_in"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.datePickers["date_check_in"].value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
+        XCTAssertEqual(app.datePickers["date_check_in"].value as! String, "Unsafe value, description '2025-12-29 01:45:30 +0000'")
         
         XCTAssertTrue(app.datePickers["date_check_out"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.datePickers["date_check_out"].value as! String, "Unsafe value, description '2025-12-29 17:12:38 +0000'")
@@ -107,11 +107,11 @@ final class TimeRecordEditViewTests: XCTestCase {
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").count, 2)
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 14:48:12 +0000'")
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 01:45:30 +0000'")
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").count, 2)
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 16:33:48 +0000'")
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 1).value as! String, "Unsafe value, description '2025-12-29 01:45:30 +0000'")
         
         // remove break time
         XCTAssertEqual(app.buttons.matching(identifier: "button_remove_break_confirm").count, 2)
@@ -139,10 +139,10 @@ final class TimeRecordEditViewTests: XCTestCase {
         app.buttons["button_remove_break_time"].tap()
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").count, 1)
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_start").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 01:45:30 +0000'")
         
         XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").count, 1)
-        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 00:45:30 +0000'")
+        XCTAssertEqual(app.datePickers.matching(identifier: "date_break_end").element(boundBy: 0).value as! String, "Unsafe value, description '2025-12-29 01:45:30 +0000'")
     }
     
     func testResetDetailView() throws {

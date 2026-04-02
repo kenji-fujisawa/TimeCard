@@ -143,7 +143,7 @@ struct UITestApp: App {
             date: formatter.date(from: "2025-12-29 00:00:00") ?? .now,
             timeRecords: [
                 TimeRecord(
-                    checkIn: formatter.date(from: "2025-12-29 09:45:30"),
+                    checkIn: formatter.date(from: "2025-12-29 10:45:30"),
                     checkOut: formatter.date(from: "2025-12-30 02:12:38"),
                     breakTimes: [
                         TimeRecord.BreakTime(
