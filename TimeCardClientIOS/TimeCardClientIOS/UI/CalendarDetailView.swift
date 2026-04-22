@@ -14,7 +14,7 @@ struct CalendarDetailView: View {
     var body: some View {
         VStack {
             Text(viewModel.date, format: .dateTime.month().day().weekday())
-                .foregroundStyle(viewModel.date.isHoliday() ? .red : .black)
+                .foregroundStyle(viewModel.date.isHoliday() ? .red : .primary)
                 .environment(\.locale, Locale(identifier: "ja_JP"))
             
             Form {
