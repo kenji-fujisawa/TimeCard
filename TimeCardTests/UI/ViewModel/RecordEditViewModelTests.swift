@@ -379,10 +379,20 @@ struct RecordEditViewModelTests {
     @Test func testIsValidRecordEditViewModel() async throws {
         let repository = FakeCalendarRecordRepository()
         let viewModel = RecordEditViewModel(repository, .now)
+        
+        // not changed
+        #expect(viewModel.isValid() == false)
+        
+        // ok
+        var timeRecord = TimeRecordEditViewModel.TimeRecord(
+            checkIn: Date(timeIntervalSinceNow: 0),
+            checkOut: Date(timeIntervalSinceNow: 30)
+        )
+        viewModel.timeViewModel.records.append(timeRecord)
         #expect(viewModel.isValid() == true)
         
         // invalid TimeRecord
-        let timeRecord = TimeRecordEditViewModel.TimeRecord(
+        timeRecord = TimeRecordEditViewModel.TimeRecord(
             checkIn: Date(timeIntervalSinceNow: 180),
             checkOut: Date(timeIntervalSinceNow: 120)
         )

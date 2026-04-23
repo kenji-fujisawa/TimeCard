@@ -14,6 +14,8 @@ class RecordEditViewModel {
     
     var timeViewModel: TimeRecordEditViewModel
     var uptimeViewModel: UptimeRecordEditViewModel
+    var timeRecords: [TimeRecordEditViewModel.TimeRecord] = []
+    var uptimeRecords: [UptimeRecordEditViewModel.SystemUptimeRecord] = []
     
     init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository
@@ -26,6 +28,9 @@ class RecordEditViewModel {
             self.timeViewModel.selectedId = record.timeRecords.first?.id
             self.uptimeViewModel.records = record.uptimeRecords.map { $0.asViewModel() }
             self.uptimeViewModel.selectedId = record.uptimeRecords.first?.id
+            
+            self.timeRecords = self.timeViewModel.records.copy()
+            self.uptimeRecords = self.uptimeViewModel.records.copy()
         }
     }
     
@@ -36,10 +41,15 @@ class RecordEditViewModel {
             uptimeRecords: uptimeViewModel.records.map { $0.asRecord() }
         )
         try? repository.updateRecord(record)
+        
+        timeRecords = timeViewModel.records.copy()
+        uptimeRecords = uptimeViewModel.records.copy()
     }
     
     func isValid() -> Bool {
-        timeViewModel.isValid() && uptimeViewModel.isValid()
+        if !timeViewModel.isValid() || !uptimeViewModel.isValid() { return false }
+        
+        return timeRecords != timeViewModel.records || uptimeRecords != uptimeViewModel.records
     }
 }
 
@@ -387,6 +397,60 @@ extension UptimeRecordEditViewModel.SystemUptimeRecord {
 extension UptimeRecordEditViewModel.SleepRecord {
     func asRecord() -> SystemUptimeRecord.SleepRecord {
         SystemUptimeRecord.SleepRecord(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
+extension [TimeRecordEditViewModel.TimeRecord] {
+    func copy() -> [TimeRecordEditViewModel.TimeRecord] {
+        self.map { $0.copy() }
+    }
+}
+
+extension TimeRecordEditViewModel.TimeRecord {
+    func copy() -> TimeRecordEditViewModel.TimeRecord {
+        TimeRecordEditViewModel.TimeRecord(
+            id: self.id,
+            checkIn: self.checkIn,
+            checkOut: self.checkOut,
+            breakTimes: self.breakTimes.map { $0.copy() }
+        )
+    }
+}
+
+extension TimeRecordEditViewModel.BreakTime {
+    func copy() -> TimeRecordEditViewModel.BreakTime {
+        TimeRecordEditViewModel.BreakTime(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
+extension [UptimeRecordEditViewModel.SystemUptimeRecord] {
+    func copy() -> [UptimeRecordEditViewModel.SystemUptimeRecord] {
+        self.map { $0.copy() }
+    }
+}
+
+extension UptimeRecordEditViewModel.SystemUptimeRecord {
+    func copy() -> UptimeRecordEditViewModel.SystemUptimeRecord {
+        UptimeRecordEditViewModel.SystemUptimeRecord(
+            id: self.id,
+            launch: self.launch,
+            shutdown: self.shutdown,
+            sleepRecords: self.sleepRecords.map { $0.copy() }
+        )
+    }
+}
+
+extension UptimeRecordEditViewModel.SleepRecord {
+    func copy() -> UptimeRecordEditViewModel.SleepRecord {
+        UptimeRecordEditViewModel.SleepRecord(
             id: self.id,
             start: self.start,
             end: self.end
