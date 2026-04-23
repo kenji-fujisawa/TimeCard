@@ -14,8 +14,8 @@ class RecordEditViewModel {
     
     var timeViewModel: TimeRecordEditViewModel
     var uptimeViewModel: UptimeRecordEditViewModel
-    var timeRecords: [TimeRecordEditViewModel.TimeRecord] = []
-    var uptimeRecords: [UptimeRecordEditViewModel.SystemUptimeRecord] = []
+    private var timeRecords: [TimeRecordEditViewModel.TimeRecord] = []
+    private var uptimeRecords: [UptimeRecordEditViewModel.SystemUptimeRecord] = []
     
     init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository
