@@ -519,6 +519,8 @@ class CalendarDetailViewModelTest {
             return flowOf()
         }
 
+        override suspend fun refreshRecords(year: Int, month: Int) {}
+
         var records: List<TimeRecord> = listOf()
         override suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord {
             return CalendarRecord(Date(), records)
