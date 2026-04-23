@@ -117,7 +117,7 @@ struct UITestApp: App {
                     Text(record.records[0].breakTimes.count, format: .number)
                         .accessibilityIdentifier("break_time_count")
                     NavigationLink {
-                        CalendarDetailView(viewModel: CalendarDetailViewModel(repository, date))
+                        CalendarDetailView(repository: repository, date: date)
                             .environment(toast)
                     } label: {
                         Text("link")

@@ -9,7 +9,11 @@ import SwiftUI
 
 struct CalendarDetailView: View {
     @Environment(ToastViewModel.self) private var toast: ToastViewModel
-    let viewModel: CalendarDetailViewModel
+    @State private var viewModel: CalendarDetailViewModel
+    
+    init(repository: CalendarRecordRepository, date: Date) {
+        self.viewModel = CalendarDetailViewModel(repository, date)
+    }
     
     var body: some View {
         VStack {
@@ -119,9 +123,8 @@ private extension View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let viewModel = CalendarDetailViewModel(repository, .now)
     NavigationStack {
-        CalendarDetailView(viewModel: viewModel)
+        CalendarDetailView(repository: repository, date: .now)
             .environment(ToastViewModel())
     }
 }
