@@ -22,7 +22,10 @@ interface NetworkDataSource {
 }
 
 class RetrofitNetworkDataSource(private val baseUrl: HttpUrl) : NetworkDataSource {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+    }
 
     private val retrofit = Retrofit.Builder()
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
