@@ -82,7 +82,7 @@ struct UITestApp: App {
             records: [
                 TimeRecord(
                     id: UUID(),
-                    checkIn: formatter.date(from: "2025-12-29 09:12:38"),
+                    checkIn: formatter.date(from: "2025-12-29 10:12:38"),
                     checkOut: formatter.date(from: "2025-12-30 02:28:11"),
                     breakTimes: [
                         TimeRecord.BreakTime(
