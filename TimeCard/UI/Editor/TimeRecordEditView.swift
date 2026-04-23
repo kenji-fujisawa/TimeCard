@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TimeRecordEditView: View {
-    @Bindable var viewModel: TimeRecordEditViewModel
+    let viewModel: TimeRecordEditViewModel
     
     var body: some View {
         NavigationSplitView {

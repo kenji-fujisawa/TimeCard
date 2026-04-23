@@ -210,7 +210,7 @@ struct UITestApp: App {
                     recordToEdit = CalendarViewModel.CalendarRecord(date: .now)
                 }
                 .sheet(item: $recordToEdit) { record in
-                    RecordEditView(viewModel: RecordEditViewModel(calendarRepository, record.date))
+                    RecordEditView(repository: calendarRepository, date: record.date)
                 }
                 Button("update") {
                     timeRecords = (try? container.mainContext.fetch(FetchDescriptor<LocalTimeRecord>()))?.map { $0.asTimeRecord() } ?? []
