@@ -10,7 +10,7 @@ import Foundation
 @Observable
 class CalendarDetailViewModel {
     @Observable
-    class BreakTime: Identifiable {
+    class BreakTime: Identifiable, Equatable {
         var id: UUID
         var start: Date
         var end: Date
@@ -20,10 +20,16 @@ class CalendarDetailViewModel {
             self.start = start
             self.end = end
         }
+        
+        static func == (lhs: CalendarDetailViewModel.BreakTime, rhs: CalendarDetailViewModel.BreakTime) -> Bool {
+            lhs.id == rhs.id &&
+            lhs.start == rhs.start &&
+            lhs.end == rhs.end
+        }
     }
     
     @Observable
-    class TimeRecord: Identifiable {
+    class TimeRecord: Identifiable, Equatable {
         var id: UUID
         var checkIn: Date
         var checkOut: Date
@@ -61,6 +67,13 @@ class CalendarDetailViewModel {
             
             return true
         }
+        
+        static func == (lhs: CalendarDetailViewModel.TimeRecord, rhs: CalendarDetailViewModel.TimeRecord) -> Bool {
+            lhs.id == rhs.id &&
+            lhs.checkIn == rhs.checkIn &&
+            lhs.checkOut == rhs.checkOut &&
+            lhs.breakTimes == rhs.breakTimes
+        }
     }
     
     @ObservationIgnored private let repository: CalendarRecordRepository
@@ -68,6 +81,7 @@ class CalendarDetailViewModel {
     var date: Date
     var records: [TimeRecord] = []
     var message: String = ""
+    private var recordsOriginal: [TimeRecord] = []
     
     init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository
@@ -75,6 +89,7 @@ class CalendarDetailViewModel {
         
         if let record = try? repository.getRecord(year: date.year, month: date.month, day: date.day) {
             self.records = record.records.map { $0.asViewModel() }
+            self.recordsOriginal = self.records.copy()
         }
     }
     
@@ -83,6 +98,8 @@ class CalendarDetailViewModel {
             do {
                 let record = CalendarRecord(date: date, records: records.map { $0.asRecord() })
                 try await repository.updateRecord(record)
+                
+                self.recordsOriginal = self.records.copy()
             } catch {
                 await MainActor.run {
                     self.message = "更新に失敗しました"
@@ -109,7 +126,7 @@ class CalendarDetailViewModel {
             }
         }
         
-        return true
+        return records != recordsOriginal
     }
     
     func isValid(_ record: TimeRecord) -> Bool {
@@ -164,6 +181,33 @@ extension CalendarDetailViewModel.TimeRecord {
 extension CalendarDetailViewModel.BreakTime {
     func asBreakTime() -> TimeRecord.BreakTime {
         TimeRecord.BreakTime(
+            id: self.id,
+            start: self.start,
+            end: self.end
+        )
+    }
+}
+
+extension [CalendarDetailViewModel.TimeRecord] {
+    func copy() -> [CalendarDetailViewModel.TimeRecord] {
+        self.map { $0.copy() }
+    }
+}
+
+extension CalendarDetailViewModel.TimeRecord {
+    func copy() -> CalendarDetailViewModel.TimeRecord {
+        CalendarDetailViewModel.TimeRecord(
+            id: self.id,
+            checkIn: self.checkIn,
+            checkOut: self.checkOut,
+            breakTimes: self.breakTimes.map { $0.copy() }
+        )
+    }
+}
+
+extension CalendarDetailViewModel.BreakTime {
+    func copy() -> CalendarDetailViewModel.BreakTime {
+        CalendarDetailViewModel.BreakTime(
             id: self.id,
             start: self.start,
             end: self.end

@@ -150,30 +150,40 @@ struct CalendarDetailViewModelTests {
     @Test func testIsValidCalendarDetailViewModel() async throws {
         let repository = FakeCalendarRecordRepository()
         let viewModel = CalendarDetailViewModel(repository, .now)
-        #expect(viewModel.isValid() == true)
         
-        // reversed TimeRecord
-        let record1 = CalendarDetailViewModel.TimeRecord(
-            checkIn: Date(timeIntervalSinceNow: 180),
-            checkOut: Date(timeIntervalSinceNow: 120)
-        )
-        viewModel.records.append(record1)
+        // not changed
         #expect(viewModel.isValid() == false)
         
         // ok
-        record1.checkIn = Date(timeIntervalSinceNow: 60)
+        let record1 = CalendarDetailViewModel.TimeRecord(
+            checkIn: Date(timeIntervalSinceNow: 0),
+            checkOut: Date(timeIntervalSinceNow: 30)
+        )
+        viewModel.records.append(record1)
         #expect(viewModel.isValid() == true)
         
-        // overlap TimeRecord
+        // reversed TimeRecord
         let record2 = CalendarDetailViewModel.TimeRecord(
-            checkIn: Date(timeIntervalSinceNow: 90),
-            checkOut: Date(timeIntervalSinceNow: 240)
+            checkIn: Date(timeIntervalSinceNow: 180),
+            checkOut: Date(timeIntervalSinceNow: 120)
         )
         viewModel.records.append(record2)
         #expect(viewModel.isValid() == false)
         
         // ok
-        record2.checkIn = Date(timeIntervalSinceNow: 180)
+        record2.checkIn = Date(timeIntervalSinceNow: 60)
+        #expect(viewModel.isValid() == true)
+        
+        // overlap TimeRecord
+        let record3 = CalendarDetailViewModel.TimeRecord(
+            checkIn: Date(timeIntervalSinceNow: 90),
+            checkOut: Date(timeIntervalSinceNow: 240)
+        )
+        viewModel.records.append(record3)
+        #expect(viewModel.isValid() == false)
+        
+        // ok
+        record3.checkIn = Date(timeIntervalSinceNow: 180)
         #expect(viewModel.isValid() == true)
         
         // reversed BreakTime
@@ -181,7 +191,7 @@ struct CalendarDetailViewModelTests {
             start: Date(timeIntervalSinceNow: 100),
             end: Date(timeIntervalSinceNow: 90)
         )
-        record1.breakTimes.append(breakTime1)
+        record2.breakTimes.append(breakTime1)
         #expect(viewModel.isValid() == false)
         
         // ok
@@ -193,7 +203,7 @@ struct CalendarDetailViewModelTests {
             start: Date(timeIntervalSinceNow: 80),
             end: Date(timeIntervalSinceNow: 100)
         )
-        record1.breakTimes.append(breakTime2)
+        record2.breakTimes.append(breakTime2)
         #expect(viewModel.isValid() == false)
     }
     
