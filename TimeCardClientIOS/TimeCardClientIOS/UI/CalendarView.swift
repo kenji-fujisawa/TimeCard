@@ -39,7 +39,7 @@ struct CalendarView: View {
                         
                         ForEach(viewModel.records) { record in
                             NavigationLink {
-                                CalendarDetailView(viewModel: CalendarDetailViewModel(repository, record.date))
+                                CalendarDetailView(repository: repository, date: record.date)
                             } label: {
                                 CalendarRecordView(record: record)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)

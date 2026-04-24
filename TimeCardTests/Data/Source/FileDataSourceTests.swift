@@ -9,6 +9,7 @@ import Testing
 
 @testable import TimeCard
 
+@Suite(.serialized)
 struct FileDataSourceTests {
 
     @Test func testUptimeRecords() async throws {

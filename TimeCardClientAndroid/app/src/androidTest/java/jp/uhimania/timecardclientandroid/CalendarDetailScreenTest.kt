@@ -71,6 +71,8 @@ class CalendarDetailScreenTest {
             return flowOf()
         }
 
+        override suspend fun refreshRecords(year: Int, month: Int) {}
+
         override suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord {
             return record
         }

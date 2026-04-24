@@ -14,7 +14,7 @@ struct CalendarRecordView: View {
     var body: some View {
         GridRow {
             Text(record.date, format: .dayWithWeekday)
-                .foregroundStyle(record.date.isHoliday() ? .red : .black)
+                .foregroundStyle(record.date.isHoliday() ? .red : .primary)
                 .accessibilityIdentifier("text_date")
             
             ZStack {

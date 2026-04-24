@@ -44,6 +44,16 @@ class CalendarRecordRepositoryTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun testRefreshRecords() = runTest {
+        val network = FakeNetworkDataSource()
+        val local = FakeLocalDataSource()
+        local.initForGet()
+
+        val repository = DefaultCalendarRecordRepository(network, local)
+        repository.refreshRecords(2025, 12)
 
         assertEquals(2025, local.deleteYear)
         assertEquals(12, local.deleteMonth)

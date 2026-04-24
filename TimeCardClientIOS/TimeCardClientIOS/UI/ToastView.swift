@@ -24,6 +24,7 @@ struct ToastView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.red)
                     Text(viewModel.message)
+                        .foregroundStyle(.black)
                         .accessibilityIdentifier("text_message")
                 }
                 .frame(maxWidth: .infinity)

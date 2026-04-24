@@ -9,7 +9,11 @@ import SwiftUI
 
 struct RecordEditView: View {
     @Environment(\.dismiss) private var dismiss
-    let viewModel: RecordEditViewModel
+    @State private var viewModel: RecordEditViewModel
+    
+    init(repository: CalendarRecordRepository, date: Date) {
+        self.viewModel = RecordEditViewModel(repository, date)
+    }
     
     var body: some View {
         TabView {
@@ -41,8 +45,7 @@ struct RecordEditView: View {
 
 #Preview {
     let repository = FakeCalendarRecordRepository()
-    let viewModel = RecordEditViewModel(repository, .now)
-    RecordEditView(viewModel: viewModel)
+    RecordEditView(repository: repository, date: .now)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {

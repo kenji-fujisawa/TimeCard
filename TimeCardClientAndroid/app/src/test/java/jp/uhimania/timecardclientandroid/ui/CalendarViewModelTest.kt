@@ -4,6 +4,8 @@ import jp.uhimania.timecardclientandroid.data.BreakTime
 import jp.uhimania.timecardclientandroid.data.CalendarRecord
 import jp.uhimania.timecardclientandroid.data.CalendarRecordRepository
 import jp.uhimania.timecardclientandroid.data.TimeRecord
+import jp.uhimania.timecardclientandroid.data.month
+import jp.uhimania.timecardclientandroid.data.year
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -92,6 +94,8 @@ class CalendarViewModelTest {
         assertEquals(formatter.format(Date()), formatter.format(viewModel.uiState.value.date))
         assertTrue(viewModel.uiState.value.records.isEmpty())
         assertTrue(viewModel.uiState.value.isLoading)
+        assertEquals(Date().year(), repository.year)
+        assertEquals(Date().month(), repository.month)
 
         val record = CalendarRecord(
             date = formatter.parse("2026-04-01") ?: Date(),
@@ -122,6 +126,8 @@ class CalendarViewModelTest {
         assertEquals(record.records[0].checkOut, viewModel.uiState.value.records[0].records[0].checkOut)
         assertEquals(record.records[0].breakTimes.count(), viewModel.uiState.value.records[0].records[0].breakTimes.count())
         assertTrue(viewModel.uiState.value.isLoading)
+        assertEquals(2026, repository.year)
+        assertEquals(4, repository.month)
 
         repository.flow.emit(listOf())
         assertEquals("2026-04-02", formatter.format(viewModel.uiState.value.date))
@@ -134,6 +140,14 @@ class CalendarViewModelTest {
         override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
             return flow
         }
+
+        var year: Int = 0
+        var month: Int = 0
+        override suspend fun refreshRecords(year: Int, month: Int) {
+            this.year = year
+            this.month = month
+        }
+
         override suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord {
             return CalendarRecord(Date(), listOf())
         }

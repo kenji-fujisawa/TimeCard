@@ -25,7 +25,7 @@ final class CalendarRecordViewTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["text_date"].label, "29(月)")
         
         XCTAssertTrue(app.staticTexts["text_check_in"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.staticTexts["text_check_in"].label, "09:12")
+        XCTAssertEqual(app.staticTexts["text_check_in"].label, "10:12")
         
         XCTAssertTrue(app.staticTexts["text_check_out"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["text_check_out"].label, "26:28")

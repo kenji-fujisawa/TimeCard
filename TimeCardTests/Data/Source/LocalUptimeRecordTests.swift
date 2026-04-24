@@ -11,6 +11,7 @@ import Testing
 
 @testable import TimeCard
 
+@Suite(.serialized)
 class LocalUptimeRecordTests {
     
     private let urlV1: URL = FileManager.default.temporaryDirectory.appendingPathComponent("test_v1.store")

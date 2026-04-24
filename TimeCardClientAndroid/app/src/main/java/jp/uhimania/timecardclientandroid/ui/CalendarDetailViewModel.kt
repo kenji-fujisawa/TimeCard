@@ -70,10 +70,13 @@ class CalendarDetailViewModel(
     private val _uiState = MutableStateFlow(CalendarDetailUiState(date = date))
     val uiState = _uiState.asStateFlow()
 
+    private var recordsOriginal: List<TimeRecord> = listOf()
+
     init {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             val record = calendarRecordRepository.getRecord(date.year(), date.month(), date.day())
+            recordsOriginal = record.records
             _uiState.update {
                 validate(record.date, record.records.map { it.asDetailUiState() })
                     .copy(isLoading = false)
@@ -188,10 +191,11 @@ class CalendarDetailViewModel(
             )
         }
 
+        val changed = list.map { it.asTimeRecord() } != recordsOriginal
         return _uiState.value.copy(
             date = date,
             records = list,
-            valid = invalidTimeRecordIds.isEmpty() && invalidBreakTimeIds.isEmpty()
+            valid = invalidTimeRecordIds.isEmpty() && invalidBreakTimeIds.isEmpty() && changed
         )
     }
 
@@ -218,6 +222,9 @@ class CalendarDetailViewModel(
                     records = _uiState.value.records.map { it.asTimeRecord() }
                 )
                 calendarRecordRepository.updateRecord(record)
+
+                recordsOriginal = record.records
+                _uiState.update { validate(_uiState.value.date, _uiState.value.records) }
             } catch (_: Exception) {
                 _uiState.update { it.copy(message = R.string.error_update_record_failed) }
             }

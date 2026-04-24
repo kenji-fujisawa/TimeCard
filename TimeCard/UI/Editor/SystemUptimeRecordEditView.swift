@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
-    @Bindable var viewModel: UptimeRecordEditViewModel
+    let viewModel: UptimeRecordEditViewModel
     
     var body: some View {
         NavigationSplitView {

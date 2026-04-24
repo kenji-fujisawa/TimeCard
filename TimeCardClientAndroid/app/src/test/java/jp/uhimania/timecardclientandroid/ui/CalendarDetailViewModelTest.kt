@@ -293,8 +293,8 @@ class CalendarDetailViewModelTest {
 
         val date = Date()
         val record = CalendarDetailUiState.TimeRecord(
-            checkIn = Date(date.time + 120),
-            checkOut = Date(date.time + 60)
+            checkIn = Date(date.time + 60),
+            checkOut = Date(date.time + 120)
         )
 
         val repository = FakeCalendarRecordRepository()
@@ -303,7 +303,16 @@ class CalendarDetailViewModelTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
 
+        // not changed
+        assertFalse(viewModel.uiState.value.valid)
+        assertTrue(viewModel.uiState.value.records[0].valid)
+
         // reversed checkIn and checkOut
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateTimeRecord(
+            id = record.id,
+            checkIn = Date(date.time + 120),
+            checkOut = Date(date.time + 60)
+        ))
         assertFalse(viewModel.uiState.value.valid)
         assertFalse(viewModel.uiState.value.records[0].valid)
 
@@ -333,7 +342,7 @@ class CalendarDetailViewModelTest {
 
         val date = Date()
         val record1 = CalendarDetailUiState.TimeRecord(
-            checkIn = Date(date.time + 60),
+            checkIn = Date(date.time + 30),
             checkOut = Date(date.time + 120)
         )
         val record2 = CalendarDetailUiState.TimeRecord(
@@ -351,7 +360,17 @@ class CalendarDetailViewModelTest {
         val handle = SavedStateHandle()
         var viewModel = CalendarDetailViewModel(repository, handle)
 
+        // not changed
+        assertFalse(viewModel.uiState.value.valid)
+        assertTrue(viewModel.uiState.value.records[0].valid)
+        assertTrue(viewModel.uiState.value.records[1].valid)
+
         // ok
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateTimeRecord(
+            id = record1.id,
+            checkIn = Date(date.time + 60),
+            checkOut = record1.checkOut
+        ))
         assertTrue(viewModel.uiState.value.valid)
         assertTrue(viewModel.uiState.value.records[0].valid)
         assertTrue(viewModel.uiState.value.records[1].valid)
@@ -359,6 +378,11 @@ class CalendarDetailViewModelTest {
         // overlap all
         repository.records = listOf(record1.asTimeRecord(), record2.asTimeRecord(), record3.asTimeRecord())
         viewModel = CalendarDetailViewModel(repository, handle)
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateTimeRecord(
+            id = record1.id,
+            checkIn = Date(date.time + 60),
+            checkOut = record1.checkOut
+        ))
         assertFalse(viewModel.uiState.value.valid)
         assertFalse(viewModel.uiState.value.records[0].valid)
         assertFalse(viewModel.uiState.value.records[1].valid)
@@ -394,8 +418,8 @@ class CalendarDetailViewModelTest {
 
         val date = Date()
         val breakTime = CalendarDetailUiState.BreakTime(
-            start = Date(date.time + 180),
-            end = Date(date.time + 120)
+            start = Date(date.time + 120),
+            end = Date(date.time + 180)
         )
         val timeRecord = CalendarDetailUiState.TimeRecord(
             checkIn = Date(date.time + 60),
@@ -409,7 +433,17 @@ class CalendarDetailViewModelTest {
         val handle = SavedStateHandle()
         val viewModel = CalendarDetailViewModel(repository, handle)
 
+        // not changed
+        assertFalse(viewModel.uiState.value.valid)
+        assertTrue(viewModel.uiState.value.records[0].breakTimes[0].valid)
+
         // reversed start and end
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateBreakTime(
+            timeRecordId = timeRecord.id,
+            breakTimeId = breakTime.id,
+            start = Date(date.time + 180),
+            end = Date(date.time + 120)
+        ))
         assertFalse(viewModel.uiState.value.valid)
         assertFalse(viewModel.uiState.value.records[0].breakTimes[0].valid)
 
@@ -451,7 +485,7 @@ class CalendarDetailViewModelTest {
 
         val date = Date()
         val breakTime1 = CalendarDetailUiState.BreakTime(
-            start = Date(date.time + 120),
+            start = Date(date.time + 90),
             end = Date(date.time + 180)
         )
         val breakTime2 = CalendarDetailUiState.BreakTime(
@@ -475,7 +509,18 @@ class CalendarDetailViewModelTest {
         val handle = SavedStateHandle()
         var viewModel = CalendarDetailViewModel(repository, handle)
 
+        // not changed
+        assertFalse(viewModel.uiState.value.valid)
+        assertTrue(viewModel.uiState.value.records[0].breakTimes[0].valid)
+        assertTrue(viewModel.uiState.value.records[0].breakTimes[1].valid)
+
         // ok
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateBreakTime(
+            timeRecordId = timeRecord.id,
+            breakTimeId = breakTime1.id,
+            start = Date(date.time + 120),
+            end = breakTime1.end
+        ))
         assertTrue(viewModel.uiState.value.valid)
         assertTrue(viewModel.uiState.value.records[0].breakTimes[0].valid)
         assertTrue(viewModel.uiState.value.records[0].breakTimes[1].valid)
@@ -484,6 +529,12 @@ class CalendarDetailViewModelTest {
         timeRecord = timeRecord.copy(breakTimes = listOf(breakTime1, breakTime2, breakTime3))
         repository.records = listOf(timeRecord.asTimeRecord())
         viewModel = CalendarDetailViewModel(repository, handle)
+        viewModel.onEvent(CalendarDetailUiEvent.UpdateBreakTime(
+            timeRecordId = timeRecord.id,
+            breakTimeId = breakTime1.id,
+            start = Date(date.time + 120),
+            end = breakTime1.end
+        ))
         assertFalse(viewModel.uiState.value.valid)
         assertFalse(viewModel.uiState.value.records[0].breakTimes[0].valid)
         assertFalse(viewModel.uiState.value.records[0].breakTimes[1].valid)
@@ -518,6 +569,8 @@ class CalendarDetailViewModelTest {
         override fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>> {
             return flowOf()
         }
+
+        override suspend fun refreshRecords(year: Int, month: Int) {}
 
         var records: List<TimeRecord> = listOf()
         override suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord {

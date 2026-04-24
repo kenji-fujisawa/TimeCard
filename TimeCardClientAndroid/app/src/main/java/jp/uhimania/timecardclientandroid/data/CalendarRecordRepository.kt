@@ -1,6 +1,5 @@
 package jp.uhimania.timecardclientandroid.data
 
-import android.util.Log
 import jp.uhimania.timecardclientandroid.data.source.LocalBreakTime
 import jp.uhimania.timecardclientandroid.data.source.LocalDataSource
 import jp.uhimania.timecardclientandroid.data.source.LocalTimeRecord
@@ -10,12 +9,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 interface CalendarRecordRepository {
     fun getRecordsStream(year: Int, month: Int): Flow<List<CalendarRecord>>
+
+    suspend fun refreshRecords(year: Int, month: Int)
 
     suspend fun getRecord(year: Int, month: Int, day: Int): CalendarRecord
 
@@ -40,21 +40,16 @@ class DefaultCalendarRecordRepository(
                     )
                 }
             }
-            .onStart { fetchRecords(year, month) }
             .flowOn(dispatcher)
     }
 
-    private suspend fun fetchRecords(year: Int, month: Int) {
+    override suspend fun refreshRecords(year: Int, month: Int) {
         withContext(dispatcher) {
-            try {
-                val records = networkDataSource.getRecords(year, month)
-                localDataSource.deleteRecords(year, month)
-                records.forEach { record ->
-                    localDataSource.insert(record.asLocal())
-                    record.localBreakTimes().forEach { localDataSource.insert(it) }
-                }
-            } catch (ex: Exception) {
-                Log.d(TAG, ex.toString())
+            val records = networkDataSource.getRecords(year, month)
+            localDataSource.deleteRecords(year, month)
+            records.forEach { record ->
+                localDataSource.insert(record.asLocal())
+                record.localBreakTimes().forEach { localDataSource.insert(it) }
             }
         }
     }
@@ -108,10 +103,6 @@ class DefaultCalendarRecordRepository(
             networkDataSource.deleteRecord(rec)
             localDataSource.delete(rec.asLocal())
         }
-    }
-
-    companion object {
-        val TAG = DefaultCalendarRecordRepository::class.simpleName
     }
 }
 
