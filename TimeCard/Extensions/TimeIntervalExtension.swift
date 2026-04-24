@@ -16,7 +16,7 @@ extension TimeInterval {
         func format(_ value: TimeInterval) -> String {
             let hours = floor(value / 60 / 60)
             let minutes = floor((value - hours * 60 * 60) / 60)
-            return String(format: "%02d", Int(hours)) + ":" + String(format: "%02d", Int(minutes))
+            return String(format: "%d", Int(hours)) + ":" + String(format: "%02d", Int(minutes))
         }
     }
 }

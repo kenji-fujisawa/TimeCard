@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SystemUptimeRecordEditView: View {
-    @Bindable var viewModel: UptimeRecordEditViewModel
+    let viewModel: UptimeRecordEditViewModel
     
     var body: some View {
         NavigationSplitView {
@@ -17,7 +17,6 @@ struct SystemUptimeRecordEditView: View {
             if let index = viewModel.records.firstIndex(where: { $0.id == viewModel.selectedId }) {
                 let record = viewModel.records[index]
                 DetailView(record: record, valid: viewModel.isValid(record))
-                    .disabled(!record.editable)
             }
         }
         .frame(minWidth: 400, minHeight: 300)
@@ -82,6 +81,7 @@ struct SystemUptimeRecordEditView: View {
                         .accessibilityIdentifier("date_shutdown")
                 }
                 .padding()
+                .disabled(!record.editable)
                 
                 List {
                     ForEach(record.sleepRecords) { sleepRecord in
@@ -111,12 +111,14 @@ struct SystemUptimeRecordEditView: View {
                                 }
                             }
                         }
+                        .disabled(!record.editable)
                     }
                     
                     Button("スリープを追加", systemImage: "plus") {
                         record.addSleep()
                     }
                     .font(.footnote)
+                    .disabled(!record.editable)
                     .accessibilityIdentifier("button_add_sleep_record")
                 }
             }

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import jp.uhimania.timecardclientandroid.R
 import jp.uhimania.timecardclientandroid.TimeCardClientApplication
 import jp.uhimania.timecardclientandroid.data.BreakTime
 import jp.uhimania.timecardclientandroid.data.CalendarRecord
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.util.Date
 
 data class CalendarUiState(
@@ -78,9 +80,25 @@ class CalendarViewModel(
             initialValue = CalendarUiState(isLoading = true)
         )
 
+    init {
+        refreshRecords()
+    }
+
+    private fun refreshRecords() {
+        _isLoading.value = true
+
+        viewModelScope.launch {
+            try {
+                calendarRecordRepository.refreshRecords(_date.value.year(), _date.value.month())
+            } catch (_: Exception) {
+                _message.value = R.string.error_get_records_failed
+            }
+        }
+    }
+
     fun updateDate(date: Date) {
         _date.value = date
-        _isLoading.value = true
+        refreshRecords()
     }
 
     fun messageShown() {

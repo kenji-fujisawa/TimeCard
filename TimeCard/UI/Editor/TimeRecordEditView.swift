@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TimeRecordEditView: View {
-    @Bindable var viewModel: TimeRecordEditViewModel
+    let viewModel: TimeRecordEditViewModel
     
     var body: some View {
         NavigationSplitView {
@@ -17,7 +17,6 @@ struct TimeRecordEditView: View {
             if let index = viewModel.records.firstIndex(where: { $0.id == viewModel.selectedId }) {
                 let record = viewModel.records[index]
                 DetailView(record: record, valid: viewModel.isValid(record))
-                    .disabled(!record.editable)
             }
         }
         .frame(minWidth: 400, minHeight: 300)
@@ -82,6 +81,7 @@ struct TimeRecordEditView: View {
                         .accessibilityIdentifier("date_check_out")
                 }
                 .padding()
+                .disabled(!record.editable)
                 
                 List {
                     ForEach(record.breakTimes) { breakTime in
@@ -111,12 +111,14 @@ struct TimeRecordEditView: View {
                                 }
                             }
                         }
+                        .disabled(!record.editable)
                     }
                     
                     Button("休憩を追加", systemImage: "plus") {
                         record.addBreakTime()
                     }
                     .font(.footnote)
+                    .disabled(!record.editable)
                     .accessibilityIdentifier("button_add_break_time")
                 }
             }

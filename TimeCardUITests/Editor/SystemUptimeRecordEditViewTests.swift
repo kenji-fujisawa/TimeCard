@@ -34,7 +34,7 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").count, 2)
         XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "14:47")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 0).isSelected, false)
-        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 1).value as! String, "00:00")
+        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 1).value as! String, "0:00")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 1).isSelected, true)
         
         XCTAssertTrue(app.datePickers["date_launch"].waitForExistence(timeout: 3))
@@ -70,7 +70,7 @@ final class SystemUptimeRecordEditViewTests: XCTestCase {
         app.buttons["button_remove_uptime_record"].tap()
         
         XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").count, 1)
-        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "00:00")
+        XCTAssertEqual(app.staticTexts.matching(identifier: "nav_link").element(boundBy: 0).value as! String, "0:00")
         XCTAssertEqual(app.cells.containing(.staticText, identifier: "nav_link").element(boundBy: 0).isSelected, true)
         
         // edit check in
