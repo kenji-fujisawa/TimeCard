@@ -77,6 +77,8 @@ struct SystemUptimeRecordRepositoryTests {
         
         #expect(record.shutdown.equals(.now))
         
+        #expect(fileSource.records == [record.asUptimeRecord()])
+        
         try repository.launch()
         
         let results = try context.fetch(descriptor)
@@ -103,6 +105,8 @@ struct SystemUptimeRecordRepositoryTests {
         
         #expect(record.shutdown.equals(.now))
         #expect(record.sleepRecords[0].end.equals(.now))
+        
+        #expect(fileSource.records == [record.asUptimeRecord()])
     }
     
     @Test func testShutdown_fail() async throws {
@@ -114,12 +118,19 @@ struct SystemUptimeRecordRepositoryTests {
             try repository.shutdown()
         }
         
+        #expect(fileSource.records.isEmpty)
+        
         try repository.launch()
         try repository.shutdown()
+        
+        #expect(fileSource.records.count == 1)
+        fileSource.records.removeAll()
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notRecording) {
             try repository.shutdown()
         }
+        
+        #expect(fileSource.records.isEmpty)
     }
     
     @Test func testSleep() async throws {
