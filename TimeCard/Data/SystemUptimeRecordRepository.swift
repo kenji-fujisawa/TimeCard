@@ -72,6 +72,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         }
         
         try localSource.updateUptimeRecord(record)
+        try saveBackup(record)
         
         state = .shutdown
     }
