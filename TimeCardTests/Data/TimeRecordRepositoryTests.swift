@@ -290,6 +290,8 @@ struct TimeRecordRepositoryTests {
             records[0].breakTimes[0]
         }
         
+        func getTimeRecords() throws -> [TimeRecord] { [] }
+        
         func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {
             records
         }

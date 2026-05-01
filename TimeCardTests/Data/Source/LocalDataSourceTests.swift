@@ -125,7 +125,13 @@ struct LocalDataSourceTests {
         timeRecords.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
-        var results = try source.getTimeRecords(year: 2025, month: 12)
+        var results = try source.getTimeRecords()
+        #expect(results.count == 3)
+        #expect(results[0] == timeRecords[0])
+        #expect(results[1] == timeRecords[1])
+        #expect(results[2] == timeRecords[2])
+        
+        results = try source.getTimeRecords(year: 2025, month: 12)
         #expect(results.count == 2)
         #expect(results[0] == timeRecords[0])
         #expect(results[1] == timeRecords[1])
