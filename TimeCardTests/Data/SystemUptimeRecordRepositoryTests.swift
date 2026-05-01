@@ -77,6 +77,8 @@ struct SystemUptimeRecordRepositoryTests {
         
         #expect(record.shutdown.equals(.now))
         
+        #expect(fileSource.records == [record.asUptimeRecord()])
+        
         try repository.launch()
         
         let results = try context.fetch(descriptor)
@@ -103,6 +105,8 @@ struct SystemUptimeRecordRepositoryTests {
         
         #expect(record.shutdown.equals(.now))
         #expect(record.sleepRecords[0].end.equals(.now))
+        
+        #expect(fileSource.records == [record.asUptimeRecord()])
     }
     
     @Test func testShutdown_fail() async throws {
@@ -114,12 +118,19 @@ struct SystemUptimeRecordRepositoryTests {
             try repository.shutdown()
         }
         
+        #expect(fileSource.records.isEmpty)
+        
         try repository.launch()
         try repository.shutdown()
+        
+        #expect(fileSource.records.count == 1)
+        fileSource.records.removeAll()
         
         #expect(throws: DefaultSystemUptimeRecordRepository.SystemUptimeRecordError.notRecording) {
             try repository.shutdown()
         }
+        
+        #expect(fileSource.records.isEmpty)
     }
     
     @Test func testSleep() async throws {
@@ -255,7 +266,7 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.launch()
         
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
-            sortBy: [.init(\.day)]
+            sortBy: [.init(\.launch)]
         )
         guard let record = try context.fetch(descriptor).first else {
             Issue.record()
@@ -268,8 +279,8 @@ struct SystemUptimeRecordRepositoryTests {
         
         let results = try context.fetch(descriptor)
         #expect(results.count == 2)
-        #expect(results[0].day == Date.now.day - 1)
-        #expect(results[0].launch.day == Date.now.day - 1)
+        #expect(results[0].day == Date(timeIntervalSinceNow: -24 * 60 * 60).day)
+        #expect(results[0].launch.day == Date(timeIntervalSinceNow: -24 * 60 * 60).day)
         #expect(results[0].shutdown.equals(.now))
         #expect(results[1].year == Date.now.year)
         #expect(results[1].month == Date.now.month)
@@ -290,7 +301,7 @@ struct SystemUptimeRecordRepositoryTests {
         try repository.sleep()
         
         let descriptor = FetchDescriptor<LocalUptimeRecord>(
-            sortBy: [.init(\.day)]
+            sortBy: [.init(\.launch)]
         )
         guard let record = try context.fetch(descriptor).first else {
             Issue.record()
@@ -304,8 +315,8 @@ struct SystemUptimeRecordRepositoryTests {
         
         let results = try context.fetch(descriptor)
         #expect(results.count == 2)
-        #expect(results[0].day == Date.now.day - 1)
-        #expect(results[0].launch.day == Date.now.day - 1)
+        #expect(results[0].day == Date(timeIntervalSinceNow: -24 * 60 * 60).day)
+        #expect(results[0].launch.day == Date(timeIntervalSinceNow: -24 * 60 * 60).day)
         #expect(results[0].shutdown.equals(.now))
         #expect(results[0].sleepRecords[0].end.equals(.now))
         #expect(results[1].year == Date.now.year)

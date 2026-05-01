@@ -96,7 +96,6 @@ struct ExportPDFView: View {
 
 private struct PDFView: View {
     let viewModel: CalendarViewModel
-    @State private var recordToEdit: CalendarViewModel.CalendarRecord?
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -137,7 +136,7 @@ private struct PDFView: View {
             
             ForEach(viewModel.records) { record in
                 HStack(alignment: .top) {
-                    CalendarRecordView(record: record, recordToEdit: $recordToEdit)
+                    CalendarRecordView(record: record, recordToEdit: nil)
                 }
                 Divider()
             }

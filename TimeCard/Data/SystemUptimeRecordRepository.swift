@@ -33,6 +33,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
     private let localSource: LocalDataSource
     private let fileSource: FileDataSource
     private var state: State = .shutdown
+    private var currentId: UUID? = nil
     
     init(_ localSource: LocalDataSource, _ fileSource: FileDataSource) {
         self.localSource = localSource
@@ -40,8 +41,8 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
     }
     
     private func getRecord() throws -> SystemUptimeRecord? {
-        let now = Date.now
-        return try localSource.getUptimeRecords(year: now.year, month: now.month).last
+        guard let id = currentId else { return nil }
+        return try localSource.getUptimeRecord(id: id)
     }
     
     func launch() throws {
@@ -54,6 +55,7 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         try localSource.insertUptimeRecord(record)
         
         state = .running
+        currentId = record.id
     }
     
     func shutdown() throws {
@@ -72,8 +74,10 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
         }
         
         try localSource.updateUptimeRecord(record)
+        try saveBackup(record)
         
         state = .shutdown
+        currentId = nil
     }
     
     func sleep() throws {
@@ -133,6 +137,8 @@ class DefaultSystemUptimeRecordRepository: SystemUptimeRecordRepository {
             
             try localSource.insertUptimeRecord(record)
             try saveBackup(record)
+            
+            currentId = record.id
         }
     }
     

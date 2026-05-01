@@ -9,7 +9,7 @@ import SwiftUI
 
 struct CalendarRecordView: View {
     let record: CalendarViewModel.CalendarRecord
-    @Binding var recordToEdit: CalendarViewModel.CalendarRecord?
+    var recordToEdit: Binding<CalendarViewModel.CalendarRecord?>?
     
     var body: some View {
         GridRow {
@@ -91,9 +91,9 @@ struct CalendarRecordView: View {
                     .opacity(0)
             }
             
-            if record.editable {
+            if record.editable && recordToEdit != nil {
                 Button("edit") {
-                    recordToEdit = record
+                    recordToEdit?.wrappedValue = record
                 }
                 .accessibilityIdentifier("button_edit")
             }
