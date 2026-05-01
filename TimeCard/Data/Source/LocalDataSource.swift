@@ -12,6 +12,7 @@ protocol LocalDataSource {
     func getTimeRecord(id: UUID) throws -> TimeRecord?
     func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime?
     
+    func getTimeRecords() throws -> [TimeRecord]
     func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord]
     func insertTimeRecord(_ record: TimeRecord) throws
     func updateTimeRecord(_ record: TimeRecord) throws
@@ -43,6 +44,13 @@ class DefaultLocalDataSource: LocalDataSource {
             predicate: #Predicate { $0.id == id }
         )
         return try context.fetch(descriptor).first?.asBreakTime()
+    }
+    
+    func getTimeRecords() throws -> [TimeRecord] {
+        let descriptor = FetchDescriptor<LocalTimeRecord>(
+            sortBy: [.init(\.checkIn)]
+        )
+        return try context.fetch(descriptor).map { $0.asTimeRecord() }
     }
     
     func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {

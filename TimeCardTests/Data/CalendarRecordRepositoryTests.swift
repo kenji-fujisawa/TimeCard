@@ -283,6 +283,7 @@ struct CalendarRecordRepositoryTests {
         
         func getTimeRecord(id: UUID) throws -> TimeRecord? { nil }
         func getBreakTime(id: UUID) throws -> TimeRecord.BreakTime? { nil }
+        func getTimeRecords() throws -> [TimeRecord] { [] }
         
         func getTimeRecords(year: Int, month: Int) throws -> [TimeRecord] {
             timeRecords

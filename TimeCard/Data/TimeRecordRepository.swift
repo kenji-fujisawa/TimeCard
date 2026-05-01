@@ -39,6 +39,10 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
     
     init(_ source: LocalDataSource) {
         self.source = source
+        
+        if getState() != .offWork {
+            currentId = try? source.getTimeRecords().last?.id
+        }
     }
     
     func getRecords(year: Int, month: Int) throws -> [TimeRecord] {
@@ -66,8 +70,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
     }
     
     func getState() -> WorkState {
-        let now = Date.now
-        let records = try? getRecords(year: now.year, month: now.month)
+        let records = try? source.getTimeRecords()
         guard let record = records?.last else {
             return .offWork
         }
