@@ -35,6 +35,7 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
     }
     
     private let source: LocalDataSource
+    private var currentId: UUID? = nil
     
     init(_ source: LocalDataSource) {
         self.source = source
@@ -92,9 +93,10 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
             throw TimeRecordError.stateMismatch
         }
         
-        let now = Date.now
-        let record = TimeRecord(checkIn: now)
+        let record = TimeRecord(checkIn: .now)
         try source.insertTimeRecord(record)
+        
+        currentId = record.id
     }
     
     func checkOut() throws {
@@ -102,10 +104,12 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
             throw TimeRecordError.stateMismatch
         }
         
-        let now = Date.now
-        if var record = try getRecords(year: now.year, month: now.month).last {
-            record.checkOut = now
+        if let id = currentId,
+           var record = try getRecord(id: id) {
+            record.checkOut = .now
             try source.updateTimeRecord(record)
+            
+            currentId = nil
         }
     }
     
@@ -114,9 +118,9 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
             throw TimeRecordError.stateMismatch
         }
         
-        let now = Date.now
-        if var record = try getRecords(year: now.year, month: now.month).last {
-            record.breakTimes.append(TimeRecord.BreakTime(start: now))
+        if let id = currentId,
+           var record = try getRecord(id: id) {
+            record.breakTimes.append(TimeRecord.BreakTime(start: .now))
             try source.updateTimeRecord(record)
         }
     }
@@ -126,11 +130,11 @@ class DefaultTimeRecordRepository: TimeRecordRepository {
             throw TimeRecordError.stateMismatch
         }
         
-        let now = Date.now
-        if var record = try getRecords(year: now.year, month: now.month).last,
+        if let id = currentId,
+           var record = try getRecord(id: id),
            !record.breakTimes.isEmpty {
             let index = record.breakTimes.count - 1
-            record.breakTimes[index].end = now
+            record.breakTimes[index].end = .now
             try source.updateTimeRecord(record)
         }
     }
