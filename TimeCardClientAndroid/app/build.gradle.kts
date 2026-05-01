@@ -16,8 +16,8 @@ android {
         applicationId = "jp.uhimania.timecardclientandroid"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "3.4"
+        versionCode = 6
+        versionName = "3.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
