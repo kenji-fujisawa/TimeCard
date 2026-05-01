@@ -11,11 +11,11 @@ import Foundation
 class RecordEditViewModel {
     @ObservationIgnored private let repository: CalendarRecordRepository
     @ObservationIgnored private let date: Date
+    @ObservationIgnored private var timeRecords: [TimeRecordEditViewModel.TimeRecord] = []
+    @ObservationIgnored private var uptimeRecords: [UptimeRecordEditViewModel.SystemUptimeRecord] = []
     
     var timeViewModel: TimeRecordEditViewModel
     var uptimeViewModel: UptimeRecordEditViewModel
-    private var timeRecords: [TimeRecordEditViewModel.TimeRecord] = []
-    private var uptimeRecords: [UptimeRecordEditViewModel.SystemUptimeRecord] = []
     
     init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository
