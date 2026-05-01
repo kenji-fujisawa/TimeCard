@@ -77,11 +77,11 @@ class CalendarDetailViewModel {
     }
     
     @ObservationIgnored private let repository: CalendarRecordRepository
+    @ObservationIgnored private var recordsOriginal: [TimeRecord] = []
     
     var date: Date
     var records: [TimeRecord] = []
     var message: String = ""
-    private var recordsOriginal: [TimeRecord] = []
     
     init(_ repository: CalendarRecordRepository, _ date: Date) {
         self.repository = repository

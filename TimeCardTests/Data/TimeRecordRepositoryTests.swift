@@ -156,17 +156,23 @@ struct TimeRecordRepositoryTests {
         let source = DefaultLocalDataSource(context)
         let repository = DefaultTimeRecordRepository(source)
         
-        let now = Date.now
-        let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
-        context.insert(record)
+        try repository.checkIn()
+        
+        let descriptor = FetchDescriptor<LocalTimeRecord>()
+        var results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].year == Date.now.year)
+        #expect(results[0].month == Date.now.month)
+        #expect(results[0].checkIn?.equals(.now) == true)
+        #expect(results[0].checkOut == nil)
+        #expect(results[0].breakTimes.count == 0)
         
         try repository.checkOut()
         
-        let descriptor = FetchDescriptor<LocalTimeRecord>()
-        let results = try context.fetch(descriptor)
+        results = try context.fetch(descriptor)
         #expect(results.count == 1)
-        #expect(results[0].year == now.year)
-        #expect(results[0].month == now.month)
+        #expect(results[0].year == Date.now.year)
+        #expect(results[0].month == Date.now.month)
         #expect(results[0].checkIn?.equals(.now) == true)
         #expect(results[0].checkOut?.equals(.now) == true)
         #expect(results[0].breakTimes.count == 0)
@@ -180,10 +186,8 @@ struct TimeRecordRepositoryTests {
             try repository.checkOut()
         }
         
-        let now = Date.now
-        let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
-        record.breakTimes.append(LocalTimeRecord.BreakTime(start: now))
-        context.insert(record)
+        try repository.checkIn()
+        try repository.startBreak()
         
         #expect(throws: DefaultTimeRecordRepository.TimeRecordError.stateMismatch) {
             try repository.checkOut()
@@ -194,14 +198,16 @@ struct TimeRecordRepositoryTests {
         let source = DefaultLocalDataSource(context)
         let repository = DefaultTimeRecordRepository(source)
         
-        let now = Date.now
-        let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
-        context.insert(record)
+        try repository.checkIn()
+        
+        let descriptor = FetchDescriptor<LocalTimeRecord>()
+        var results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].breakTimes.count == 0)
         
         try repository.startBreak()
         
-        let descriptor = FetchDescriptor<LocalTimeRecord>()
-        let results = try context.fetch(descriptor)
+        results = try context.fetch(descriptor)
         #expect(results.count == 1)
         #expect(results[0].breakTimes.count == 1)
         #expect(results[0].breakTimes[0].start?.equals(.now) == true)
@@ -216,10 +222,8 @@ struct TimeRecordRepositoryTests {
             try repository.startBreak()
         }
         
-        let now = Date.now
-        let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
-        record.breakTimes.append(LocalTimeRecord.BreakTime(start: now))
-        context.insert(record)
+        try repository.checkIn()
+        try repository.startBreak()
         
         #expect(throws: DefaultTimeRecordRepository.TimeRecordError.stateMismatch) {
             try repository.startBreak()
@@ -230,15 +234,19 @@ struct TimeRecordRepositoryTests {
         let source = DefaultLocalDataSource(context)
         let repository = DefaultTimeRecordRepository(source)
         
-        let now = Date.now
-        let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
-        record.breakTimes.append(LocalTimeRecord.BreakTime(start: now))
-        context.insert(record)
+        try repository.checkIn()
+        try repository.startBreak()
+        
+        let descriptor = FetchDescriptor<LocalTimeRecord>()
+        var results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].breakTimes.count == 1)
+        #expect(results[0].breakTimes[0].start?.equals(.now) == true)
+        #expect(results[0].breakTimes[0].end == nil)
         
         try repository.endBreak()
         
-        let descriptor = FetchDescriptor<LocalTimeRecord>()
-        let results = try context.fetch(descriptor)
+        results = try context.fetch(descriptor)
         #expect(results.count == 1)
         #expect(results[0].breakTimes.count == 1)
         #expect(results[0].breakTimes[0].start?.equals(.now) == true)
@@ -253,9 +261,7 @@ struct TimeRecordRepositoryTests {
             try repository.endBreak()
         }
         
-        let now = Date.now
-        let record = LocalTimeRecord(year: now.year, month: now.month, checkIn: now)
-        context.insert(record)
+        try repository.checkIn()
         
         #expect(throws: DefaultTimeRecordRepository.TimeRecordError.stateMismatch) {
             try repository.endBreak()
