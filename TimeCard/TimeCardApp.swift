@@ -24,7 +24,7 @@ struct TimeCardApp: App {
         #else
         let inMemory = false
         #endif
-        let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        let schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         do {
             try container = ModelContainer(for: schema, migrationPlan: TimeCardMigrationPlan.self, configurations: [config])
@@ -138,7 +138,7 @@ struct UITestApp: App {
     @State private var state: WorkState = .offWork
     
     init() {
-        let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        let schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         do {
             try container = ModelContainer(for: schema, configurations: [config])

@@ -16,6 +16,7 @@ class LocalUptimeRecordTests {
     
     private let urlV1: URL = FileManager.default.temporaryDirectory.appendingPathComponent("test_v1.store")
     private let urlV2_3: URL = FileManager.default.temporaryDirectory.appendingPathComponent("test_v2_3.store")
+    private let urlV3: URL = FileManager.default.temporaryDirectory.appendingPathComponent("test_v3.store")
     
     deinit {
         try? FileManager.default.removeItem(at: urlV1)
@@ -25,9 +26,13 @@ class LocalUptimeRecordTests {
         try? FileManager.default.removeItem(at: urlV2_3)
         try? FileManager.default.removeItem(at: urlV2_3.deletingPathExtension().appendingPathExtension("store-shm"))
         try? FileManager.default.removeItem(at: urlV2_3.deletingPathExtension().appendingPathExtension("store-wal"))
+        
+        try? FileManager.default.removeItem(at: urlV3)
+        try? FileManager.default.removeItem(at: urlV3.deletingPathExtension().appendingPathExtension("store-shm"))
+        try? FileManager.default.removeItem(at: urlV3.deletingPathExtension().appendingPathExtension("store-wal"))
     }
     
-    @Test func testMigrateV1toV3() async throws {
+    @Test func testMigrateV1toV4() async throws {
         var schema = Schema([LocalTimeRecord.self, TimeCardSchema_v1.SystemUptimeRecord.self])
         var config = ModelConfiguration(schema: schema, url: urlV1)
         var container = try ModelContainer(for: schema, configurations: [config])
@@ -72,12 +77,12 @@ class LocalUptimeRecordTests {
         #expect(recordsV1[0].sleepRecords.count == 2)
         #expect(recordsV1[1].sleepRecords.count == 0)
         
-        schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         config = ModelConfiguration(schema: schema, url: urlV1)
         container = try ModelContainer(for: schema, migrationPlan: TimeCardMigrationPlan.self, configurations: [config])
         context = ModelContext(container)
         
-        let descriptor = FetchDescriptor<TimeCardSchema_v3.SystemUptimeRecord_v3>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.day)]
         )
         let records = try context.fetch(descriptor)
@@ -108,7 +113,7 @@ class LocalUptimeRecordTests {
         #expect(records[1].sleepRecords.count == 0)
     }
     
-    @Test func testMigrateV2_3toV3() async throws {
+    @Test func testMigrateV2_3toV4() async throws {
         var schema = Schema(versionedSchema: TimeCardSchema_v2_3.self)
         var config = ModelConfiguration(schema: schema, url: urlV2_3)
         var container = try ModelContainer(for: schema, configurations: [config])
@@ -155,12 +160,12 @@ class LocalUptimeRecordTests {
         #expect(recordsV2_3[0].sleepRecords.count == 2)
         #expect(recordsV2_3[1].sleepRecords.count == 0)
         
-        schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         config = ModelConfiguration(schema: schema, url: urlV2_3)
         container = try ModelContainer(for: schema, migrationPlan: TimeCardMigrationPlan.self, configurations: [config])
         context = ModelContext(container)
         
-        let descriptor = FetchDescriptor<TimeCardSchema_v3.SystemUptimeRecord_v3>(
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
             sortBy: [.init(\.day)]
         )
         let records = try context.fetch(descriptor)
@@ -181,6 +186,88 @@ class LocalUptimeRecordTests {
         #expect(records[0].sleepRecords[1].end == formatter.date(from: "2026-01-16 15:30:00"))
         
         #expect(!records[1].id.uuidString.isEmpty)
+        #expect(records[1].year == 2026)
+        #expect(records[1].month == 1)
+        #expect(records[1].day == 20)
+        #expect(records[1].launch == formatter.date(from: "2026-01-20 09:00:00"))
+        #expect(records[1].shutdown == formatter.date(from: "2026-01-20 18:00:00"))
+        
+        #expect(records[1].sleepRecords.count == 0)
+    }
+    
+    @Test func testMigrateV3toV4() async throws {
+        var schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        var config = ModelConfiguration(schema: schema, url: urlV3)
+        var container = try ModelContainer(for: schema, configurations: [config])
+        var context = ModelContext(container)
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let recs = [
+            TimeCardSchema_v3.SystemUptimeRecord_v3(
+                year: 2026,
+                month: 1,
+                day: 16,
+                launch: formatter.date(from: "2026-01-16 08:00:00") ?? .now,
+                shutdown: formatter.date(from: "2026-01-16 19:00:00") ?? .now,
+                sleepRecords: [
+                    TimeCardSchema_v3.SystemUptimeRecord_v3.SleepRecord_v3(
+                        start: formatter.date(from: "2026-01-16 12:00:00") ?? .now,
+                        end: formatter.date(from: "2026-01-16 13:00:00") ?? .now
+                    ),
+                    TimeCardSchema_v3.SystemUptimeRecord_v3.SleepRecord_v3(
+                        start: formatter.date(from: "2026-01-16 15:00:00") ?? .now,
+                        end: formatter.date(from: "2026-01-16 15:30:00") ?? .now
+                    )
+                ]
+            ),
+            TimeCardSchema_v3.SystemUptimeRecord_v3(
+                year: 2026,
+                month: 1,
+                day: 20,
+                launch: formatter.date(from: "2026-01-20 09:00:00") ?? .now,
+                shutdown: formatter.date(from: "2026-01-20 18:00:00") ?? .now,
+                sleepRecords: []
+            )
+        ]
+        context.insert(recs[0])
+        context.insert(recs[1])
+        try context.save()
+        
+        let descriptorV3 = FetchDescriptor<TimeCardSchema_v3.SystemUptimeRecord_v3>(
+            sortBy: [.init(\.day)]
+        )
+        let recordsV3 = try context.fetch(descriptorV3)
+        #expect(recordsV3.count == 2)
+        #expect(recordsV3[0].sleepRecords.count == 2)
+        #expect(recordsV3[1].sleepRecords.count == 0)
+        
+        schema = Schema(versionedSchema: TimeCardSchema_v4.self)
+        config = ModelConfiguration(schema: schema, url: urlV3)
+        container = try ModelContainer(for: schema, migrationPlan: TimeCardMigrationPlan.self, configurations: [config])
+        context = ModelContext(container)
+        
+        let descriptor = FetchDescriptor<LocalUptimeRecord>(
+            sortBy: [.init(\.day)]
+        )
+        let records = try context.fetch(descriptor)
+        records.forEach { $0.sleepRecords.sort { $0.start < $1.start }}
+        
+        #expect(records.count == 2)
+        #expect(records[0].id == recs[0].id)
+        #expect(records[0].year == 2026)
+        #expect(records[0].month == 1)
+        #expect(records[0].day == 16)
+        #expect(records[0].launch == formatter.date(from: "2026-01-16 08:00:00"))
+        #expect(records[0].shutdown == formatter.date(from: "2026-01-16 19:00:00"))
+        
+        #expect(records[0].sleepRecords.count == 2)
+        #expect(records[0].sleepRecords[0].start == formatter.date(from: "2026-01-16 12:00:00"))
+        #expect(records[0].sleepRecords[0].end == formatter.date(from: "2026-01-16 13:00:00"))
+        #expect(records[0].sleepRecords[1].start == formatter.date(from: "2026-01-16 15:00:00"))
+        #expect(records[0].sleepRecords[1].end == formatter.date(from: "2026-01-16 15:30:00"))
+        
+        #expect(records[1].id == recs[1].id)
         #expect(records[1].year == 2026)
         #expect(records[1].month == 1)
         #expect(records[1].day == 20)

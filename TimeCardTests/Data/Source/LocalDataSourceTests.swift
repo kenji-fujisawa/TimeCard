@@ -18,9 +18,10 @@ struct LocalDataSourceTests {
     private let formatter: DateFormatter
     private let timeRecords: [TimeRecord]
     private let uptimeRecords: [SystemUptimeRecord]
+    private let users: [User]
     
     init() throws {
-        let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        let schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         self.container = try ModelContainer(for: schema, configurations: config)
         self.context = ModelContext(container)
@@ -89,6 +90,24 @@ struct LocalDataSourceTests {
                         end: formatter.date(from: "2026-01-07 13:30:00") ?? .now
                     )
                 ]
+            )
+        ]
+        
+        self.users = [
+            User(
+                mail: "aaa@test.com",
+                password: "aaa",
+                verifyCode: "111",
+                verifyCodeExpires: .now,
+                verifyAttempts: 0
+            ),
+            User(
+                mail: "bbb@test.com",
+                password: "bbb"
+            ),
+            User(
+                mail: "ccc@test.com",
+                password: "ccc"
             )
         ]
     }
@@ -327,5 +346,106 @@ struct LocalDataSourceTests {
         let sleepRecords = try context.fetch(FetchDescriptor<LocalUptimeRecord.SleepRecord>()).map { $0.asSleepRecord() }
         #expect(sleepRecords.count == 1)
         #expect(sleepRecords[0] == self.uptimeRecords[2].sleepRecords[0])
+    }
+    
+    @Test func testGetUser() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        var result = try source.getUser(mail: users[0].mail)
+        #expect(result == users[0])
+        
+        result = try source.getUser(mail: users[1].mail)
+        #expect(result == users[1])
+        
+        result = try source.getUser(mail: users[2].mail)
+        #expect(result == users[2])
+        
+        result = try source.getUser(mail: "ddd@test.com")
+        #expect(result == nil)
+    }
+    
+    @Test func testInsertUser() async throws {
+        let source = DefaultLocalDataSource(context)
+        try users.forEach { try source.insertUser($0) }
+        
+        let descriptor = FetchDescriptor<LocalUser>(
+            sortBy: [.init(\.mail)]
+        )
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 3)
+        #expect(results[0] == users[0])
+        #expect(results[1] == users[1])
+        #expect(results[2] == users[2])
+    }
+    
+    @Test func testUpdateUser() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        
+        guard var user1 = try source.getUser(mail: users[0].mail) else {
+            Issue.record()
+            return
+        }
+        user1.verifyCode = ""
+        user1.verifyCodeExpires = Date(timeIntervalSinceNow: 3600)
+        
+        guard var user2 = try source.getUser(mail: users[2].mail) else {
+            Issue.record()
+            return
+        }
+        user2.verifyCode = "333"
+        user2.verifyAttempts = 3
+        
+        let descriptor = FetchDescriptor<LocalUser>(
+            sortBy: [.init(\.mail)]
+        )
+        var results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 3)
+        #expect(results[0] == users[0])
+        #expect(results[1] == users[1])
+        #expect(results[2] == users[2])
+        
+        try source.updateUser(user1)
+        try source.updateUser(user2)
+        
+        results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 3)
+        #expect(results[0] == user1)
+        #expect(results[1] == users[1])
+        #expect(results[2] == user2)
+        
+        #expect(results[0].mail == "aaa@test.com")
+        #expect(results[0].password == "aaa")
+        #expect(results[0].verifyCode == "")
+        #expect(results[0].verifyCodeExpires == user1.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == 0)
+        
+        #expect(results[2].mail == "ccc@test.com")
+        #expect(results[2].password == "ccc")
+        #expect(results[2].verifyCode == "333")
+        #expect(results[2].verifyCodeExpires == user2.verifyCodeExpires)
+        #expect(results[2].verifyAttempts == 3)
+    }
+    
+    @Test func testDeleteUser() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        
+        guard let user = try source.getUser(mail: users[1].mail) else {
+            Issue.record()
+            return
+        }
+        try source.deleteUser(user)
+        
+        let descriptor = FetchDescriptor<LocalUser>(
+            sortBy: [.init(\.mail)]
+        )
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 2)
+        #expect(results[0] == users[0])
+        #expect(results[1] == users[2])
     }
 }

@@ -17,7 +17,7 @@ struct TimeRecordRepositoryTests {
     private let context: ModelContext
     
     init() throws {
-        let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        let schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         self.container = try ModelContainer(for: schema, configurations: config)
         self.context = ModelContext(container)
@@ -308,6 +308,10 @@ struct TimeRecordRepositoryTests {
         func insertUptimeRecord(_ record: SystemUptimeRecord) throws {}
         func updateUptimeRecord(_ record: SystemUptimeRecord) throws {}
         func deleteUptimeRecord(_ record: SystemUptimeRecord) throws {}
+        func getUser(mail: String) throws -> User? { nil }
+        func insertUser(_ user: User) throws {}
+        func updateUser(_ user: User) throws {}
+        func deleteUser(_ user: User) throws {}
     }
 }
 

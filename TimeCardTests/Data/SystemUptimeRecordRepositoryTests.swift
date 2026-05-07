@@ -17,7 +17,7 @@ struct SystemUptimeRecordRepositoryTests {
     private let context: ModelContext
     
     init() throws {
-        let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        let schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         self.container = try ModelContainer(for: schema, configurations: config)
         self.context = ModelContext(container)
