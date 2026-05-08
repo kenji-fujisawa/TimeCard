@@ -1,6 +1,15 @@
 {
-  "originHash" : "1a24111248542c6da77b3d5384d85948cc655ddb4c9e0eb72ee036983fb31260",
+  "originHash" : "41f5e3157716fed83e3c2386cf7fd043f0914e72c9c6587cc22074a4e017c6cf",
   "pins" : [
+    {
+      "identity" : "argon2swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tmthecoder/Argon2Swift.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "53543623fefe68461b7eeea03d7f96677c2fd76d"
+      }
+    },
     {
       "identity" : "japanholidays_swift",
       "kind" : "remoteSourceControl",
@@ -8,6 +17,15 @@
       "state" : {
         "revision" : "2383bea67fbcfda9aa89321f0d414bbee3529e58",
         "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "phc-winner-argon2",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/P-H-C/phc-winner-argon2.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "f57e61e19229e23c4445b85494dbf7c07de721cb"
       }
     },
     {

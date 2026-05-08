@@ -9,10 +9,6 @@ import CryptoKit
 import Foundation
 
 enum HMACSHA256 {
-    enum HMACSHA256Error: Error {
-        case generateSecretFailed
-    }
-    
     private static let urlForSecret = FileManager.default.temporaryDirectory.appendingPathComponent("TimeCard.secret")
     
     static func computeHash(_ value: String) throws -> Data {
@@ -27,12 +23,7 @@ enum HMACSHA256 {
             return data.base64EncodedString()
         }
         
-        let length = 64
-        var bytes = [UInt8](repeating: 0, count: length)
-        let status = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
-        guard status == errSecSuccess else { throw HMACSHA256Error.generateSecretFailed }
-        
-        let secret = Data(bytes)
+        let secret = try SecureRandomBytes.generate(length: 64)
         try secret.write(to: urlForSecret)
         return secret.base64EncodedString()
     }

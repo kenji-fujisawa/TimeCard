@@ -10,7 +10,7 @@ import Foundation
 protocol UserRepository {
     func register(mail: String, password: String) async throws
     func verify(mail: String, verifyCode: String) throws
-    func login(mail: String, password: String) throws -> String
+    func login(mail: String, password: String) async throws -> String
     func verifyLogin(token: String) -> Bool
 }
 
@@ -40,12 +40,12 @@ class DefaultUserRepository: UserRepository {
     
     private let source: LocalDataSource
     private let sendVerifyCode: SendVerifyCodeUseCase
-    private let hashPassword: HashPasswordUseCase
+    private let passwordHasher: PasswordHasher
     
-    init(_ source: LocalDataSource, _ sendVerifyCode: SendVerifyCodeUseCase, _ hashPassword: HashPasswordUseCase) {
+    init(_ source: LocalDataSource, _ sendVerifyCode: SendVerifyCodeUseCase, _ passwordHasher: PasswordHasher) {
         self.source = source
         self.sendVerifyCode = sendVerifyCode
-        self.hashPassword = hashPassword
+        self.passwordHasher = passwordHasher
     }
     
     func register(mail: String, password: String) async throws {
@@ -59,8 +59,8 @@ class DefaultUserRepository: UserRepository {
         let verifyCodeExpires = Date(timeIntervalSinceNow: verifyCodeExpireSeconds)
         let user = User(
             mail: mail,
-            password: try hashPassword.execute(password),
-            verifyCode: try hashPassword.execute(verifyCode),
+            password: try await passwordHasher.hash(password),
+            verifyCode: try HMACSHA256.computeHash(verifyCode).base64EncodedString(),
             verifyCodeExpires: verifyCodeExpires
         )
         try source.insertUser(user)
@@ -95,7 +95,8 @@ class DefaultUserRepository: UserRepository {
             throw VerifyError.exceedAttempts
         }
         
-        guard user.verifyCode == (try hashPassword.execute(verifyCode)) else {
+        let hash = try HMACSHA256.computeHash(verifyCode).base64EncodedString()
+        guard user.verifyCode == hash else {
             user.verifyAttempts += 1
             try source.updateUser(user)
             throw VerifyError.invalidCode
@@ -106,9 +107,9 @@ class DefaultUserRepository: UserRepository {
         try source.updateUser(user)
     }
     
-    func login(mail: String, password: String) throws -> String {
+    func login(mail: String, password: String) async throws -> String {
         guard let user = try source.getUser(mail: mail) else { throw LoginError.invalidMail }
-        guard user.password == (try hashPassword.execute(password)) else { throw LoginError.invalidPassword }
+        guard try await passwordHasher.verify(password: password, hash: user.password) else { throw LoginError.invalidPassword }
         guard user.verified else { throw LoginError.invalidUser }
         
         return try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: accessTokenExpireSeconds))
