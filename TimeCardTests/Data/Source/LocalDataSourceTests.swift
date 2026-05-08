@@ -352,7 +352,19 @@ struct LocalDataSourceTests {
         users.forEach { context.insert($0.asLocal()) }
         
         let source = DefaultLocalDataSource(context)
-        var result = try source.getUser(mail: users[0].mail)
+        var result = try source.getUser(id: users[0].id)
+        #expect(result == users[0])
+        
+        result = try source.getUser(id: users[1].id)
+        #expect(result == users[1])
+        
+        result = try source.getUser(id: users[2].id)
+        #expect(result == users[2])
+        
+        result = try source.getUser(id: UUID())
+        #expect(result == nil)
+        
+        result = try source.getUser(mail: users[0].mail)
         #expect(result == users[0])
         
         result = try source.getUser(mail: users[1].mail)

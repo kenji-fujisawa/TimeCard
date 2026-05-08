@@ -233,6 +233,143 @@ struct UserRepositoryTests {
         #expect(source.updated?.verifyAttempts == user.verifyAttempts + 1)
     }
     
+    @Test func testLogin() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let password = "aaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: try hashPassword.execute(password)
+        )
+        source.user = user
+        
+        let token = try repository.login(mail: user.mail, password: password)
+        #expect(try JWT.decode(token) == user.id.uuidString)
+        #expect(repository.verifyLogin(token: token) == true)
+    }
+    
+    @Test func testLogin_invalidMail() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let password = "aaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: try hashPassword.execute(password)
+        )
+        source.user = user
+        
+        #expect(throws: DefaultUserRepository.LoginError.invalidMail) {
+            try repository.login(mail: "bbb@test.com", password: password)
+        }
+    }
+    
+    @Test func testLogin_invalidPassword() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let password = "aaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: try hashPassword.execute(password)
+        )
+        source.user = user
+        
+        #expect(throws: DefaultUserRepository.LoginError.invalidPassword) {
+            try repository.login(mail: user.mail, password: "bbb")
+        }
+    }
+    
+    @Test func testLogin_invalidUser() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let password = "aaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: try hashPassword.execute(password),
+            verifyCode: "aaa"
+        )
+        source.user = user
+        
+        #expect(throws: DefaultUserRepository.LoginError.invalidUser) {
+            try repository.login(mail: user.mail, password: password)
+        }
+    }
+    
+    @Test func testVerifyLogin() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa"
+        )
+        source.user = user
+        
+        let token = try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: 60))
+        #expect(repository.verifyLogin(token: token) == true)
+    }
+    
+    @Test func testVerifyLogin_expired() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa"
+        )
+        source.user = user
+        
+        let token = try JWT.encode(sub: user.id.uuidString, exp: .now)
+        #expect(repository.verifyLogin(token: token) == false)
+    }
+    
+    @Test func testVerifyLogin_notLoggedIn() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa"
+        )
+        
+        let token = try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: 60))
+        #expect(repository.verifyLogin(token: token) == false)
+    }
+    
+    @Test func testVerifyLogin_notVerified() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let hashPassword = HashPasswordUseCase()
+        let repository = DefaultUserRepository(source, sendVerifyCode, hashPassword)
+        
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa",
+            verifyCode: "aaa"
+        )
+        source.user = user
+        
+        let token = try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: 60))
+        #expect(repository.verifyLogin(token: token) == false)
+    }
+    
     class FakeLocalDataSource: LocalDataSource {
         func getTimeRecord(id: UUID) throws -> TimeCard.TimeRecord? { nil }
         func getBreakTime(id: UUID) throws -> TimeCard.TimeRecord.BreakTime? { nil }
@@ -247,6 +384,10 @@ struct UserRepositoryTests {
         func deleteUptimeRecord(_ record: TimeCard.SystemUptimeRecord) throws {}
         
         var user: User? = nil
+        func getUser(id: UUID) throws -> User? {
+            user?.id == id ? user : nil
+        }
+        
         func getUser(mail: String) throws -> TimeCard.User? {
             user?.mail == mail ? user : nil
         }

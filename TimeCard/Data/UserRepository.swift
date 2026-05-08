@@ -10,6 +10,8 @@ import Foundation
 protocol UserRepository {
     func register(mail: String, password: String) async throws
     func verify(mail: String, verifyCode: String) throws
+    func login(mail: String, password: String) throws -> String
+    func verifyLogin(token: String) -> Bool
 }
 
 class DefaultUserRepository: UserRepository {
@@ -26,8 +28,15 @@ class DefaultUserRepository: UserRepository {
         case exceedAttempts
     }
     
+    enum LoginError: Error {
+        case invalidMail
+        case invalidPassword
+        case invalidUser
+    }
+    
     private let verifyCodeExpireSeconds: TimeInterval = 10 * 60
     private let verifyAttemptsLimit = 5
+    private let accessTokenExpireSeconds: TimeInterval = 10 * 60
     
     private let source: LocalDataSource
     private let sendVerifyCode: SendVerifyCodeUseCase
@@ -95,5 +104,22 @@ class DefaultUserRepository: UserRepository {
         user.verifyCode = ""
         user.verifyAttempts += 1
         try source.updateUser(user)
+    }
+    
+    func login(mail: String, password: String) throws -> String {
+        guard let user = try source.getUser(mail: mail) else { throw LoginError.invalidMail }
+        guard user.password == (try hashPassword.execute(password)) else { throw LoginError.invalidPassword }
+        guard user.verified else { throw LoginError.invalidUser }
+        
+        return try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: accessTokenExpireSeconds))
+    }
+    
+    func verifyLogin(token: String) -> Bool {
+        guard let id = try? JWT.decode(token) else { return false }
+        guard let uuid = UUID(uuidString: id) else { return false }
+        guard let user = try? source.getUser(id: uuid) else { return false }
+        guard user.verified else { return false }
+        
+        return true
     }
 }

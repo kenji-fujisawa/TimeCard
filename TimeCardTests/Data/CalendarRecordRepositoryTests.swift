@@ -323,6 +323,7 @@ struct CalendarRecordRepositoryTests {
             uptimeDeleted.append(record)
         }
         
+        func getUser(id: UUID) throws -> User? { nil }
         func getUser(mail: String) throws -> User? { nil }
         func insertUser(_ user: User) throws {}
         func updateUser(_ user: User) throws {}

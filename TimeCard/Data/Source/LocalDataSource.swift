@@ -23,6 +23,7 @@ protocol LocalDataSource {
     func updateUptimeRecord(_ record: SystemUptimeRecord) throws
     func deleteUptimeRecord(_ record: SystemUptimeRecord) throws
     
+    func getUser(id: UUID) throws -> User?
     func getUser(mail: String) throws -> User?
     func insertUser(_ user: User) throws
     func updateUser(_ user: User) throws
@@ -133,6 +134,13 @@ class DefaultLocalDataSource: LocalDataSource {
         }
     }
     
+    func getUser(id: UUID) throws -> User? {
+        let descriptor = FetchDescriptor<LocalUser>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try context.fetch(descriptor).first?.asUser()
+    }
+    
     func getUser(mail: String) throws -> User? {
         return try getLocalUser(mail: mail)?.asUser()
     }
@@ -217,6 +225,7 @@ extension SystemUptimeRecord.SleepRecord {
 extension User {
     func asLocal() -> LocalUser {
         LocalUser(
+            id: self.id,
             mail: self.mail,
             password: self.password,
             verifyCode: self.verifyCode,
@@ -275,6 +284,7 @@ extension LocalUptimeRecord.SleepRecord {
 extension LocalUser {
     func asUser() -> User {
         User(
+            id: self.id,
             mail: self.mail,
             password: self.password,
             verifyCode: self.verifyCode,
