@@ -230,7 +230,8 @@ extension User {
             password: self.password,
             verifyCode: self.verifyCode,
             verifyCodeExpires: self.verifyCodeExpires,
-            verifyAttempts: self.verifyAttempts
+            verifyAttempts: self.verifyAttempts,
+            refreshToken: self.refreshToken
         )
     }
 }
@@ -289,7 +290,8 @@ extension LocalUser {
             password: self.password,
             verifyCode: self.verifyCode,
             verifyCodeExpires: self.verifyCodeExpires,
-            verifyAttempts: self.verifyAttempts
+            verifyAttempts: self.verifyAttempts,
+            refreshToken: self.refreshToken
         )
     }
 }

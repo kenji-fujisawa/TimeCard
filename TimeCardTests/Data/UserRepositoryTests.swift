@@ -246,9 +246,20 @@ struct UserRepositoryTests {
         )
         source.user = user
         
-        let token = try await repository.login(mail: user.mail, password: pass)
-        #expect(try JWT.decode(token) == user.id.uuidString)
-        #expect(repository.verifyLogin(token: token) == true)
+        let tokens = try await repository.login(mail: user.mail, password: pass)
+        #expect(try JWT.decode(tokens.accessToken) == user.id.uuidString)
+        #expect(repository.verifyLogin(token: tokens.accessToken) == true)
+        
+        let code = try JWT.decode(tokens.refreshToken)
+        let parts = code.split(separator: "$")
+        #expect(parts[0] == user.id.uuidString)
+        #expect(!parts[1].isEmpty)
+        #expect(source.updated?.refreshToken ?? "" == parts[1])
+        
+        source.user?.refreshToken = source.updated?.refreshToken ?? ""
+        let refresed = try repository.refresh(token: tokens.refreshToken)
+        #expect(refresed.accessToken != tokens.accessToken)
+        #expect(refresed.refreshToken != tokens.refreshToken)
     }
     
     @Test func testLogin_invalidMail() async throws {
@@ -368,6 +379,91 @@ struct UserRepositoryTests {
         
         let token = try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: 60))
         #expect(repository.verifyLogin(token: token) == false)
+    }
+    
+    @Test func testRefresh() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let token = "aaaaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa",
+            refreshToken: token
+        )
+        source.user = user
+        
+        let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$\(token)", exp: Date(timeIntervalSinceNow: 60))
+        let tokens = try repository.refresh(token: refreshToken)
+        #expect(tokens.refreshToken != refreshToken)
+        #expect(repository.verifyLogin(token: tokens.accessToken) == true)
+        
+        source.user?.refreshToken = source.updated?.refreshToken ?? ""
+        let refreshed = try repository.refresh(token: tokens.refreshToken)
+        #expect(refreshed.accessToken != tokens.accessToken)
+        #expect(refreshed.refreshToken != tokens.refreshToken)
+    }
+    
+    @Test func testRefresh_expired() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let token = "aaaaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa",
+            refreshToken: token
+        )
+        source.user = user
+        
+        let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$\(token)", exp: .now)
+        #expect(throws: JWT.JWTError.expired) {
+            try repository.refresh(token: refreshToken)
+        }
+    }
+    
+    @Test func testRefresh_invalidUser() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let token = "aaaaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa",
+            refreshToken: token
+        )
+        source.user = user
+        
+        let refreshToken = try JWT.encode(sub: "test$\(token)", exp: Date(timeIntervalSinceNow: 60))
+        #expect(throws: DefaultUserRepository.RefreshError.invalidToken) {
+            try repository.refresh(token: refreshToken)
+        }
+    }
+    
+    @Test func testRefresh_invalidToken() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let token = "aaaaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: "aaa",
+            refreshToken: token
+        )
+        source.user = user
+        
+        let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$test", exp: Date(timeIntervalSinceNow: 60))
+        #expect(throws: DefaultUserRepository.RefreshError.invalidToken) {
+            try repository.refresh(token: refreshToken)
+        }
     }
     
     class FakeLocalDataSource: LocalDataSource {
