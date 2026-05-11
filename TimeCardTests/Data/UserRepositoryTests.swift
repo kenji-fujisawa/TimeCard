@@ -21,15 +21,16 @@ struct UserRepositoryTests {
         let mail = "aaa@test.com"
         let pass = "aaa"
         try await repository.register(mail: mail, password: pass)
-        #expect(source.inserted?.mail == mail)
-        #expect(try await passwordHasher.verify(password: pass, hash: source.inserted?.password ?? ""))
-        #expect(source.inserted?.verifyCode.isEmpty == false)
-        #expect(source.inserted?.verifyCodeExpires ?? .distantPast > .now)
-        #expect(source.inserted?.verifyCodeExpires ?? .distantFuture < Date(timeIntervalSinceNow: 10 * 60))
-        #expect(source.inserted?.verifyAttempts == 0)
+        #expect(source.inserted.count == 1)
+        #expect(source.inserted[0].mail == mail)
+        #expect(try await passwordHasher.verify(password: pass, hash: source.inserted[0].password))
+        #expect(source.inserted[0].verifyCode.isEmpty == false)
+        #expect(source.inserted[0].verifyCodeExpires > .now)
+        #expect(source.inserted[0].verifyCodeExpires < Date(timeIntervalSinceNow: 10 * 60))
+        #expect(source.inserted[0].verifyAttempts == 0)
         #expect(sendVerifyCode.mail == mail)
         #expect(sendVerifyCode.verifyCode.isEmpty == false)
-        #expect(try HMACSHA256.computeHash(sendVerifyCode.verifyCode).base64EncodedString() == source.inserted?.verifyCode)
+        #expect(try HMACSHA256.computeHash(sendVerifyCode.verifyCode).base64EncodedString() == source.inserted[0].verifyCode)
     }
     
     @Test func testRegister_duplicate() async throws {
@@ -46,7 +47,7 @@ struct UserRepositoryTests {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted == nil)
+        #expect(source.inserted.count == 0)
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
@@ -64,7 +65,7 @@ struct UserRepositoryTests {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted == nil)
+        #expect(source.inserted.count == 0)
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
@@ -82,7 +83,7 @@ struct UserRepositoryTests {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted == nil)
+        #expect(source.inserted.count == 0)
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
@@ -100,7 +101,7 @@ struct UserRepositoryTests {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted == nil)
+        #expect(source.inserted.count == 0)
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
@@ -121,12 +122,21 @@ struct UserRepositoryTests {
         )
         source.user = user
         
-        try repository.verify(mail: user.mail, verifyCode: verifyCode)
-        #expect(source.updated?.mail == user.mail)
-        #expect(source.updated?.password == user.password)
-        #expect(source.updated?.verifyCode == "")
-        #expect(source.updated?.verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated?.verifyAttempts == user.verifyAttempts + 1)
+        let tokens = try repository.verify(mail: user.mail, verifyCode: verifyCode)
+        #expect(source.updated.count == 2)
+        #expect(source.updated[0].mail == user.mail)
+        #expect(source.updated[0].password == user.password)
+        #expect(source.updated[0].verifyCode == "")
+        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
+        
+        source.user?.verifyCode = ""
+        #expect(repository.verifyLogin(token: tokens.accessToken) == true)
+        
+        source.user?.refreshToken = source.updated[1].refreshToken
+        let refresed = try repository.refresh(token: tokens.refreshToken)
+        #expect(refresed.accessToken != tokens.accessToken)
+        #expect(refresed.refreshToken != tokens.refreshToken)
     }
     
     @Test func testVerify_invalidMail() async throws {
@@ -149,7 +159,7 @@ struct UserRepositoryTests {
             try repository.verify(mail: "bbb@test.com", verifyCode: verifyCode)
         }
         
-        #expect(source.updated == nil)
+        #expect(source.updated.count == 0)
     }
     
     @Test func testVerify_invalidCode() async throws {
@@ -172,11 +182,12 @@ struct UserRepositoryTests {
             try repository.verify(mail: user.mail, verifyCode: "222")
         }
         
-        #expect(source.updated?.mail == user.mail)
-        #expect(source.updated?.password == user.password)
-        #expect(source.updated?.verifyCode == user.verifyCode)
-        #expect(source.updated?.verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated?.verifyAttempts == user.verifyAttempts + 1)
+        #expect(source.updated.count == 1)
+        #expect(source.updated[0].mail == user.mail)
+        #expect(source.updated[0].password == user.password)
+        #expect(source.updated[0].verifyCode == user.verifyCode)
+        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
     }
     
     @Test func testVerify_expiredCode() async throws {
@@ -199,11 +210,11 @@ struct UserRepositoryTests {
             try repository.verify(mail: user.mail, verifyCode: verifyCode)
         }
         
-        #expect(source.updated?.mail == user.mail)
-        #expect(source.updated?.password == user.password)
-        #expect(source.updated?.verifyCode == user.verifyCode)
-        #expect(source.updated?.verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated?.verifyAttempts == user.verifyAttempts + 1)
+        #expect(source.updated[0].mail == user.mail)
+        #expect(source.updated[0].password == user.password)
+        #expect(source.updated[0].verifyCode == user.verifyCode)
+        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
     }
     
     @Test func testVerify_exceedAttempts() async throws {
@@ -226,11 +237,11 @@ struct UserRepositoryTests {
             try repository.verify(mail: user.mail, verifyCode: verifyCode)
         }
         
-        #expect(source.updated?.mail == user.mail)
-        #expect(source.updated?.password == user.password)
-        #expect(source.updated?.verifyCode == user.verifyCode)
-        #expect(source.updated?.verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated?.verifyAttempts == user.verifyAttempts + 1)
+        #expect(source.updated[0].mail == user.mail)
+        #expect(source.updated[0].password == user.password)
+        #expect(source.updated[0].verifyCode == user.verifyCode)
+        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
     }
     
     @Test func testLogin() async throws {
@@ -254,9 +265,10 @@ struct UserRepositoryTests {
         let parts = code.split(separator: "$")
         #expect(parts[0] == user.id.uuidString)
         #expect(!parts[1].isEmpty)
-        #expect(source.updated?.refreshToken ?? "" == parts[1])
+        #expect(source.updated.count == 1)
+        #expect(source.updated[0].refreshToken == parts[1])
         
-        source.user?.refreshToken = source.updated?.refreshToken ?? ""
+        source.user?.refreshToken = source.updated[0].refreshToken
         let refresed = try repository.refresh(token: tokens.refreshToken)
         #expect(refresed.accessToken != tokens.accessToken)
         #expect(refresed.refreshToken != tokens.refreshToken)
@@ -400,7 +412,9 @@ struct UserRepositoryTests {
         #expect(tokens.refreshToken != refreshToken)
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
         
-        source.user?.refreshToken = source.updated?.refreshToken ?? ""
+        #expect(source.updated.count == 1)
+        
+        source.user?.refreshToken = source.updated[0].refreshToken
         let refreshed = try repository.refresh(token: tokens.refreshToken)
         #expect(refreshed.accessToken != tokens.accessToken)
         #expect(refreshed.refreshToken != tokens.refreshToken)
@@ -488,14 +502,14 @@ struct UserRepositoryTests {
             user?.mail == mail ? user : nil
         }
         
-        var inserted: User? = nil
+        var inserted: [User] = []
         func insertUser(_ user: TimeCard.User) throws {
-            inserted = user
+            inserted.append(user)
         }
         
-        var updated: User? = nil
+        var updated: [User] = []
         func updateUser(_ user: TimeCard.User) throws {
-            updated = user
+            updated.append(user)
         }
         
         func deleteUser(_ user: TimeCard.User) throws {}

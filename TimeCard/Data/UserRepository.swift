@@ -14,7 +14,7 @@ struct TokenPair {
 
 protocol UserRepository {
     func register(mail: String, password: String) async throws
-    func verify(mail: String, verifyCode: String) throws
+    func verify(mail: String, verifyCode: String) throws -> TokenPair
     func login(mail: String, password: String) async throws -> TokenPair
     func verifyLogin(token: String) -> Bool
     func refresh(token: String) throws -> TokenPair
@@ -91,7 +91,7 @@ class DefaultUserRepository: UserRepository {
         return code
     }
     
-    func verify(mail: String, verifyCode: String) throws {
+    func verify(mail: String, verifyCode: String) throws -> TokenPair {
         guard var user = try source.getUser(mail: mail) else { throw VerifyError.invalidMail }
         
         guard user.verifyCodeExpires >= .now else {
@@ -116,6 +116,8 @@ class DefaultUserRepository: UserRepository {
         user.verifyCode = ""
         user.verifyAttempts += 1
         try source.updateUser(user)
+        
+        return try publishTokenPair(userId: user.id)
     }
     
     func login(mail: String, password: String) async throws -> TokenPair {
