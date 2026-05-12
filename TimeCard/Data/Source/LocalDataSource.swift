@@ -231,7 +231,10 @@ extension User {
             verifyCode: self.verifyCode,
             verifyCodeExpires: self.verifyCodeExpires,
             verifyAttempts: self.verifyAttempts,
-            refreshToken: self.refreshToken
+            refreshToken: self.refreshToken,
+            loginAttempts: self.loginAttempts,
+            lastAttempt: self.lastAttempt,
+            locked: self.locked
         )
     }
 }
@@ -291,7 +294,10 @@ extension LocalUser {
             verifyCode: self.verifyCode,
             verifyCodeExpires: self.verifyCodeExpires,
             verifyAttempts: self.verifyAttempts,
-            refreshToken: self.refreshToken
+            refreshToken: self.refreshToken,
+            loginAttempts: self.loginAttempts,
+            lastAttempt: self.lastAttempt,
+            locked: self.locked
         )
     }
 }

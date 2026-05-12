@@ -100,7 +100,10 @@ struct LocalDataSourceTests {
                 verifyCode: "111",
                 verifyCodeExpires: .now,
                 verifyAttempts: 0,
-                refreshToken: "aaaaa"
+                refreshToken: "aaaaa",
+                loginAttempts: 1,
+                lastAttempt: .now,
+                locked: .now
             ),
             User(
                 mail: "bbb@test.com",

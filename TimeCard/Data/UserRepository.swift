@@ -38,6 +38,7 @@ class DefaultUserRepository: UserRepository {
         case invalidMail
         case invalidPassword
         case invalidUser
+        case accountLocked
     }
     
     enum RefreshError: Error {
@@ -48,6 +49,9 @@ class DefaultUserRepository: UserRepository {
     private let verifyAttemptsLimit = 5
     private let accessTokenExpireSeconds: TimeInterval = 10 * 60
     private let refreshTokenExpireSeconds: TimeInterval = 30 * 24 * 60 * 60
+    private let loginAttemptsLimit: Int = 5
+    private let loginAttemptResetSeconds: TimeInterval = 30 * 60
+    private let lockResetSeconds: TimeInterval = 60 * 60
     
     private let source: LocalDataSource
     private let sendVerifyCode: SendVerifyCodeUseCase
@@ -121,9 +125,36 @@ class DefaultUserRepository: UserRepository {
     }
     
     func login(mail: String, password: String) async throws -> TokenPair {
-        guard let user = try source.getUser(mail: mail) else { throw LoginError.invalidMail }
-        guard try await passwordHasher.verify(password: password, hash: user.password) else { throw LoginError.invalidPassword }
+        guard var user = try source.getUser(mail: mail) else { throw LoginError.invalidMail }
         guard user.verified else { throw LoginError.invalidUser }
+        
+        if let locked = user.locked,
+           locked.addingTimeInterval(lockResetSeconds) > .now {
+            throw LoginError.accountLocked
+        }
+        
+        if let attempt = user.lastAttempt,
+           attempt.addingTimeInterval(loginAttemptResetSeconds) <= .now {
+            user.loginAttempts = 0
+        }
+        
+        guard try await passwordHasher.verify(password: password, hash: user.password) else {
+            user.loginAttempts += 1
+            user.lastAttempt = .now
+            
+            if user.loginAttempts >= loginAttemptsLimit {
+                user.locked = .now
+            }
+            
+            try source.updateUser(user)
+            
+            throw LoginError.invalidPassword
+        }
+        
+        user.loginAttempts = 0
+        user.lastAttempt = nil
+        user.locked = nil
+        try source.updateUser(user)
         
         return try publishTokenPair(userId: user.id)
     }

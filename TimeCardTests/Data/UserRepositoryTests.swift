@@ -253,11 +253,19 @@ struct UserRepositoryTests {
         let pass = "aaa"
         let user = User(
             mail: "aaa@test.com",
-            password: try await passwordHasher.hash(pass)
+            password: try await passwordHasher.hash(pass),
+            loginAttempts: 3,
+            lastAttempt: .now,
+            locked: Date(timeIntervalSinceNow: -24 * 60 * 60)
         )
         source.user = user
         
         let tokens = try await repository.login(mail: user.mail, password: pass)
+        #expect(source.updated.count == 2)
+        #expect(source.updated[0].loginAttempts == 0)
+        #expect(source.updated[0].lastAttempt == nil)
+        #expect(source.updated[0].locked == nil)
+        
         #expect(try JWT.decode(tokens.accessToken) == user.id.uuidString)
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
         
@@ -265,10 +273,9 @@ struct UserRepositoryTests {
         let parts = code.split(separator: "$")
         #expect(parts[0] == user.id.uuidString)
         #expect(!parts[1].isEmpty)
-        #expect(source.updated.count == 1)
-        #expect(source.updated[0].refreshToken == parts[1])
+        #expect(source.updated[1].refreshToken == parts[1])
         
-        source.user?.refreshToken = source.updated[0].refreshToken
+        source.user?.refreshToken = source.updated[1].refreshToken
         let refresed = try repository.refresh(token: tokens.refreshToken)
         #expect(refresed.accessToken != tokens.accessToken)
         #expect(refresed.refreshToken != tokens.refreshToken)
@@ -290,6 +297,8 @@ struct UserRepositoryTests {
         await #expect(throws: DefaultUserRepository.LoginError.invalidMail) {
             try await repository.login(mail: "bbb@test.com", password: pass)
         }
+        
+        #expect(source.updated.count == 0)
     }
     
     @Test func testLogin_invalidPassword() async throws {
@@ -299,15 +308,102 @@ struct UserRepositoryTests {
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
         
         let pass = "aaa"
+        let lastAttempt = Date.now
         let user = User(
             mail: "aaa@test.com",
-            password: try await passwordHasher.hash(pass)
+            password: try await passwordHasher.hash(pass),
+            loginAttempts: 3,
+            lastAttempt: lastAttempt,
+            locked: nil
         )
         source.user = user
         
         await #expect(throws: DefaultUserRepository.LoginError.invalidPassword) {
             try await repository.login(mail: user.mail, password: "bbb")
         }
+        
+        #expect(source.updated.count == 1)
+        #expect(source.updated[0].loginAttempts == 4)
+        #expect(source.updated[0].lastAttempt != lastAttempt)
+        #expect(Date.now.equals(source.updated[0].lastAttempt ?? .distantPast))
+        #expect(source.updated[0].locked == nil)
+    }
+    
+    @Test func testLogin_invalidPassword_resetAttempt() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let pass = "aaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: try await passwordHasher.hash(pass),
+            loginAttempts: 3,
+            lastAttempt: Date(timeIntervalSinceNow: -24 * 60 * 60),
+            locked: nil
+        )
+        source.user = user
+        
+        await #expect(throws: DefaultUserRepository.LoginError.invalidPassword) {
+            try await repository.login(mail: user.mail, password: "bbb")
+        }
+        
+        #expect(source.updated.count == 1)
+        #expect(source.updated[0].loginAttempts == 1)
+        #expect(Date.now.equals(source.updated[0].lastAttempt ?? .distantPast))
+        #expect(source.updated[0].locked == nil)
+    }
+    
+    @Test func testLogin_invalidPassword_lock() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let pass = "aaa"
+        let lastAttempt = Date.now
+        let user = User(
+            mail: "aaa@test.com",
+            password: try await passwordHasher.hash(pass),
+            loginAttempts: 4,
+            lastAttempt: lastAttempt,
+            locked: nil
+        )
+        source.user = user
+        
+        await #expect(throws: DefaultUserRepository.LoginError.invalidPassword) {
+            try await repository.login(mail: user.mail, password: "bbb")
+        }
+        
+        #expect(source.updated.count == 1)
+        #expect(source.updated[0].loginAttempts == 5)
+        #expect(source.updated[0].lastAttempt != lastAttempt)
+        #expect(Date.now.equals(source.updated[0].lastAttempt ?? .distantPast))
+        #expect(Date.now.equals(source.updated[0].locked ?? .distantPast))
+    }
+    
+    @Test func testLogin_locked() async throws {
+        let source = FakeLocalDataSource()
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let pass = "aaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: try await passwordHasher.hash(pass),
+            loginAttempts: 3,
+            lastAttempt: .now,
+            locked: .now
+        )
+        source.user = user
+        
+        await #expect(throws: DefaultUserRepository.LoginError.accountLocked) {
+            try await repository.login(mail: user.mail, password: pass)
+        }
+        
+        #expect(source.updated.count == 0)
     }
     
     @Test func testLogin_invalidUser() async throws {
@@ -327,6 +423,8 @@ struct UserRepositoryTests {
         await #expect(throws: DefaultUserRepository.LoginError.invalidUser) {
             try await repository.login(mail: user.mail, password: pass)
         }
+        
+        #expect(source.updated.count == 0)
     }
     
     @Test func testVerifyLogin() async throws {
@@ -532,5 +630,11 @@ struct UserRepositoryTests {
         func verify(password: String, hash: String) async throws -> Bool {
             try HMACSHA256.computeHash(password).base64EncodedString() == hash
         }
+    }
+}
+
+private extension Date {
+    func equals(_ date: Date) -> Bool {
+        abs(self.distance(to: date)) < 1
     }
 }
