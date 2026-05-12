@@ -11,8 +11,10 @@ import SwiftData
 extension TimeCardSchema_v4 {
     @Model
     class User {
+        #Index<User>([\.mail])
+        
         var id: UUID
-        @Attribute(.unique) var mail: String
+        var mail: String
         var password: String
         var verifyCode: String
         var verifyCodeExpires: Date
