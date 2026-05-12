@@ -24,7 +24,7 @@ extension TimeCardSchema_v4 {
         var lastAttempt: Date?
         var locked: Date?
         
-        init(id: UUID = UUID(), mail: String, password: String = "", verifyCode: String = "", verifyCodeExpires: Date = .now, verifyAttempts: Int = 0, refreshToken: String = "", loginAttempts: Int = 0, lastAttempt: Date? = nil, locked: Date? = nil) {
+        init(id: UUID = UUID(), mail: String, password: String, verifyCode: String = "", verifyCodeExpires: Date = .now, verifyAttempts: Int = 0, refreshToken: String = "", loginAttempts: Int = 0, lastAttempt: Date? = nil, locked: Date? = nil) {
             self.id = id
             self.mail = mail
             self.password = password

@@ -76,8 +76,28 @@ class LocalUserTests {
         #expect(uptimes[1].day == uptimeRecords[1].day)
         
         let users = [
-            LocalUser(mail: "aaa@test.com"),
-            LocalUser(mail: "bbb@test.com")
+            LocalUser(
+                mail: "aaa@test.com",
+                password: "aaa",
+                verifyCode: "111",
+                verifyCodeExpires: .now,
+                verifyAttempts: 1,
+                refreshToken: "aaaaa",
+                loginAttempts: 2,
+                lastAttempt: .now,
+                locked: .now
+            ),
+            LocalUser(
+                mail: "bbb@test.com",
+                password: "bbb",
+                verifyCode: "222",
+                verifyCodeExpires: .now,
+                verifyAttempts: 2,
+                refreshToken: "bbbbb",
+                loginAttempts: 3,
+                lastAttempt: nil,
+                locked: nil
+            )
         ]
         context.insert(users[0])
         context.insert(users[1])
@@ -87,8 +107,26 @@ class LocalUserTests {
             sortBy: [.init(\.mail)]
         ))
         #expect(results.count == 2)
+        #expect(results[0].id == users[0].id)
         #expect(results[0].mail == users[0].mail)
+        #expect(results[0].password == users[0].password)
+        #expect(results[0].verifyCode == users[0].verifyCode)
+        #expect(results[0].verifyCodeExpires == users[0].verifyCodeExpires)
+        #expect(results[0].verifyAttempts == users[0].verifyAttempts)
+        #expect(results[0].refreshToken == users[0].refreshToken)
+        #expect(results[0].loginAttempts == users[0].loginAttempts)
+        #expect(results[0].lastAttempt == users[0].lastAttempt)
+        #expect(results[0].locked == users[0].locked)
+        #expect(results[1].id == users[1].id)
         #expect(results[1].mail == users[1].mail)
+        #expect(results[1].password == users[1].password)
+        #expect(results[1].verifyCode == users[1].verifyCode)
+        #expect(results[1].verifyCodeExpires == users[1].verifyCodeExpires)
+        #expect(results[1].verifyAttempts == users[1].verifyAttempts)
+        #expect(results[1].refreshToken == users[1].refreshToken)
+        #expect(results[1].loginAttempts == users[1].loginAttempts)
+        #expect(results[1].lastAttempt == users[1].lastAttempt)
+        #expect(results[1].locked == users[1].locked)
     }
     
     @Test func testMigratev2_3toV4() async throws {
@@ -139,8 +177,28 @@ class LocalUserTests {
         #expect(uptimes[1].shutdown == uptimeRecords[1].shutdown)
         
         let users = [
-            LocalUser(mail: "aaa@test.com"),
-            LocalUser(mail: "bbb@test.com")
+            LocalUser(
+                mail: "aaa@test.com",
+                password: "aaa",
+                verifyCode: "111",
+                verifyCodeExpires: .now,
+                verifyAttempts: 1,
+                refreshToken: "aaaaa",
+                loginAttempts: 2,
+                lastAttempt: .now,
+                locked: .now
+            ),
+            LocalUser(
+                mail: "bbb@test.com",
+                password: "bbb",
+                verifyCode: "222",
+                verifyCodeExpires: .now,
+                verifyAttempts: 2,
+                refreshToken: "bbbbb",
+                loginAttempts: 3,
+                lastAttempt: nil,
+                locked: nil
+            )
         ]
         context.insert(users[0])
         context.insert(users[1])
@@ -150,8 +208,26 @@ class LocalUserTests {
             sortBy: [.init(\.mail)]
         ))
         #expect(results.count == 2)
+        #expect(results[0].id == users[0].id)
         #expect(results[0].mail == users[0].mail)
+        #expect(results[0].password == users[0].password)
+        #expect(results[0].verifyCode == users[0].verifyCode)
+        #expect(results[0].verifyCodeExpires == users[0].verifyCodeExpires)
+        #expect(results[0].verifyAttempts == users[0].verifyAttempts)
+        #expect(results[0].refreshToken == users[0].refreshToken)
+        #expect(results[0].loginAttempts == users[0].loginAttempts)
+        #expect(results[0].lastAttempt == users[0].lastAttempt)
+        #expect(results[0].locked == users[0].locked)
+        #expect(results[1].id == users[1].id)
         #expect(results[1].mail == users[1].mail)
+        #expect(results[1].password == users[1].password)
+        #expect(results[1].verifyCode == users[1].verifyCode)
+        #expect(results[1].verifyCodeExpires == users[1].verifyCodeExpires)
+        #expect(results[1].verifyAttempts == users[1].verifyAttempts)
+        #expect(results[1].refreshToken == users[1].refreshToken)
+        #expect(results[1].loginAttempts == users[1].loginAttempts)
+        #expect(results[1].lastAttempt == users[1].lastAttempt)
+        #expect(results[1].locked == users[1].locked)
     }
     
     @Test func testMigratev3toV4() async throws {
@@ -194,8 +270,28 @@ class LocalUserTests {
         #expect(uptimes[1].id == uptimeRecords[1].id)
         
         let users = [
-            LocalUser(mail: "aaa@test.com"),
-            LocalUser(mail: "bbb@test.com")
+            LocalUser(
+                mail: "aaa@test.com",
+                password: "aaa",
+                verifyCode: "111",
+                verifyCodeExpires: .now,
+                verifyAttempts: 1,
+                refreshToken: "aaaaa",
+                loginAttempts: 2,
+                lastAttempt: .now,
+                locked: .now
+            ),
+            LocalUser(
+                mail: "bbb@test.com",
+                password: "bbb",
+                verifyCode: "222",
+                verifyCodeExpires: .now,
+                verifyAttempts: 2,
+                refreshToken: "bbbbb",
+                loginAttempts: 3,
+                lastAttempt: nil,
+                locked: nil
+            )
         ]
         context.insert(users[0])
         context.insert(users[1])
@@ -205,7 +301,25 @@ class LocalUserTests {
             sortBy: [.init(\.mail)]
         ))
         #expect(results.count == 2)
+        #expect(results[0].id == users[0].id)
         #expect(results[0].mail == users[0].mail)
+        #expect(results[0].password == users[0].password)
+        #expect(results[0].verifyCode == users[0].verifyCode)
+        #expect(results[0].verifyCodeExpires == users[0].verifyCodeExpires)
+        #expect(results[0].verifyAttempts == users[0].verifyAttempts)
+        #expect(results[0].refreshToken == users[0].refreshToken)
+        #expect(results[0].loginAttempts == users[0].loginAttempts)
+        #expect(results[0].lastAttempt == users[0].lastAttempt)
+        #expect(results[0].locked == users[0].locked)
+        #expect(results[1].id == users[1].id)
         #expect(results[1].mail == users[1].mail)
+        #expect(results[1].password == users[1].password)
+        #expect(results[1].verifyCode == users[1].verifyCode)
+        #expect(results[1].verifyCodeExpires == users[1].verifyCodeExpires)
+        #expect(results[1].verifyAttempts == users[1].verifyAttempts)
+        #expect(results[1].refreshToken == users[1].refreshToken)
+        #expect(results[1].loginAttempts == users[1].loginAttempts)
+        #expect(results[1].lastAttempt == users[1].lastAttempt)
+        #expect(results[1].locked == users[1].locked)
     }
 }

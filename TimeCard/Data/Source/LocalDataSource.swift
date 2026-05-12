@@ -163,6 +163,10 @@ class DefaultLocalDataSource: LocalDataSource {
             local.verifyCode = user.verifyCode
             local.verifyCodeExpires = user.verifyCodeExpires
             local.verifyAttempts = user.verifyAttempts
+            local.refreshToken = user.refreshToken
+            local.loginAttempts = user.loginAttempts
+            local.lastAttempt = user.lastAttempt
+            local.locked = user.locked
             try context.save()
         }
     }

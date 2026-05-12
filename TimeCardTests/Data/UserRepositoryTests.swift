@@ -6,14 +6,25 @@
 //
 
 import Foundation
+import SwiftData
 import Testing
 
 @testable import TimeCard
 
 struct UserRepositoryTests {
 
+    private let container: ModelContainer
+    private let context: ModelContext
+    
+    init() throws {
+        let schema = Schema(versionedSchema: TimeCardSchema_v4.self)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        self.container = try ModelContainer(for: schema, configurations: config)
+        self.context = ModelContext(container)
+    }
+    
     @Test func testRegister() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -21,39 +32,59 @@ struct UserRepositoryTests {
         let mail = "aaa@test.com"
         let pass = "aaa"
         try await repository.register(mail: mail, password: pass)
-        #expect(source.inserted.count == 1)
-        #expect(source.inserted[0].mail == mail)
-        #expect(try await passwordHasher.verify(password: pass, hash: source.inserted[0].password))
-        #expect(source.inserted[0].verifyCode.isEmpty == false)
-        #expect(source.inserted[0].verifyCodeExpires > .now)
-        #expect(source.inserted[0].verifyCodeExpires < Date(timeIntervalSinceNow: 10 * 60))
-        #expect(source.inserted[0].verifyAttempts == 0)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].mail == mail)
+        #expect(try await passwordHasher.verify(password: pass, hash: results[0].password) == true)
+        #expect(results[0].verifyCode.isEmpty == false)
+        #expect(results[0].verifyCodeExpires.equals(Date(timeIntervalSinceNow: 10 * 60)))
+        #expect(results[0].verifyAttempts == 0)
+        #expect(results[0].refreshToken == "")
+        #expect(results[0].loginAttempts == 0)
+        #expect(results[0].lastAttempt == nil)
+        #expect(results[0].locked == nil)
+        
         #expect(sendVerifyCode.mail == mail)
         #expect(sendVerifyCode.verifyCode.isEmpty == false)
-        #expect(try HMACSHA256.computeHash(sendVerifyCode.verifyCode).base64EncodedString() == source.inserted[0].verifyCode)
+        #expect(try HMACSHA256.computeHash(sendVerifyCode.verifyCode).base64EncodedString() == results[0].verifyCode)
     }
     
     @Test func testRegister_duplicate() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
         
         let mail = "aaa@test.com"
         let pass = "aaa"
-        source.user = User(mail: mail, password: pass)
+        let user = User(mail: mail, password: pass)
+        context.insert(user.asLocal())
         
         await #expect(throws: DefaultUserRepository.RegisterError.duplicateMail) {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].mail == mail)
+        #expect(results[0].password == pass)
+        #expect(results[0].verifyCode == "")
+        #expect(results[0].verifyCodeExpires.equals(.now))
+        #expect(results[0].verifyAttempts == 0)
+        #expect(results[0].refreshToken == "")
+        #expect(results[0].loginAttempts == 0)
+        #expect(results[0].lastAttempt == nil)
+        #expect(results[0].locked == nil)
+        
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
     
     @Test func testRegister_emptyMail() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -65,13 +96,16 @@ struct UserRepositoryTests {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 0)
+        
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
     
     @Test func testRegister_invalidMail() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -83,13 +117,16 @@ struct UserRepositoryTests {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 0)
+        
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
     
     @Test func testRegister_invalidPassword() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -101,13 +138,16 @@ struct UserRepositoryTests {
             try await repository.register(mail: mail, password: pass)
         }
         
-        #expect(source.inserted.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 0)
+        
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
     }
     
     @Test func testVerify() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -120,27 +160,33 @@ struct UserRepositoryTests {
             verifyCodeExpires: Date(timeIntervalSinceNow: 10 * 60),
             verifyAttempts: 4
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let tokens = try repository.verify(mail: user.mail, verifyCode: verifyCode)
-        #expect(source.updated.count == 2)
-        #expect(source.updated[0].mail == user.mail)
-        #expect(source.updated[0].password == user.password)
-        #expect(source.updated[0].verifyCode == "")
-        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
         
-        source.user?.verifyCode = ""
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == "")
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
+        #expect(results[0].refreshToken.isEmpty == false)
+        #expect(results[0].loginAttempts == 0)
+        #expect(results[0].lastAttempt == nil)
+        #expect(results[0].locked == nil)
+        
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
         
-        source.user?.refreshToken = source.updated[1].refreshToken
         let refresed = try repository.refresh(token: tokens.refreshToken)
         #expect(refresed.accessToken != tokens.accessToken)
         #expect(refresed.refreshToken != tokens.refreshToken)
     }
     
     @Test func testVerify_invalidMail() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -153,17 +199,20 @@ struct UserRepositoryTests {
             verifyCodeExpires: Date(timeIntervalSinceNow: 10 * 60),
             verifyAttempts: 0
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         #expect(throws: DefaultUserRepository.VerifyError.invalidMail) {
             try repository.verify(mail: "bbb@test.com", verifyCode: verifyCode)
         }
         
-        #expect(source.updated.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testVerify_invalidCode() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -176,22 +225,29 @@ struct UserRepositoryTests {
             verifyCodeExpires: Date(timeIntervalSinceNow: 10 * 60),
             verifyAttempts: 0
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         #expect(throws: DefaultUserRepository.VerifyError.invalidCode) {
             try repository.verify(mail: user.mail, verifyCode: "222")
         }
         
-        #expect(source.updated.count == 1)
-        #expect(source.updated[0].mail == user.mail)
-        #expect(source.updated[0].password == user.password)
-        #expect(source.updated[0].verifyCode == user.verifyCode)
-        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
+        #expect(results[0].refreshToken == user.refreshToken)
+        #expect(results[0].loginAttempts == user.loginAttempts)
+        #expect(results[0].lastAttempt == user.lastAttempt)
+        #expect(results[0].locked == user.locked)
     }
     
     @Test func testVerify_expiredCode() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -204,21 +260,29 @@ struct UserRepositoryTests {
             verifyCodeExpires: Date(timeIntervalSinceNow: -10 * 60),
             verifyAttempts: 0
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         #expect(throws: DefaultUserRepository.VerifyError.expiredCode) {
             try repository.verify(mail: user.mail, verifyCode: verifyCode)
         }
         
-        #expect(source.updated[0].mail == user.mail)
-        #expect(source.updated[0].password == user.password)
-        #expect(source.updated[0].verifyCode == user.verifyCode)
-        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
+        #expect(results[0].refreshToken == user.refreshToken)
+        #expect(results[0].loginAttempts == user.loginAttempts)
+        #expect(results[0].lastAttempt == user.lastAttempt)
+        #expect(results[0].locked == user.locked)
     }
     
     @Test func testVerify_exceedAttempts() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -231,21 +295,29 @@ struct UserRepositoryTests {
             verifyCodeExpires: Date(timeIntervalSinceNow: 10 * 60),
             verifyAttempts: 5
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         #expect(throws: DefaultUserRepository.VerifyError.exceedAttempts) {
             try repository.verify(mail: user.mail, verifyCode: verifyCode)
         }
         
-        #expect(source.updated[0].mail == user.mail)
-        #expect(source.updated[0].password == user.password)
-        #expect(source.updated[0].verifyCode == user.verifyCode)
-        #expect(source.updated[0].verifyCodeExpires == user.verifyCodeExpires)
-        #expect(source.updated[0].verifyAttempts == user.verifyAttempts + 1)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
+        #expect(results[0].refreshToken == user.refreshToken)
+        #expect(results[0].loginAttempts == user.loginAttempts)
+        #expect(results[0].lastAttempt == user.lastAttempt)
+        #expect(results[0].locked == user.locked)
     }
     
     @Test func testLogin() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -258,13 +330,24 @@ struct UserRepositoryTests {
             lastAttempt: .now,
             locked: Date(timeIntervalSinceNow: -24 * 60 * 60)
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let tokens = try await repository.login(mail: user.mail, password: pass)
-        #expect(source.updated.count == 2)
-        #expect(source.updated[0].loginAttempts == 0)
-        #expect(source.updated[0].lastAttempt == nil)
-        #expect(source.updated[0].locked == nil)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts)
+        #expect(results[0].refreshToken != user.refreshToken)
+        #expect(results[0].refreshToken.isEmpty == false)
+        #expect(results[0].loginAttempts == 0)
+        #expect(results[0].lastAttempt == nil)
+        #expect(results[0].locked == nil)
         
         #expect(try JWT.decode(tokens.accessToken) == user.id.uuidString)
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
@@ -273,16 +356,15 @@ struct UserRepositoryTests {
         let parts = code.split(separator: "$")
         #expect(parts[0] == user.id.uuidString)
         #expect(!parts[1].isEmpty)
-        #expect(source.updated[1].refreshToken == parts[1])
+        #expect(results[0].refreshToken == parts[1])
         
-        source.user?.refreshToken = source.updated[1].refreshToken
         let refresed = try repository.refresh(token: tokens.refreshToken)
         #expect(refresed.accessToken != tokens.accessToken)
         #expect(refresed.refreshToken != tokens.refreshToken)
     }
     
     @Test func testLogin_invalidMail() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -292,17 +374,20 @@ struct UserRepositoryTests {
             mail: "aaa@test.com",
             password: try await passwordHasher.hash(pass)
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         await #expect(throws: DefaultUserRepository.LoginError.invalidMail) {
             try await repository.login(mail: "bbb@test.com", password: pass)
         }
         
-        #expect(source.updated.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testLogin_invalidPassword() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -316,21 +401,30 @@ struct UserRepositoryTests {
             lastAttempt: lastAttempt,
             locked: nil
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         await #expect(throws: DefaultUserRepository.LoginError.invalidPassword) {
             try await repository.login(mail: user.mail, password: "bbb")
         }
         
-        #expect(source.updated.count == 1)
-        #expect(source.updated[0].loginAttempts == 4)
-        #expect(source.updated[0].lastAttempt != lastAttempt)
-        #expect(Date.now.equals(source.updated[0].lastAttempt ?? .distantPast))
-        #expect(source.updated[0].locked == nil)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts)
+        #expect(results[0].refreshToken == user.refreshToken)
+        #expect(results[0].loginAttempts == 4)
+        #expect(results[0].lastAttempt != lastAttempt)
+        #expect(Date.now.equals(results[0].lastAttempt ?? .distantPast))
+        #expect(results[0].locked == nil)
     }
     
     @Test func testLogin_invalidPassword_resetAttempt() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -343,20 +437,29 @@ struct UserRepositoryTests {
             lastAttempt: Date(timeIntervalSinceNow: -24 * 60 * 60),
             locked: nil
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         await #expect(throws: DefaultUserRepository.LoginError.invalidPassword) {
             try await repository.login(mail: user.mail, password: "bbb")
         }
         
-        #expect(source.updated.count == 1)
-        #expect(source.updated[0].loginAttempts == 1)
-        #expect(Date.now.equals(source.updated[0].lastAttempt ?? .distantPast))
-        #expect(source.updated[0].locked == nil)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts)
+        #expect(results[0].refreshToken == user.refreshToken)
+        #expect(results[0].loginAttempts == 1)
+        #expect(Date.now.equals(results[0].lastAttempt ?? .distantPast))
+        #expect(results[0].locked == nil)
     }
     
     @Test func testLogin_invalidPassword_lock() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -370,21 +473,30 @@ struct UserRepositoryTests {
             lastAttempt: lastAttempt,
             locked: nil
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         await #expect(throws: DefaultUserRepository.LoginError.invalidPassword) {
             try await repository.login(mail: user.mail, password: "bbb")
         }
         
-        #expect(source.updated.count == 1)
-        #expect(source.updated[0].loginAttempts == 5)
-        #expect(source.updated[0].lastAttempt != lastAttempt)
-        #expect(Date.now.equals(source.updated[0].lastAttempt ?? .distantPast))
-        #expect(Date.now.equals(source.updated[0].locked ?? .distantPast))
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts)
+        #expect(results[0].refreshToken == user.refreshToken)
+        #expect(results[0].loginAttempts == 5)
+        #expect(results[0].lastAttempt != lastAttempt)
+        #expect(Date.now.equals(results[0].lastAttempt ?? .distantPast))
+        #expect(Date.now.equals(results[0].locked ?? .distantPast))
     }
     
     @Test func testLogin_locked() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -397,17 +509,20 @@ struct UserRepositoryTests {
             lastAttempt: .now,
             locked: .now
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         await #expect(throws: DefaultUserRepository.LoginError.accountLocked) {
             try await repository.login(mail: user.mail, password: pass)
         }
         
-        #expect(source.updated.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testLogin_invalidUser() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -418,17 +533,20 @@ struct UserRepositoryTests {
             password: try await passwordHasher.hash(pass),
             verifyCode: "aaa"
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         await #expect(throws: DefaultUserRepository.LoginError.invalidUser) {
             try await repository.login(mail: user.mail, password: pass)
         }
         
-        #expect(source.updated.count == 0)
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testVerifyLogin() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -437,14 +555,19 @@ struct UserRepositoryTests {
             mail: "aaa@test.com",
             password: "aaa"
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let token = try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: 60))
         #expect(repository.verifyLogin(token: token) == true)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testVerifyLogin_expired() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -453,14 +576,19 @@ struct UserRepositoryTests {
             mail: "aaa@test.com",
             password: "aaa"
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let token = try JWT.encode(sub: user.id.uuidString, exp: .now)
         #expect(repository.verifyLogin(token: token) == false)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testVerifyLogin_notLoggedIn() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -472,10 +600,14 @@ struct UserRepositoryTests {
         
         let token = try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: 60))
         #expect(repository.verifyLogin(token: token) == false)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 0)
     }
     
     @Test func testVerifyLogin_notVerified() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -485,14 +617,19 @@ struct UserRepositoryTests {
             password: "aaa",
             verifyCode: "aaa"
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let token = try JWT.encode(sub: user.id.uuidString, exp: Date(timeIntervalSinceNow: 60))
         #expect(repository.verifyLogin(token: token) == false)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testRefresh() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -503,23 +640,36 @@ struct UserRepositoryTests {
             password: "aaa",
             refreshToken: token
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$\(token)", exp: Date(timeIntervalSinceNow: 60))
         let tokens = try repository.refresh(token: refreshToken)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts)
+        #expect(results[0].refreshToken != user.refreshToken)
+        #expect(results[0].refreshToken.isEmpty == false)
+        #expect(results[0].loginAttempts == user.loginAttempts)
+        #expect(results[0].lastAttempt == user.lastAttempt)
+        #expect(results[0].locked == user.locked)
+        
         #expect(tokens.refreshToken != refreshToken)
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
         
-        #expect(source.updated.count == 1)
-        
-        source.user?.refreshToken = source.updated[0].refreshToken
         let refreshed = try repository.refresh(token: tokens.refreshToken)
         #expect(refreshed.accessToken != tokens.accessToken)
         #expect(refreshed.refreshToken != tokens.refreshToken)
     }
     
     @Test func testRefresh_expired() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -530,16 +680,21 @@ struct UserRepositoryTests {
             password: "aaa",
             refreshToken: token
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$\(token)", exp: .now)
         #expect(throws: JWT.JWTError.expired) {
             try repository.refresh(token: refreshToken)
         }
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testRefresh_invalidUser() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -550,16 +705,21 @@ struct UserRepositoryTests {
             password: "aaa",
             refreshToken: token
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let refreshToken = try JWT.encode(sub: "test$\(token)", exp: Date(timeIntervalSinceNow: 60))
         #expect(throws: DefaultUserRepository.RefreshError.invalidToken) {
             try repository.refresh(token: refreshToken)
         }
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
     @Test func testRefresh_invalidToken() async throws {
-        let source = FakeLocalDataSource()
+        let source = DefaultLocalDataSource(context)
         let sendVerifyCode = FakeSendVerifyCodeUseCase()
         let passwordHasher = FakePasswordHasher()
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
@@ -570,49 +730,19 @@ struct UserRepositoryTests {
             password: "aaa",
             refreshToken: token
         )
-        source.user = user
+        context.insert(user.asLocal())
         
         let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$test", exp: Date(timeIntervalSinceNow: 60))
         #expect(throws: DefaultUserRepository.RefreshError.invalidToken) {
             try repository.refresh(token: refreshToken)
         }
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 1)
+        #expect(results[0] == user)
     }
     
-    class FakeLocalDataSource: LocalDataSource {
-        func getTimeRecord(id: UUID) throws -> TimeCard.TimeRecord? { nil }
-        func getBreakTime(id: UUID) throws -> TimeCard.TimeRecord.BreakTime? { nil }
-        func getTimeRecords(year: Int, month: Int) throws -> [TimeCard.TimeRecord] { [] }
-        func insertTimeRecord(_ record: TimeCard.TimeRecord) throws {}
-        func updateTimeRecord(_ record: TimeCard.TimeRecord) throws {}
-        func deleteTimeRecord(_ record: TimeCard.TimeRecord) throws {}
-        func getUptimeRecords(year: Int, month: Int) throws -> [TimeCard.SystemUptimeRecord] { [] }
-        func getUptimeRecord(id: UUID) throws -> TimeCard.SystemUptimeRecord? { nil }
-        func insertUptimeRecord(_ record: TimeCard.SystemUptimeRecord) throws {}
-        func updateUptimeRecord(_ record: TimeCard.SystemUptimeRecord) throws {}
-        func deleteUptimeRecord(_ record: TimeCard.SystemUptimeRecord) throws {}
-        
-        var user: User? = nil
-        func getUser(id: UUID) throws -> User? {
-            user?.id == id ? user : nil
-        }
-        
-        func getUser(mail: String) throws -> TimeCard.User? {
-            user?.mail == mail ? user : nil
-        }
-        
-        var inserted: [User] = []
-        func insertUser(_ user: TimeCard.User) throws {
-            inserted.append(user)
-        }
-        
-        var updated: [User] = []
-        func updateUser(_ user: TimeCard.User) throws {
-            updated.append(user)
-        }
-        
-        func deleteUser(_ user: TimeCard.User) throws {}
-    }
-
     class FakeSendVerifyCodeUseCase: SendVerifyCodeUseCase {
         var mail = ""
         var verifyCode = ""
