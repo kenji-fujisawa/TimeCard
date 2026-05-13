@@ -18,6 +18,7 @@ protocol UserRepository {
     func login(mail: String, password: String) async throws -> TokenPair
     func verifyLogin(token: String) -> Bool
     func refresh(token: String) throws -> TokenPair
+    func purgeExpiredTokens() throws
 }
 
 class DefaultUserRepository: UserRepository {
@@ -217,5 +218,15 @@ class DefaultUserRepository: UserRepository {
         try source.updateUser(user)
         
         return try publishTokenPair(userId: userId)
+    }
+    
+    func purgeExpiredTokens() throws {
+        let users = try source.getUsers()
+        for var user in users {
+            var tokens = user.refreshTokens
+            tokens.removeAll { $0.expire < .now }
+            user.refreshTokens = tokens
+            try source.updateUser(user)
+        }
     }
 }

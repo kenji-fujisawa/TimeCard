@@ -391,6 +391,17 @@ struct LocalDataSourceTests {
         #expect(sleepRecords[0] == self.uptimeRecords[2].sleepRecords[0])
     }
     
+    @Test func testGetUsers() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        let results = try source.getUsers().sorted { $0.mail < $1.mail }
+        #expect(results.count == 3)
+        #expect(results[0] == users[0])
+        #expect(results[1] == users[1])
+        #expect(results[2] == users[2])
+    }
+    
     @Test func testGetUser() async throws {
         users.forEach { context.insert($0.asLocal()) }
         

@@ -862,6 +862,65 @@ struct UserRepositoryTests {
         #expect(results[0].refreshTokens[1].status == .revoked)
     }
     
+    @Test func testPurgeExpiredTokens() async throws {
+        let source = DefaultLocalDataSource(context)
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let user1 = User(
+            mail: "aaa@test.com",
+            password: "aaa",
+            refreshTokens: [
+                User.RefreshToken(
+                    token: "a1",
+                    status: .valid,
+                    expire: Date(timeIntervalSinceNow: 60)
+                ),
+                User.RefreshToken(
+                    token: "a2",
+                    status: .used,
+                    expire: .now
+                ),
+                User.RefreshToken(
+                    token: "a3",
+                    status: .revoked,
+                    expire: Date(timeIntervalSinceNow: 60)
+                )
+            ]
+        )
+        let user2 = User(
+            mail: "bbb@test.com",
+            password: "bbb",
+            refreshTokens: [
+                User.RefreshToken(
+                    token: "b1",
+                    status: .valid,
+                    expire: .now
+                ),
+                User.RefreshToken(
+                    token: "b2",
+                    status: .revoked,
+                    expire: Date(timeIntervalSinceNow: -60)
+                )
+            ]
+        )
+        context.insert(user1.asLocal())
+        context.insert(user2.asLocal())
+        
+        try repository.purgeExpiredTokens()
+        
+        let descriptor = FetchDescriptor<LocalUser>(
+            sortBy: [.init(\.mail)]
+        )
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 2)
+        #expect(results[0].refreshTokens.count == 2)
+        #expect(results[0].refreshTokens[0].token == user1.refreshTokens[0].token)
+        #expect(results[0].refreshTokens[1].token == user1.refreshTokens[2].token)
+        #expect(results[1].refreshTokens.count == 0)
+    }
+    
     class FakeSendVerifyCodeUseCase: SendVerifyCodeUseCase {
         var mail = ""
         var verifyCode = ""

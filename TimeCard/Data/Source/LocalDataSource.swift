@@ -23,6 +23,7 @@ protocol LocalDataSource {
     func updateUptimeRecord(_ record: SystemUptimeRecord) throws
     func deleteUptimeRecord(_ record: SystemUptimeRecord) throws
     
+    func getUsers() throws -> [User]
     func getUser(id: UUID) throws -> User?
     func getUser(mail: String) throws -> User?
     func getRefreshToken(token: String) throws -> User.RefreshToken?
@@ -133,6 +134,11 @@ class DefaultLocalDataSource: LocalDataSource {
             context.delete(rec)
             try context.save()
         }
+    }
+    
+    func getUsers() throws -> [User] {
+        let descriptor = FetchDescriptor<LocalUser>()
+        return try context.fetch(descriptor).map { $0.asUser() }
     }
     
     func getUser(id: UUID) throws -> User? {
