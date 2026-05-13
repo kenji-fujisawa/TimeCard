@@ -41,10 +41,10 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode.isEmpty == false)
         #expect(results[0].verifyCodeExpires.equals(Date(timeIntervalSinceNow: 10 * 60)))
         #expect(results[0].verifyAttempts == 0)
-        #expect(results[0].refreshToken == "")
         #expect(results[0].loginAttempts == 0)
         #expect(results[0].lastAttempt == nil)
         #expect(results[0].locked == nil)
+        #expect(results[0].refreshTokens.count == 0)
         
         #expect(sendVerifyCode.mail == mail)
         #expect(sendVerifyCode.verifyCode.isEmpty == false)
@@ -74,10 +74,10 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == "")
         #expect(results[0].verifyCodeExpires.equals(.now))
         #expect(results[0].verifyAttempts == 0)
-        #expect(results[0].refreshToken == "")
         #expect(results[0].loginAttempts == 0)
         #expect(results[0].lastAttempt == nil)
         #expect(results[0].locked == nil)
+        #expect(results[0].refreshTokens.count == 0)
         
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
@@ -173,10 +173,10 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == "")
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
-        #expect(results[0].refreshToken.isEmpty == false)
         #expect(results[0].loginAttempts == 0)
         #expect(results[0].lastAttempt == nil)
         #expect(results[0].locked == nil)
+        #expect(results[0].refreshTokens.count == 1)
         
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
         
@@ -240,10 +240,10 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
-        #expect(results[0].refreshToken == user.refreshToken)
         #expect(results[0].loginAttempts == user.loginAttempts)
         #expect(results[0].lastAttempt == user.lastAttempt)
         #expect(results[0].locked == user.locked)
+        #expect(results[0].refreshTokens.count == user.refreshTokens.count)
     }
     
     @Test func testVerify_expiredCode() async throws {
@@ -275,10 +275,10 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
-        #expect(results[0].refreshToken == user.refreshToken)
         #expect(results[0].loginAttempts == user.loginAttempts)
         #expect(results[0].lastAttempt == user.lastAttempt)
         #expect(results[0].locked == user.locked)
+        #expect(results[0].refreshTokens.count == user.refreshTokens.count)
     }
     
     @Test func testVerify_exceedAttempts() async throws {
@@ -310,10 +310,10 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts + 1)
-        #expect(results[0].refreshToken == user.refreshToken)
         #expect(results[0].loginAttempts == user.loginAttempts)
         #expect(results[0].lastAttempt == user.lastAttempt)
         #expect(results[0].locked == user.locked)
+        #expect(results[0].refreshTokens.count == user.refreshTokens.count)
     }
     
     @Test func testLogin() async throws {
@@ -343,24 +343,59 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts)
-        #expect(results[0].refreshToken != user.refreshToken)
-        #expect(results[0].refreshToken.isEmpty == false)
         #expect(results[0].loginAttempts == 0)
         #expect(results[0].lastAttempt == nil)
         #expect(results[0].locked == nil)
+        #expect(results[0].refreshTokens.count == 1)
         
         #expect(try JWT.decode(tokens.accessToken) == user.id.uuidString)
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
         
-        let code = try JWT.decode(tokens.refreshToken)
-        let parts = code.split(separator: "$")
-        #expect(parts[0] == user.id.uuidString)
-        #expect(!parts[1].isEmpty)
-        #expect(results[0].refreshToken == parts[1])
+        let token = try HMACSHA256.computeHash(tokens.refreshToken).base64EncodedString()
+        #expect(results[0].refreshTokens[0].token == token)
+        #expect(results[0].refreshTokens[0].expire.equals(Date(timeIntervalSinceNow: 30 * 24 * 60 * 60)))
         
         let refresed = try repository.refresh(token: tokens.refreshToken)
         #expect(refresed.accessToken != tokens.accessToken)
         #expect(refresed.refreshToken != tokens.refreshToken)
+    }
+    
+    @Test func testLogin_multiDevice() async throws {
+        let source = DefaultLocalDataSource(context)
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let pass = "aaa"
+        let user = User(
+            mail: "aaa@test.com",
+            password: try await passwordHasher.hash(pass),
+            loginAttempts: 3,
+            lastAttempt: .now,
+            locked: Date(timeIntervalSinceNow: -24 * 60 * 60)
+        )
+        context.insert(user.asLocal())
+        
+        let tokens = try await repository.login(mail: user.mail, password: pass)
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        var results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].refreshTokens.count == 1)
+        
+        let tokens2 = try await repository.login(mail: user.mail, password: pass)
+        
+        results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].refreshTokens.count == 2)
+        
+        let token = try HMACSHA256.computeHash(tokens.refreshToken).base64EncodedString()
+        let token2 = try HMACSHA256.computeHash(tokens2.refreshToken).base64EncodedString()
+        #expect(results[0].refreshTokens.contains { $0.token == token })
+        #expect(results[0].refreshTokens.contains { $0.token == token2 })
+        
+        #expect(tokens.accessToken != tokens2.accessToken)
+        #expect(tokens.refreshToken != tokens2.refreshToken)
     }
     
     @Test func testLogin_invalidMail() async throws {
@@ -416,11 +451,11 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts)
-        #expect(results[0].refreshToken == user.refreshToken)
         #expect(results[0].loginAttempts == 4)
         #expect(results[0].lastAttempt != lastAttempt)
         #expect(Date.now.equals(results[0].lastAttempt ?? .distantPast))
         #expect(results[0].locked == nil)
+        #expect(results[0].refreshTokens.count == user.refreshTokens.count)
     }
     
     @Test func testLogin_invalidPassword_resetAttempt() async throws {
@@ -452,10 +487,10 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts)
-        #expect(results[0].refreshToken == user.refreshToken)
         #expect(results[0].loginAttempts == 1)
         #expect(Date.now.equals(results[0].lastAttempt ?? .distantPast))
         #expect(results[0].locked == nil)
+        #expect(results[0].refreshTokens.count == user.refreshTokens.count)
     }
     
     @Test func testLogin_invalidPassword_lock() async throws {
@@ -488,11 +523,11 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts)
-        #expect(results[0].refreshToken == user.refreshToken)
         #expect(results[0].loginAttempts == 5)
         #expect(results[0].lastAttempt != lastAttempt)
         #expect(Date.now.equals(results[0].lastAttempt ?? .distantPast))
         #expect(Date.now.equals(results[0].locked ?? .distantPast))
+        #expect(results[0].refreshTokens.count == user.refreshTokens.count)
     }
     
     @Test func testLogin_locked() async throws {
@@ -635,15 +670,27 @@ struct UserRepositoryTests {
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
         
         let token = "aaaaa"
-        let user = User(
+        var user = User(
             mail: "aaa@test.com",
-            password: "aaa",
-            refreshToken: token
+            password: "aaa"
+        )
+        user.refreshTokens.append(
+            User.RefreshToken(
+                token: try HMACSHA256.computeHash(token).base64EncodedString(),
+                expire: Date(timeIntervalSinceNow: 60),
+                userId: user.id
+            )
+        )
+        user.refreshTokens.append(
+            User.RefreshToken(
+                token: try HMACSHA256.computeHash("bbbbb").base64EncodedString(),
+                expire: Date(timeIntervalSinceNow: 60),
+                userId: user.id
+            )
         )
         context.insert(user.asLocal())
         
-        let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$\(token)", exp: Date(timeIntervalSinceNow: 60))
-        let tokens = try repository.refresh(token: refreshToken)
+        let tokens = try repository.refresh(token: token)
         
         let descriptor = FetchDescriptor<LocalUser>()
         let results = try context.fetch(descriptor)
@@ -654,13 +701,14 @@ struct UserRepositoryTests {
         #expect(results[0].verifyCode == user.verifyCode)
         #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
         #expect(results[0].verifyAttempts == user.verifyAttempts)
-        #expect(results[0].refreshToken != user.refreshToken)
-        #expect(results[0].refreshToken.isEmpty == false)
         #expect(results[0].loginAttempts == user.loginAttempts)
         #expect(results[0].lastAttempt == user.lastAttempt)
         #expect(results[0].locked == user.locked)
+        #expect(results[0].refreshTokens.count == 2)
+        #expect(results[0].refreshTokens.contains { $0.token == user.refreshTokens[0].token } == false)
+        #expect(results[0].refreshTokens.contains { $0.token == user.refreshTokens[1].token } == true)
         
-        #expect(tokens.refreshToken != refreshToken)
+        #expect(tokens.refreshToken != token)
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
         
         let refreshed = try repository.refresh(token: tokens.refreshToken)
@@ -675,16 +723,21 @@ struct UserRepositoryTests {
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
         
         let token = "aaaaa"
-        let user = User(
+        var user = User(
             mail: "aaa@test.com",
-            password: "aaa",
-            refreshToken: token
+            password: "aaa"
+        )
+        user.refreshTokens.append(
+            User.RefreshToken(
+                token: try HMACSHA256.computeHash(token).base64EncodedString(),
+                expire: .now,
+                userId: user.id
+            )
         )
         context.insert(user.asLocal())
         
-        let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$\(token)", exp: .now)
-        #expect(throws: JWT.JWTError.expired) {
-            try repository.refresh(token: refreshToken)
+        #expect(throws: DefaultUserRepository.RefreshError.expiredToken) {
+            try repository.refresh(token: token)
         }
         
         let descriptor = FetchDescriptor<LocalUser>()
@@ -703,13 +756,16 @@ struct UserRepositoryTests {
         let user = User(
             mail: "aaa@test.com",
             password: "aaa",
-            refreshToken: token
+        )
+        let refreshToken = User.RefreshToken(
+            token: try HMACSHA256.computeHash(token).base64EncodedString(),
+            expire: Date(timeIntervalSinceNow: 60)
         )
         context.insert(user.asLocal())
+        context.insert(refreshToken.asLocal())
         
-        let refreshToken = try JWT.encode(sub: "test$\(token)", exp: Date(timeIntervalSinceNow: 60))
         #expect(throws: DefaultUserRepository.RefreshError.invalidToken) {
-            try repository.refresh(token: refreshToken)
+            try repository.refresh(token: token)
         }
         
         let descriptor = FetchDescriptor<LocalUser>()
@@ -725,16 +781,21 @@ struct UserRepositoryTests {
         let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
         
         let token = "aaaaa"
-        let user = User(
+        var user = User(
             mail: "aaa@test.com",
-            password: "aaa",
-            refreshToken: token
+            password: "aaa"
+        )
+        user.refreshTokens.append(
+            User.RefreshToken(
+                token: try HMACSHA256.computeHash(token).base64EncodedString(),
+                expire: Date(timeIntervalSinceNow: 60),
+                userId: user.id
+            )
         )
         context.insert(user.asLocal())
         
-        let refreshToken = try JWT.encode(sub: "\(user.id.uuidString)$test", exp: Date(timeIntervalSinceNow: 60))
         #expect(throws: DefaultUserRepository.RefreshError.invalidToken) {
-            try repository.refresh(token: refreshToken)
+            try repository.refresh(token: "bbbbb")
         }
         
         let descriptor = FetchDescriptor<LocalUser>()

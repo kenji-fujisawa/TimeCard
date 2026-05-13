@@ -93,17 +93,26 @@ struct LocalDataSourceTests {
             )
         ]
         
-        self.users = [
+        let users = [
             User(
                 mail: "aaa@test.com",
                 password: "aaa",
                 verifyCode: "111",
                 verifyCodeExpires: .now,
                 verifyAttempts: 0,
-                refreshToken: "aaaaa",
                 loginAttempts: 1,
                 lastAttempt: .now,
-                locked: .now
+                locked: .now,
+                refreshTokens: [
+                    User.RefreshToken(
+                        token: "aaaaa",
+                        expire: .now
+                    ),
+                    User.RefreshToken(
+                        token: "bbbbb",
+                        expire: .now
+                    )
+                ]
             ),
             User(
                 mail: "bbb@test.com",
@@ -111,9 +120,35 @@ struct LocalDataSourceTests {
             ),
             User(
                 mail: "ccc@test.com",
-                password: "ccc"
+                password: "ccc",
+                refreshTokens: [
+                    User.RefreshToken(
+                        token: "ccccc",
+                        expire: .now
+                    )
+                ]
             )
         ]
+        self.users = users.map { user in
+            User(
+                id: user.id,
+                mail: user.mail,
+                password: user.password,
+                verifyCode: user.verifyCode,
+                verifyCodeExpires: user.verifyCodeExpires,
+                verifyAttempts: user.verifyAttempts,
+                loginAttempts: user.loginAttempts,
+                lastAttempt: user.lastAttempt,
+                locked: user.locked,
+                refreshTokens: user.refreshTokens.map { token in
+                    User.RefreshToken(
+                        token: token.token,
+                        expire: token.expire,
+                        userId: user.id
+                    )
+                }
+            )
+        }
     }
     
     @Test func testGetTimeRecord() async throws {
@@ -381,6 +416,29 @@ struct LocalDataSourceTests {
         #expect(result == nil)
     }
     
+    @Test func testGetRefreshToken() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        var result = try source.getRefreshToken(token: "aaaaa")
+        #expect(result?.token == users[0].refreshTokens[0].token)
+        #expect(result?.expire == users[0].refreshTokens[0].expire)
+        #expect(result?.userId == users[0].id)
+        
+        result = try source.getRefreshToken(token: "bbbbb")
+        #expect(result?.token == users[0].refreshTokens[1].token)
+        #expect(result?.expire == users[0].refreshTokens[1].expire)
+        #expect(result?.userId == users[0].id)
+        
+        result = try source.getRefreshToken(token: "ccccc")
+        #expect(result?.token == users[2].refreshTokens[0].token)
+        #expect(result?.expire == users[2].refreshTokens[0].expire)
+        #expect(result?.userId == users[2].id)
+        
+        result = try source.getRefreshToken(token: "ddddd")
+        #expect(result == nil)
+    }
+    
     @Test func testInsertUser() async throws {
         let source = DefaultLocalDataSource(context)
         try users.forEach { try source.insertUser($0) }
@@ -413,6 +471,13 @@ struct LocalDataSourceTests {
         }
         user2.verifyCode = "333"
         user2.verifyAttempts = 3
+        user2.refreshTokens.append(
+            User.RefreshToken(
+                token: "ddddd",
+                expire: .now,
+                userId: user2.id
+            )
+        )
         
         let descriptor = FetchDescriptor<LocalUser>(
             sortBy: [.init(\.mail)]
@@ -437,12 +502,25 @@ struct LocalDataSourceTests {
         #expect(results[0].verifyCode == "")
         #expect(results[0].verifyCodeExpires == user1.verifyCodeExpires)
         #expect(results[0].verifyAttempts == 0)
+        #expect(results[0].refreshTokens[0].token == "aaaaa")
+        #expect(results[0].refreshTokens[0].expire == user1.refreshTokens[0].expire)
+        #expect(results[0].refreshTokens[0].userId == user1.id)
+        #expect(results[0].refreshTokens[1].token == "bbbbb")
+        #expect(results[0].refreshTokens[1].expire == user1.refreshTokens[1].expire)
+        #expect(results[0].refreshTokens[1].userId == user1.id)
         
         #expect(results[2].mail == "ccc@test.com")
         #expect(results[2].password == "ccc")
         #expect(results[2].verifyCode == "333")
         #expect(results[2].verifyCodeExpires == user2.verifyCodeExpires)
         #expect(results[2].verifyAttempts == 3)
+        #expect(results[2].refreshTokens.count == 2)
+        #expect(results[2].refreshTokens[0].token == "ccccc")
+        #expect(results[2].refreshTokens[0].expire == user2.refreshTokens[0].expire)
+        #expect(results[2].refreshTokens[0].userId == user2.id)
+        #expect(results[2].refreshTokens[1].token == "ddddd")
+        #expect(results[2].refreshTokens[1].expire == user2.refreshTokens[1].expire)
+        #expect(results[2].refreshTokens[1].userId == user2.id)
     }
     
     @Test func testDeleteUser() async throws {
@@ -450,7 +528,7 @@ struct LocalDataSourceTests {
         
         let source = DefaultLocalDataSource(context)
         
-        guard let user = try source.getUser(mail: users[1].mail) else {
+        guard let user = try source.getUser(mail: users[0].mail) else {
             Issue.record()
             return
         }
@@ -461,7 +539,11 @@ struct LocalDataSourceTests {
         )
         let results = try context.fetch(descriptor).map { $0.asUser() }
         #expect(results.count == 2)
-        #expect(results[0] == users[0])
+        #expect(results[0] == users[1])
         #expect(results[1] == users[2])
+        
+        let refreshTokens = try context.fetch(FetchDescriptor<LocalUser.RefreshToken>()).map { $0.asRefreshToken() }
+        #expect(refreshTokens.count == 1)
+        #expect(refreshTokens[0] == users[2].refreshTokens[0])
     }
 }

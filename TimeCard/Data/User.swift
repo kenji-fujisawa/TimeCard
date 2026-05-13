@@ -8,31 +8,37 @@
 import Foundation
 
 struct User: Equatable {
+    struct RefreshToken: Equatable {
+        var token: String
+        var expire: Date
+        var userId: UUID?
+    }
+    
     var id: UUID
     var mail: String
     var password: String
     var verifyCode: String
     var verifyCodeExpires: Date
     var verifyAttempts: Int
-    var refreshToken: String
     var loginAttempts: Int
     var lastAttempt: Date?
     var locked: Date?
+    var refreshTokens: [RefreshToken]
     
     var verified: Bool {
         verifyCode.isEmpty
     }
     
-    init(id: UUID = UUID(), mail: String, password: String, verifyCode: String = "", verifyCodeExpires: Date = .now, verifyAttempts: Int = 0, refreshToken: String = "", loginAttempts: Int = 0, lastAttempt: Date? = nil, locked: Date? = nil) {
+    init(id: UUID = UUID(), mail: String, password: String, verifyCode: String = "", verifyCodeExpires: Date = .now, verifyAttempts: Int = 0, loginAttempts: Int = 0, lastAttempt: Date? = nil, locked: Date? = nil, refreshTokens: [RefreshToken] = []) {
         self.id = id
         self.mail = mail
         self.password = password
         self.verifyCode = verifyCode
         self.verifyCodeExpires = verifyCodeExpires
         self.verifyAttempts = verifyAttempts
-        self.refreshToken = refreshToken
         self.loginAttempts = loginAttempts
         self.lastAttempt = lastAttempt
         self.locked = locked
+        self.refreshTokens = refreshTokens
     }
 }

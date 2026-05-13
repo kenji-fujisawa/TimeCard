@@ -82,10 +82,19 @@ class LocalUserTests {
                 verifyCode: "111",
                 verifyCodeExpires: .now,
                 verifyAttempts: 1,
-                refreshToken: "aaaaa",
                 loginAttempts: 2,
                 lastAttempt: .now,
-                locked: .now
+                locked: .now,
+                refreshTokens: [
+                    LocalUser.RefreshToken(
+                        token: "aaaaa",
+                        expire: .now
+                    ),
+                    LocalUser.RefreshToken(
+                        token: "bbbbb",
+                        expire: .now
+                    )
+                ]
             ),
             LocalUser(
                 mail: "bbb@test.com",
@@ -93,10 +102,10 @@ class LocalUserTests {
                 verifyCode: "222",
                 verifyCodeExpires: .now,
                 verifyAttempts: 2,
-                refreshToken: "bbbbb",
                 loginAttempts: 3,
                 lastAttempt: nil,
-                locked: nil
+                locked: nil,
+                refreshTokens: []
             )
         ]
         context.insert(users[0])
@@ -113,20 +122,25 @@ class LocalUserTests {
         #expect(results[0].verifyCode == users[0].verifyCode)
         #expect(results[0].verifyCodeExpires == users[0].verifyCodeExpires)
         #expect(results[0].verifyAttempts == users[0].verifyAttempts)
-        #expect(results[0].refreshToken == users[0].refreshToken)
         #expect(results[0].loginAttempts == users[0].loginAttempts)
         #expect(results[0].lastAttempt == users[0].lastAttempt)
         #expect(results[0].locked == users[0].locked)
+        #expect(results[0].refreshTokens.count == users[0].refreshTokens.count)
+        #expect(results[0].refreshTokens[0].token == users[0].refreshTokens[0].token)
+        #expect(results[0].refreshTokens[0].expire == users[0].refreshTokens[0].expire)
+        #expect(results[0].refreshTokens[1].token == users[0].refreshTokens[1].token)
+        #expect(results[0].refreshTokens[1].expire == users[0].refreshTokens[1].expire)
+        
         #expect(results[1].id == users[1].id)
         #expect(results[1].mail == users[1].mail)
         #expect(results[1].password == users[1].password)
         #expect(results[1].verifyCode == users[1].verifyCode)
         #expect(results[1].verifyCodeExpires == users[1].verifyCodeExpires)
         #expect(results[1].verifyAttempts == users[1].verifyAttempts)
-        #expect(results[1].refreshToken == users[1].refreshToken)
         #expect(results[1].loginAttempts == users[1].loginAttempts)
         #expect(results[1].lastAttempt == users[1].lastAttempt)
         #expect(results[1].locked == users[1].locked)
+        #expect(results[1].refreshTokens.count == users[1].refreshTokens.count)
     }
     
     @Test func testMigratev2_3toV4() async throws {
@@ -183,10 +197,19 @@ class LocalUserTests {
                 verifyCode: "111",
                 verifyCodeExpires: .now,
                 verifyAttempts: 1,
-                refreshToken: "aaaaa",
                 loginAttempts: 2,
                 lastAttempt: .now,
-                locked: .now
+                locked: .now,
+                refreshTokens: [
+                    LocalUser.RefreshToken(
+                        token: "aaaaa",
+                        expire: .now
+                    ),
+                    LocalUser.RefreshToken(
+                        token: "bbbbb",
+                        expire: .now
+                    )
+                ]
             ),
             LocalUser(
                 mail: "bbb@test.com",
@@ -194,10 +217,10 @@ class LocalUserTests {
                 verifyCode: "222",
                 verifyCodeExpires: .now,
                 verifyAttempts: 2,
-                refreshToken: "bbbbb",
                 loginAttempts: 3,
                 lastAttempt: nil,
-                locked: nil
+                locked: nil,
+                refreshTokens: []
             )
         ]
         context.insert(users[0])
@@ -214,20 +237,25 @@ class LocalUserTests {
         #expect(results[0].verifyCode == users[0].verifyCode)
         #expect(results[0].verifyCodeExpires == users[0].verifyCodeExpires)
         #expect(results[0].verifyAttempts == users[0].verifyAttempts)
-        #expect(results[0].refreshToken == users[0].refreshToken)
         #expect(results[0].loginAttempts == users[0].loginAttempts)
         #expect(results[0].lastAttempt == users[0].lastAttempt)
         #expect(results[0].locked == users[0].locked)
+        #expect(results[0].refreshTokens.count == users[0].refreshTokens.count)
+        #expect(results[0].refreshTokens[0].token == users[0].refreshTokens[0].token)
+        #expect(results[0].refreshTokens[0].expire == users[0].refreshTokens[0].expire)
+        #expect(results[0].refreshTokens[1].token == users[0].refreshTokens[1].token)
+        #expect(results[0].refreshTokens[1].expire == users[0].refreshTokens[1].expire)
+        
         #expect(results[1].id == users[1].id)
         #expect(results[1].mail == users[1].mail)
         #expect(results[1].password == users[1].password)
         #expect(results[1].verifyCode == users[1].verifyCode)
         #expect(results[1].verifyCodeExpires == users[1].verifyCodeExpires)
         #expect(results[1].verifyAttempts == users[1].verifyAttempts)
-        #expect(results[1].refreshToken == users[1].refreshToken)
         #expect(results[1].loginAttempts == users[1].loginAttempts)
         #expect(results[1].lastAttempt == users[1].lastAttempt)
         #expect(results[1].locked == users[1].locked)
+        #expect(results[1].refreshTokens.count == users[1].refreshTokens.count)
     }
     
     @Test func testMigratev3toV4() async throws {
@@ -276,10 +304,19 @@ class LocalUserTests {
                 verifyCode: "111",
                 verifyCodeExpires: .now,
                 verifyAttempts: 1,
-                refreshToken: "aaaaa",
                 loginAttempts: 2,
                 lastAttempt: .now,
-                locked: .now
+                locked: .now,
+                refreshTokens: [
+                    LocalUser.RefreshToken(
+                        token: "aaaaa",
+                        expire: .now
+                    ),
+                    LocalUser.RefreshToken(
+                        token: "bbbbb",
+                        expire: .now
+                    )
+                ]
             ),
             LocalUser(
                 mail: "bbb@test.com",
@@ -287,10 +324,10 @@ class LocalUserTests {
                 verifyCode: "222",
                 verifyCodeExpires: .now,
                 verifyAttempts: 2,
-                refreshToken: "bbbbb",
                 loginAttempts: 3,
                 lastAttempt: nil,
-                locked: nil
+                locked: nil,
+                refreshTokens: []
             )
         ]
         context.insert(users[0])
@@ -307,19 +344,24 @@ class LocalUserTests {
         #expect(results[0].verifyCode == users[0].verifyCode)
         #expect(results[0].verifyCodeExpires == users[0].verifyCodeExpires)
         #expect(results[0].verifyAttempts == users[0].verifyAttempts)
-        #expect(results[0].refreshToken == users[0].refreshToken)
         #expect(results[0].loginAttempts == users[0].loginAttempts)
         #expect(results[0].lastAttempt == users[0].lastAttempt)
         #expect(results[0].locked == users[0].locked)
+        #expect(results[0].refreshTokens.count == users[0].refreshTokens.count)
+        #expect(results[0].refreshTokens[0].token == users[0].refreshTokens[0].token)
+        #expect(results[0].refreshTokens[0].expire == users[0].refreshTokens[0].expire)
+        #expect(results[0].refreshTokens[1].token == users[0].refreshTokens[1].token)
+        #expect(results[0].refreshTokens[1].expire == users[0].refreshTokens[1].expire)
+        
         #expect(results[1].id == users[1].id)
         #expect(results[1].mail == users[1].mail)
         #expect(results[1].password == users[1].password)
         #expect(results[1].verifyCode == users[1].verifyCode)
         #expect(results[1].verifyCodeExpires == users[1].verifyCodeExpires)
         #expect(results[1].verifyAttempts == users[1].verifyAttempts)
-        #expect(results[1].refreshToken == users[1].refreshToken)
         #expect(results[1].loginAttempts == users[1].loginAttempts)
         #expect(results[1].lastAttempt == users[1].lastAttempt)
         #expect(results[1].locked == users[1].locked)
+        #expect(results[1].refreshTokens.count == users[1].refreshTokens.count)
     }
 }

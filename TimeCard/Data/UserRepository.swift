@@ -43,6 +43,7 @@ class DefaultUserRepository: UserRepository {
     
     enum RefreshError: Error {
         case invalidToken
+        case expiredToken
     }
     
     private let verifyCodeExpireSeconds: TimeInterval = 10 * 60
@@ -161,7 +162,7 @@ class DefaultUserRepository: UserRepository {
     
     private func publishTokenPair(userId: UUID) throws -> TokenPair {
         let accessToken = try JWT.encode(sub: userId.uuidString, exp: Date(timeIntervalSinceNow: accessTokenExpireSeconds))
-        let refreshToken = try JWT.encode(sub: publishRefreshToken(userId: userId), exp: Date(timeIntervalSinceNow: refreshTokenExpireSeconds))
+        let refreshToken = try publishRefreshToken(userId: userId)
         return TokenPair(accessToken: accessToken, refreshToken: refreshToken)
     }
     
@@ -169,11 +170,14 @@ class DefaultUserRepository: UserRepository {
         guard var user = try source.getUser(id: userId) else { throw LoginError.invalidUser }
         
         let token = try SecureRandomBytes.generate(length: 64).base64EncodedString()
-        
-        user.refreshToken = token
+        let refreshToken = User.RefreshToken(
+            token: try HMACSHA256.computeHash(token).base64EncodedString(),
+            expire: Date(timeIntervalSinceNow: refreshTokenExpireSeconds)
+        )
+        user.refreshTokens.append(refreshToken)
         try source.updateUser(user)
         
-        return "\(user.id.uuidString)$\(token)"
+        return token
     }
     
     func verifyLogin(token: String) -> Bool {
@@ -186,15 +190,16 @@ class DefaultUserRepository: UserRepository {
     }
     
     func refresh(token: String) throws -> TokenPair {
-        let refreshToken = try JWT.decode(token)
-        let parts = refreshToken.split(separator: "$")
-        let userId = parts[0]
-        let token = parts[1]
+        let token = try HMACSHA256.computeHash(token).base64EncodedString()
+        guard let refreshToken = try source.getRefreshToken(token: token) else { throw RefreshError.invalidToken }
+        guard refreshToken.expire > .now else { throw RefreshError.expiredToken }
         
-        guard let uuid = UUID(uuidString: String(userId)) else { throw RefreshError.invalidToken }
-        guard let user = try source.getUser(id: uuid) else { throw RefreshError.invalidToken }
-        guard user.refreshToken == token else { throw RefreshError.invalidToken }
+        guard let userId = refreshToken.userId else { throw RefreshError.invalidToken }
+        guard var user = try source.getUser(id: userId) else { throw RefreshError.invalidToken }
         
-        return try publishTokenPair(userId: user.id)
+        user.refreshTokens.removeAll { $0.token == token }
+        try source.updateUser(user)
+        
+        return try publishTokenPair(userId: userId)
     }
 }

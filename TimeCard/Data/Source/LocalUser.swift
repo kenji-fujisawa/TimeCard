@@ -11,6 +11,21 @@ import SwiftData
 extension TimeCardSchema_v4 {
     @Model
     class User {
+        @Model
+        class RefreshToken {
+            #Index<RefreshToken>([\.token])
+            
+            var token: String
+            var expire: Date
+            var parent: User?
+            
+            init(token: String, expire: Date, parent: User? = nil) {
+                self.token = token
+                self.expire = expire
+                self.parent = parent
+            }
+        }
+        
         #Index<User>([\.mail])
         
         var id: UUID
@@ -19,22 +34,24 @@ extension TimeCardSchema_v4 {
         var verifyCode: String
         var verifyCodeExpires: Date
         var verifyAttempts: Int
-        var refreshToken: String
         var loginAttempts: Int
         var lastAttempt: Date?
         var locked: Date?
         
-        init(id: UUID = UUID(), mail: String, password: String, verifyCode: String = "", verifyCodeExpires: Date = .now, verifyAttempts: Int = 0, refreshToken: String = "", loginAttempts: Int = 0, lastAttempt: Date? = nil, locked: Date? = nil) {
+        @Relationship(deleteRule: .cascade, inverse: \RefreshToken.parent)
+        var refreshTokens: [RefreshToken]
+        
+        init(id: UUID = UUID(), mail: String, password: String, verifyCode: String = "", verifyCodeExpires: Date = .now, verifyAttempts: Int = 0, loginAttempts: Int = 0, lastAttempt: Date? = nil, locked: Date? = nil, refreshTokens: [RefreshToken] = []) {
             self.id = id
             self.mail = mail
             self.password = password
             self.verifyCode = verifyCode
             self.verifyCodeExpires = verifyCodeExpires
             self.verifyAttempts = verifyAttempts
-            self.refreshToken = refreshToken
             self.loginAttempts = loginAttempts
             self.lastAttempt = lastAttempt
             self.locked = locked
+            self.refreshTokens = refreshTokens
         }
     }
 }

@@ -25,6 +25,7 @@ protocol LocalDataSource {
     
     func getUser(id: UUID) throws -> User?
     func getUser(mail: String) throws -> User?
+    func getRefreshToken(token: String) throws -> User.RefreshToken?
     func insertUser(_ user: User) throws
     func updateUser(_ user: User) throws
     func deleteUser(_ user: User) throws
@@ -152,6 +153,13 @@ class DefaultLocalDataSource: LocalDataSource {
         return try context.fetch(descriptor).first
     }
     
+    func getRefreshToken(token: String) throws -> User.RefreshToken? {
+        let descriptor = FetchDescriptor<LocalUser.RefreshToken>(
+            predicate: #Predicate { $0.token == token }
+        )
+        return try context.fetch(descriptor).first?.asRefreshToken()
+    }
+    
     func insertUser(_ user: User) throws {
         context.insert(user.asLocal())
         try context.save()
@@ -163,10 +171,10 @@ class DefaultLocalDataSource: LocalDataSource {
             local.verifyCode = user.verifyCode
             local.verifyCodeExpires = user.verifyCodeExpires
             local.verifyAttempts = user.verifyAttempts
-            local.refreshToken = user.refreshToken
             local.loginAttempts = user.loginAttempts
             local.lastAttempt = user.lastAttempt
             local.locked = user.locked
+            local.refreshTokens = user.refreshTokens.map { $0.asLocal() }
             try context.save()
         }
     }
@@ -235,10 +243,19 @@ extension User {
             verifyCode: self.verifyCode,
             verifyCodeExpires: self.verifyCodeExpires,
             verifyAttempts: self.verifyAttempts,
-            refreshToken: self.refreshToken,
             loginAttempts: self.loginAttempts,
             lastAttempt: self.lastAttempt,
-            locked: self.locked
+            locked: self.locked,
+            refreshTokens: self.refreshTokens.map { $0.asLocal() }
+        )
+    }
+}
+
+extension User.RefreshToken {
+    func asLocal() -> LocalUser.RefreshToken {
+        LocalUser.RefreshToken(
+            token: self.token,
+            expire: self.expire
         )
     }
 }
@@ -298,10 +315,22 @@ extension LocalUser {
             verifyCode: self.verifyCode,
             verifyCodeExpires: self.verifyCodeExpires,
             verifyAttempts: self.verifyAttempts,
-            refreshToken: self.refreshToken,
             loginAttempts: self.loginAttempts,
             lastAttempt: self.lastAttempt,
-            locked: self.locked
+            locked: self.locked,
+            refreshTokens: self.refreshTokens
+                .sorted { $0.token < $1.token }
+                .map { $0.asRefreshToken() }
+        )
+    }
+}
+
+extension LocalUser.RefreshToken {
+    func asRefreshToken() -> User.RefreshToken {
+        User.RefreshToken(
+            token: self.token,
+            expire: self.expire,
+            userId: self.parent?.id
         )
     }
 }
