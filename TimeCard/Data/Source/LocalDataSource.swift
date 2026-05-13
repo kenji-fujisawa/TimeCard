@@ -255,6 +255,7 @@ extension User.RefreshToken {
     func asLocal() -> LocalUser.RefreshToken {
         LocalUser.RefreshToken(
             token: self.token,
+            status: self.status,
             expire: self.expire
         )
     }
@@ -329,6 +330,7 @@ extension LocalUser.RefreshToken {
     func asRefreshToken() -> User.RefreshToken {
         User.RefreshToken(
             token: self.token,
+            status: self.status,
             expire: self.expire,
             userId: self.parent?.id
         )

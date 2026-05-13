@@ -677,6 +677,7 @@ struct UserRepositoryTests {
         user.refreshTokens.append(
             User.RefreshToken(
                 token: try HMACSHA256.computeHash(token).base64EncodedString(),
+                status: .valid,
                 expire: Date(timeIntervalSinceNow: 60),
                 userId: user.id
             )
@@ -684,6 +685,7 @@ struct UserRepositoryTests {
         user.refreshTokens.append(
             User.RefreshToken(
                 token: try HMACSHA256.computeHash("bbbbb").base64EncodedString(),
+                status: .used,
                 expire: Date(timeIntervalSinceNow: 60),
                 userId: user.id
             )
@@ -704,9 +706,12 @@ struct UserRepositoryTests {
         #expect(results[0].loginAttempts == user.loginAttempts)
         #expect(results[0].lastAttempt == user.lastAttempt)
         #expect(results[0].locked == user.locked)
-        #expect(results[0].refreshTokens.count == 2)
-        #expect(results[0].refreshTokens.contains { $0.token == user.refreshTokens[0].token } == false)
+        #expect(results[0].refreshTokens.count == 3)
+        #expect(results[0].refreshTokens.contains { $0.token == user.refreshTokens[0].token } == true)
         #expect(results[0].refreshTokens.contains { $0.token == user.refreshTokens[1].token } == true)
+        #expect(results[0].refreshTokens.first(where: { $0.token == user.refreshTokens[0].token })?.status == .used)
+        #expect(results[0].refreshTokens.first(where: { $0.token == user.refreshTokens[1].token })?.status == .used)
+        #expect(results[0].refreshTokens.first(where: { $0.token != user.refreshTokens[0].token && $0.token != user.refreshTokens[1].token })?.status == .valid)
         
         #expect(tokens.refreshToken != token)
         #expect(repository.verifyLogin(token: tokens.accessToken) == true)
@@ -730,6 +735,7 @@ struct UserRepositoryTests {
         user.refreshTokens.append(
             User.RefreshToken(
                 token: try HMACSHA256.computeHash(token).base64EncodedString(),
+                status: .valid,
                 expire: .now,
                 userId: user.id
             )
@@ -759,6 +765,7 @@ struct UserRepositoryTests {
         )
         let refreshToken = User.RefreshToken(
             token: try HMACSHA256.computeHash(token).base64EncodedString(),
+            status: .valid,
             expire: Date(timeIntervalSinceNow: 60)
         )
         context.insert(user.asLocal())
@@ -788,6 +795,7 @@ struct UserRepositoryTests {
         user.refreshTokens.append(
             User.RefreshToken(
                 token: try HMACSHA256.computeHash(token).base64EncodedString(),
+                status: .valid,
                 expire: Date(timeIntervalSinceNow: 60),
                 userId: user.id
             )
@@ -802,6 +810,56 @@ struct UserRepositoryTests {
         let results = try context.fetch(descriptor).map { $0.asUser() }
         #expect(results.count == 1)
         #expect(results[0] == user)
+    }
+    
+    @Test func testRefresh_usedToken() async throws {
+        let source = DefaultLocalDataSource(context)
+        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let passwordHasher = FakePasswordHasher()
+        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        
+        let token = "aaaaa"
+        var user = User(
+            mail: "aaa@test.com",
+            password: "aaa"
+        )
+        user.refreshTokens.append(
+            User.RefreshToken(
+                token: try HMACSHA256.computeHash(token).base64EncodedString(),
+                status: .used,
+                expire: Date(timeIntervalSinceNow: 60),
+                userId: user.id
+            )
+        )
+        user.refreshTokens.append(
+            User.RefreshToken(
+                token: try HMACSHA256.computeHash("bbbbb").base64EncodedString(),
+                status: .valid,
+                expire: Date(timeIntervalSinceNow: 60),
+                userId: user.id
+            )
+        )
+        context.insert(user.asLocal())
+        
+        #expect(throws: DefaultUserRepository.RefreshError.usedToken) {
+            try repository.refresh(token: token)
+        }
+        
+        let descriptor = FetchDescriptor<LocalUser>()
+        let results = try context.fetch(descriptor)
+        #expect(results.count == 1)
+        #expect(results[0].id == user.id)
+        #expect(results[0].mail == user.mail)
+        #expect(results[0].password == user.password)
+        #expect(results[0].verifyCode == user.verifyCode)
+        #expect(results[0].verifyCodeExpires == user.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == user.verifyAttempts)
+        #expect(results[0].loginAttempts == user.loginAttempts)
+        #expect(results[0].lastAttempt == user.lastAttempt)
+        #expect(results[0].locked == user.locked)
+        #expect(results[0].refreshTokens.count == 2)
+        #expect(results[0].refreshTokens[0].status == .revoked)
+        #expect(results[0].refreshTokens[1].status == .revoked)
     }
     
     class FakeSendVerifyCodeUseCase: SendVerifyCodeUseCase {

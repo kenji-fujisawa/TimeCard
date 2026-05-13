@@ -44,6 +44,7 @@ class DefaultUserRepository: UserRepository {
     enum RefreshError: Error {
         case invalidToken
         case expiredToken
+        case usedToken
     }
     
     private let verifyCodeExpireSeconds: TimeInterval = 10 * 60
@@ -172,6 +173,7 @@ class DefaultUserRepository: UserRepository {
         let token = try SecureRandomBytes.generate(length: 64).base64EncodedString()
         let refreshToken = User.RefreshToken(
             token: try HMACSHA256.computeHash(token).base64EncodedString(),
+            status: .valid,
             expire: Date(timeIntervalSinceNow: refreshTokenExpireSeconds)
         )
         user.refreshTokens.append(refreshToken)
@@ -197,7 +199,21 @@ class DefaultUserRepository: UserRepository {
         guard let userId = refreshToken.userId else { throw RefreshError.invalidToken }
         guard var user = try source.getUser(id: userId) else { throw RefreshError.invalidToken }
         
-        user.refreshTokens.removeAll { $0.token == token }
+        guard refreshToken.status == .valid else {
+            user.refreshTokens = user.refreshTokens.map {
+                var copy = $0
+                copy.status = .revoked
+                return copy
+            }
+            try source.updateUser(user)
+            throw RefreshError.usedToken
+        }
+        
+        user.refreshTokens = user.refreshTokens.map {
+            var copy = $0
+            copy.status = $0.token == token ? .used : $0.status
+            return copy
+        }
         try source.updateUser(user)
         
         return try publishTokenPair(userId: userId)

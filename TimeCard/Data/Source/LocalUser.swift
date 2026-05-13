@@ -16,11 +16,13 @@ extension TimeCardSchema_v4 {
             #Index<RefreshToken>([\.token])
             
             var token: String
+            var status: RefreshTokenStatus
             var expire: Date
             var parent: User?
             
-            init(token: String, expire: Date, parent: User? = nil) {
+            init(token: String, status: RefreshTokenStatus, expire: Date, parent: User? = nil) {
                 self.token = token
+                self.status = status
                 self.expire = expire
                 self.parent = parent
             }

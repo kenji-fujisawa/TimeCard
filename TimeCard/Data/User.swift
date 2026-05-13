@@ -7,9 +7,16 @@
 
 import Foundation
 
+enum RefreshTokenStatus: Codable {
+    case valid
+    case used
+    case revoked
+}
+
 struct User: Equatable {
     struct RefreshToken: Equatable {
         var token: String
+        var status: RefreshTokenStatus
         var expire: Date
         var userId: UUID?
     }

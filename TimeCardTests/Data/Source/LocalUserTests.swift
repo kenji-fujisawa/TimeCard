@@ -88,10 +88,12 @@ class LocalUserTests {
                 refreshTokens: [
                     LocalUser.RefreshToken(
                         token: "aaaaa",
+                        status: .valid,
                         expire: .now
                     ),
                     LocalUser.RefreshToken(
                         token: "bbbbb",
+                        status: .used,
                         expire: .now
                     )
                 ]
@@ -203,10 +205,12 @@ class LocalUserTests {
                 refreshTokens: [
                     LocalUser.RefreshToken(
                         token: "aaaaa",
+                        status: .valid,
                         expire: .now
                     ),
                     LocalUser.RefreshToken(
                         token: "bbbbb",
+                        status: .used,
                         expire: .now
                     )
                 ]
@@ -310,10 +314,12 @@ class LocalUserTests {
                 refreshTokens: [
                     LocalUser.RefreshToken(
                         token: "aaaaa",
+                        status: .valid,
                         expire: .now
                     ),
                     LocalUser.RefreshToken(
                         token: "bbbbb",
+                        status: .used,
                         expire: .now
                     )
                 ]

@@ -106,10 +106,12 @@ struct LocalDataSourceTests {
                 refreshTokens: [
                     User.RefreshToken(
                         token: "aaaaa",
+                        status: .valid,
                         expire: .now
                     ),
                     User.RefreshToken(
                         token: "bbbbb",
+                        status: .used,
                         expire: .now
                     )
                 ]
@@ -124,6 +126,7 @@ struct LocalDataSourceTests {
                 refreshTokens: [
                     User.RefreshToken(
                         token: "ccccc",
+                        status: .valid,
                         expire: .now
                     )
                 ]
@@ -143,6 +146,7 @@ struct LocalDataSourceTests {
                 refreshTokens: user.refreshTokens.map { token in
                     User.RefreshToken(
                         token: token.token,
+                        status: token.status,
                         expire: token.expire,
                         userId: user.id
                     )
@@ -422,16 +426,19 @@ struct LocalDataSourceTests {
         let source = DefaultLocalDataSource(context)
         var result = try source.getRefreshToken(token: "aaaaa")
         #expect(result?.token == users[0].refreshTokens[0].token)
+        #expect(result?.status == users[0].refreshTokens[0].status)
         #expect(result?.expire == users[0].refreshTokens[0].expire)
         #expect(result?.userId == users[0].id)
         
         result = try source.getRefreshToken(token: "bbbbb")
         #expect(result?.token == users[0].refreshTokens[1].token)
+        #expect(result?.status == users[0].refreshTokens[1].status)
         #expect(result?.expire == users[0].refreshTokens[1].expire)
         #expect(result?.userId == users[0].id)
         
         result = try source.getRefreshToken(token: "ccccc")
         #expect(result?.token == users[2].refreshTokens[0].token)
+        #expect(result?.status == users[2].refreshTokens[0].status)
         #expect(result?.expire == users[2].refreshTokens[0].expire)
         #expect(result?.userId == users[2].id)
         
@@ -474,6 +481,7 @@ struct LocalDataSourceTests {
         user2.refreshTokens.append(
             User.RefreshToken(
                 token: "ddddd",
+                status: .valid,
                 expire: .now,
                 userId: user2.id
             )
@@ -503,9 +511,11 @@ struct LocalDataSourceTests {
         #expect(results[0].verifyCodeExpires == user1.verifyCodeExpires)
         #expect(results[0].verifyAttempts == 0)
         #expect(results[0].refreshTokens[0].token == "aaaaa")
+        #expect(results[0].refreshTokens[0].status == .valid)
         #expect(results[0].refreshTokens[0].expire == user1.refreshTokens[0].expire)
         #expect(results[0].refreshTokens[0].userId == user1.id)
         #expect(results[0].refreshTokens[1].token == "bbbbb")
+        #expect(results[0].refreshTokens[1].status == .used)
         #expect(results[0].refreshTokens[1].expire == user1.refreshTokens[1].expire)
         #expect(results[0].refreshTokens[1].userId == user1.id)
         
@@ -516,9 +526,11 @@ struct LocalDataSourceTests {
         #expect(results[2].verifyAttempts == 3)
         #expect(results[2].refreshTokens.count == 2)
         #expect(results[2].refreshTokens[0].token == "ccccc")
+        #expect(results[2].refreshTokens[0].status == .valid)
         #expect(results[2].refreshTokens[0].expire == user2.refreshTokens[0].expire)
         #expect(results[2].refreshTokens[0].userId == user2.id)
         #expect(results[2].refreshTokens[1].token == "ddddd")
+        #expect(results[2].refreshTokens[1].status == .valid)
         #expect(results[2].refreshTokens[1].expire == user2.refreshTokens[1].expire)
         #expect(results[2].refreshTokens[1].userId == user2.id)
     }
