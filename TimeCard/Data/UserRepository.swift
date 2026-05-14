@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 struct TokenPair {
     let accessToken: String
@@ -59,6 +60,7 @@ class DefaultUserRepository: UserRepository {
     private let source: LocalDataSource
     private let sendVerifyCode: SendVerifyCodeUseCase
     private let passwordHasher: PasswordHasher
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TimeCard", category: "audit")
     
     init(_ source: LocalDataSource, _ sendVerifyCode: SendVerifyCodeUseCase, _ passwordHasher: PasswordHasher) {
         self.source = source
@@ -83,6 +85,8 @@ class DefaultUserRepository: UserRepository {
         )
         try source.insertUser(user)
         
+        logger.info("user registered : \(user.id.uuidString, privacy: .public)")
+        
         try await sendVerifyCode.execute(mail: mail, verifyCode: verifyCode)
     }
     
@@ -104,12 +108,14 @@ class DefaultUserRepository: UserRepository {
         guard user.verifyCodeExpires >= .now else {
             user.verifyAttempts += 1
             try source.updateUser(user)
+            logger.error("verify failed, code expired : \(user.id.uuidString, privacy: .public)")
             throw VerifyError.expiredCode
         }
         
         guard user.verifyAttempts < verifyAttemptsLimit else {
             user.verifyAttempts += 1
             try source.updateUser(user)
+            logger.error("verify failed, exceed attempts : \(user.id.uuidString, privacy: .public)")
             throw VerifyError.exceedAttempts
         }
         
@@ -117,12 +123,15 @@ class DefaultUserRepository: UserRepository {
         guard user.verifyCode == hash else {
             user.verifyAttempts += 1
             try source.updateUser(user)
+            logger.error("verify failed, invalid code : \(user.id.uuidString, privacy: .public)")
             throw VerifyError.invalidCode
         }
         
         user.verifyCode = ""
         user.verifyAttempts += 1
         try source.updateUser(user)
+        
+        logger.info("user verified : \(user.id.uuidString, privacy: .public)")
         
         return try publishTokenPair(userId: user.id)
     }
@@ -133,6 +142,7 @@ class DefaultUserRepository: UserRepository {
         
         if let locked = user.locked,
            locked.addingTimeInterval(lockResetSeconds) > .now {
+            logger.error("login failed, locked account : \(user.id.uuidString, privacy: .public)")
             throw LoginError.accountLocked
         }
         
@@ -151,6 +161,8 @@ class DefaultUserRepository: UserRepository {
             
             try source.updateUser(user)
             
+            logger.error("login failed, invalid password : \(user.id.uuidString, privacy: .public)")
+            
             throw LoginError.invalidPassword
         }
         
@@ -158,6 +170,8 @@ class DefaultUserRepository: UserRepository {
         user.lastAttempt = nil
         user.locked = nil
         try source.updateUser(user)
+        
+        logger.info("user logged in : \(user.id.uuidString, privacy: .public)")
         
         return try publishTokenPair(userId: user.id)
     }
@@ -207,6 +221,9 @@ class DefaultUserRepository: UserRepository {
                 return copy
             }
             try source.updateUser(user)
+            
+            logger.critical("refresh failed, used token : \(user.id.uuidString, privacy: .public)")
+            
             throw RefreshError.usedToken
         }
         
@@ -216,6 +233,8 @@ class DefaultUserRepository: UserRepository {
             return copy
         }
         try source.updateUser(user)
+        
+        logger.info("token refreshed : \(user.id.uuidString, privacy: .public)")
         
         return try publishTokenPair(userId: userId)
     }
