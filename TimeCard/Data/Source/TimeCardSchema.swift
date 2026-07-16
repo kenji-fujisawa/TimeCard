@@ -45,7 +45,8 @@ struct TimeCardSchema_v4: VersionedSchema {
         TimeCardSchema_v1.TimeRecord.BreakTime.self,
         TimeCardSchema_v3.SystemUptimeRecord_v3.self,
         TimeCardSchema_v3.SystemUptimeRecord_v3.SleepRecord_v3.self,
-        TimeCardSchema_v4.User.self
+        TimeCardSchema_v4.User.self,
+        TimeCardSchema_v4.User.RefreshToken.self
     ]
 }
 
