@@ -49,6 +49,7 @@ struct UserRepositoryTests {
         #expect(sendVerifyCode.mail == mail)
         #expect(sendVerifyCode.verifyCode.isEmpty == false)
         #expect(try HMACSHA256.computeHash(sendVerifyCode.verifyCode).base64EncodedString() == results[0].verifyCode)
+        #expect(sendVerifyCode.expire?.equals(Date(timeIntervalSinceNow: 10 * 60)) == true)
     }
     
     @Test func testRegister_duplicate() async throws {
@@ -81,6 +82,7 @@ struct UserRepositoryTests {
         
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
+        #expect(sendVerifyCode.expire == nil)
     }
     
     @Test func testRegister_emptyMail() async throws {
@@ -102,6 +104,7 @@ struct UserRepositoryTests {
         
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
+        #expect(sendVerifyCode.expire == nil)
     }
     
     @Test func testRegister_invalidMail() async throws {
@@ -123,6 +126,7 @@ struct UserRepositoryTests {
         
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
+        #expect(sendVerifyCode.expire == nil)
     }
     
     @Test func testRegister_invalidPassword() async throws {
@@ -144,6 +148,7 @@ struct UserRepositoryTests {
         
         #expect(sendVerifyCode.mail.isEmpty)
         #expect(sendVerifyCode.verifyCode.isEmpty)
+        #expect(sendVerifyCode.expire == nil)
     }
     
     @Test func testVerify() async throws {
@@ -924,9 +929,11 @@ struct UserRepositoryTests {
     class FakeSendVerifyCodeUseCase: SendVerifyCodeUseCase {
         var mail = ""
         var verifyCode = ""
-        func execute(mail: String, verifyCode: String) async throws {
+        var expire: Date? = nil
+        func execute(mail: String, verifyCode: String, expire: Date) async throws {
             self.mail = mail
             self.verifyCode = verifyCode
+            self.expire = expire
         }
     }
     

@@ -87,7 +87,7 @@ class DefaultUserRepository: UserRepository {
         
         logger.info("user registered : \(user.id.uuidString, privacy: .public)")
         
-        try await sendVerifyCode.execute(mail: mail, verifyCode: verifyCode)
+        try await sendVerifyCode.execute(mail: mail, verifyCode: verifyCode, expire: verifyCodeExpires)
     }
     
     private func generateVerifyCode() -> String {
