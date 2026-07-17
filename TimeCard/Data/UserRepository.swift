@@ -60,7 +60,11 @@ class DefaultUserRepository: UserRepository {
     private let source: LocalDataSource
     private let sendVerifyCode: SendVerifyCodeUseCase
     private let passwordHasher: PasswordHasher
+    #if DEBUG
+    private let logger = Logger(subsystem: "TimeCard.Debug", category: "audit")
+    #else
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TimeCard", category: "audit")
+    #endif
     
     init(_ source: LocalDataSource, _ sendVerifyCode: SendVerifyCodeUseCase, _ passwordHasher: PasswordHasher) {
         self.source = source
