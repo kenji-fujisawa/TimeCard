@@ -25,9 +25,9 @@ struct UserRepositoryTests {
     
     @Test func testRegister() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let mail = "aaa@test.com"
         let pass = "aaa"
@@ -46,17 +46,17 @@ struct UserRepositoryTests {
         #expect(results[0].locked == nil)
         #expect(results[0].refreshTokens.count == 0)
         
-        #expect(sendVerifyCode.mail == mail)
-        #expect(sendVerifyCode.verifyCode.isEmpty == false)
-        #expect(try HMACSHA256.computeHash(sendVerifyCode.verifyCode).base64EncodedString() == results[0].verifyCode)
-        #expect(sendVerifyCode.expire?.equals(Date(timeIntervalSinceNow: 10 * 60)) == true)
+        #expect(verifyCodeSender.recipient == mail)
+        #expect(verifyCodeSender.verifyCode.isEmpty == false)
+        #expect(try HMACSHA256.computeHash(verifyCodeSender.verifyCode).base64EncodedString() == results[0].verifyCode)
+        #expect(verifyCodeSender.expire?.equals(Date(timeIntervalSinceNow: 10 * 60)) == true)
     }
     
     @Test func testRegister_duplicate() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let mail = "aaa@test.com"
         let pass = "aaa"
@@ -80,16 +80,16 @@ struct UserRepositoryTests {
         #expect(results[0].locked == nil)
         #expect(results[0].refreshTokens.count == 0)
         
-        #expect(sendVerifyCode.mail.isEmpty)
-        #expect(sendVerifyCode.verifyCode.isEmpty)
-        #expect(sendVerifyCode.expire == nil)
+        #expect(verifyCodeSender.recipient.isEmpty)
+        #expect(verifyCodeSender.verifyCode.isEmpty)
+        #expect(verifyCodeSender.expire == nil)
     }
     
     @Test func testRegister_emptyMail() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let mail = ""
         let pass = "aaa"
@@ -102,16 +102,16 @@ struct UserRepositoryTests {
         let results = try context.fetch(descriptor)
         #expect(results.count == 0)
         
-        #expect(sendVerifyCode.mail.isEmpty)
-        #expect(sendVerifyCode.verifyCode.isEmpty)
-        #expect(sendVerifyCode.expire == nil)
+        #expect(verifyCodeSender.recipient.isEmpty)
+        #expect(verifyCodeSender.verifyCode.isEmpty)
+        #expect(verifyCodeSender.expire == nil)
     }
     
     @Test func testRegister_invalidMail() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let mail = "aaa"
         let pass = "aaa"
@@ -124,16 +124,16 @@ struct UserRepositoryTests {
         let results = try context.fetch(descriptor)
         #expect(results.count == 0)
         
-        #expect(sendVerifyCode.mail.isEmpty)
-        #expect(sendVerifyCode.verifyCode.isEmpty)
-        #expect(sendVerifyCode.expire == nil)
+        #expect(verifyCodeSender.recipient.isEmpty)
+        #expect(verifyCodeSender.verifyCode.isEmpty)
+        #expect(verifyCodeSender.expire == nil)
     }
     
     @Test func testRegister_invalidPassword() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let mail = "aaa@test.com"
         let pass = ""
@@ -146,16 +146,16 @@ struct UserRepositoryTests {
         let results = try context.fetch(descriptor)
         #expect(results.count == 0)
         
-        #expect(sendVerifyCode.mail.isEmpty)
-        #expect(sendVerifyCode.verifyCode.isEmpty)
-        #expect(sendVerifyCode.expire == nil)
+        #expect(verifyCodeSender.recipient.isEmpty)
+        #expect(verifyCodeSender.verifyCode.isEmpty)
+        #expect(verifyCodeSender.expire == nil)
     }
     
     @Test func testVerify() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let verifyCode = "111"
         let user = User(
@@ -192,9 +192,9 @@ struct UserRepositoryTests {
     
     @Test func testVerify_invalidMail() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let verifyCode = "111"
         let user = User(
@@ -218,9 +218,9 @@ struct UserRepositoryTests {
     
     @Test func testVerify_invalidCode() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let verifyCode = "111"
         let user = User(
@@ -253,9 +253,9 @@ struct UserRepositoryTests {
     
     @Test func testVerify_expiredCode() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let verifyCode = "111"
         let user = User(
@@ -288,9 +288,9 @@ struct UserRepositoryTests {
     
     @Test func testVerify_exceedAttempts() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let verifyCode = "111"
         let user = User(
@@ -323,9 +323,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let user = User(
@@ -367,9 +367,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin_multiDevice() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let user = User(
@@ -405,9 +405,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin_invalidMail() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let user = User(
@@ -428,9 +428,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin_invalidPassword() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let lastAttempt = Date.now
@@ -465,9 +465,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin_invalidPassword_resetAttempt() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let user = User(
@@ -500,9 +500,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin_invalidPassword_lock() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let lastAttempt = Date.now
@@ -537,9 +537,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin_locked() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let user = User(
@@ -563,9 +563,9 @@ struct UserRepositoryTests {
     
     @Test func testLogin_invalidUser() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let pass = "aaa"
         let user = User(
@@ -587,9 +587,9 @@ struct UserRepositoryTests {
     
     @Test func testVerifyLogin() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let user = User(
             mail: "aaa@test.com",
@@ -608,9 +608,9 @@ struct UserRepositoryTests {
     
     @Test func testVerifyLogin_expired() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let user = User(
             mail: "aaa@test.com",
@@ -629,9 +629,9 @@ struct UserRepositoryTests {
     
     @Test func testVerifyLogin_notLoggedIn() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let user = User(
             mail: "aaa@test.com",
@@ -648,9 +648,9 @@ struct UserRepositoryTests {
     
     @Test func testVerifyLogin_notVerified() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let user = User(
             mail: "aaa@test.com",
@@ -670,9 +670,9 @@ struct UserRepositoryTests {
     
     @Test func testRefresh() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let token = "aaaaa"
         var user = User(
@@ -728,9 +728,9 @@ struct UserRepositoryTests {
     
     @Test func testRefresh_expired() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let token = "aaaaa"
         var user = User(
@@ -759,9 +759,9 @@ struct UserRepositoryTests {
     
     @Test func testRefresh_invalidUser() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let token = "aaaaa"
         let user = User(
@@ -788,9 +788,9 @@ struct UserRepositoryTests {
     
     @Test func testRefresh_invalidToken() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let token = "aaaaa"
         var user = User(
@@ -819,9 +819,9 @@ struct UserRepositoryTests {
     
     @Test func testRefresh_usedToken() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let token = "aaaaa"
         var user = User(
@@ -869,9 +869,9 @@ struct UserRepositoryTests {
     
     @Test func testPurgeExpiredTokens() async throws {
         let source = DefaultLocalDataSource(context)
-        let sendVerifyCode = FakeSendVerifyCodeUseCase()
+        let verifyCodeSender = FakeVerifyCodeSender()
         let passwordHasher = FakePasswordHasher()
-        let repository = DefaultUserRepository(source, sendVerifyCode, passwordHasher)
+        let repository = DefaultUserRepository(source, verifyCodeSender, passwordHasher)
         
         let user1 = User(
             mail: "aaa@test.com",
@@ -926,12 +926,12 @@ struct UserRepositoryTests {
         #expect(results[1].refreshTokens.count == 0)
     }
     
-    class FakeSendVerifyCodeUseCase: SendVerifyCodeUseCase {
-        var mail = ""
+    class FakeVerifyCodeSender: VerifyCodeSender {
+        var recipient = ""
         var verifyCode = ""
         var expire: Date? = nil
-        func execute(mail: String, verifyCode: String, expire: Date) async throws {
-            self.mail = mail
+        func send(to recipient: String, verifyCode: String, expire: Date) async throws {
+            self.recipient = recipient
             self.verifyCode = verifyCode
             self.expire = expire
         }

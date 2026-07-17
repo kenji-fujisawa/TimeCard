@@ -1,5 +1,5 @@
 //
-//  SendVerifyCodeUseCase.swift
+//  VerifyCodeSender.swift
 //  TimeCard
 //
 //  Created by uhimania on 2026/04/28.
@@ -8,11 +8,11 @@
 import Foundation
 import SwiftSMTP
 
-protocol SendVerifyCodeUseCase {
-    func execute(mail: String, verifyCode: String, expire: Date) async throws
+protocol VerifyCodeSender {
+    func send(to recipient: String, verifyCode: String, expire: Date) async throws
 }
 
-class SendVerifyCodeViaMailUseCase: SendVerifyCodeUseCase {
+class MailVerifyCodeSender: VerifyCodeSender {
     private let host: String
     private let port: Int
     private let username: String
@@ -31,11 +31,11 @@ class SendVerifyCodeViaMailUseCase: SendVerifyCodeUseCase {
         self.allowSelfCertificate = allowSelfCertificate
     }
     
-    func execute(mail: String, verifyCode: String, expire: Date) async throws {
+    func send(to recipient: String, verifyCode: String, expire: Date) async throws {
         let config = TLSConfiguration(clientAllowsSelfSignedCertificates: allowSelfCertificate)
         let smtp = SMTP(hostname: host, email: username, password: password, port: Int32(port), tlsConfiguration: config)
         let from = Mail.User(name: senderName, email: senderAddress)
-        let to = Mail.User(email: mail)
+        let to = Mail.User(email: recipient)
         let mail = Mail(
             from: from,
             to: [to],

@@ -58,7 +58,7 @@ class DefaultUserRepository: UserRepository {
     private let lockResetSeconds: TimeInterval = 60 * 60
     
     private let source: LocalDataSource
-    private let sendVerifyCode: SendVerifyCodeUseCase
+    private let verifyCodeSender: VerifyCodeSender
     private let passwordHasher: PasswordHasher
     #if DEBUG
     private let logger = Logger(subsystem: "TimeCard.Debug", category: "audit")
@@ -66,9 +66,9 @@ class DefaultUserRepository: UserRepository {
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TimeCard", category: "audit")
     #endif
     
-    init(_ source: LocalDataSource, _ sendVerifyCode: SendVerifyCodeUseCase, _ passwordHasher: PasswordHasher) {
+    init(_ source: LocalDataSource, _ verifyCodeSender: VerifyCodeSender, _ passwordHasher: PasswordHasher) {
         self.source = source
-        self.sendVerifyCode = sendVerifyCode
+        self.verifyCodeSender = verifyCodeSender
         self.passwordHasher = passwordHasher
     }
     
@@ -91,7 +91,7 @@ class DefaultUserRepository: UserRepository {
         
         logger.info("user registered : \(user.id.uuidString, privacy: .public)")
         
-        try await sendVerifyCode.execute(mail: mail, verifyCode: verifyCode, expire: verifyCodeExpires)
+        try await verifyCodeSender.send(to: mail, verifyCode: verifyCode, expire: verifyCodeExpires)
     }
     
     private func generateVerifyCode() -> String {
