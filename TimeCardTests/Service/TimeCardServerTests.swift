@@ -20,7 +20,6 @@ struct TimeCardServerTests {
     var container: ModelContainer!
     var context: ModelContext!
     var formatter: DateFormatter
-    var channel: EmbeddedChannel!
     var responseHead: HTTPResponseHead? = nil
     var responseBody: [[String: Any]]? = nil
     var responseEnd: HTTPHeaders? = nil
@@ -30,7 +29,6 @@ struct TimeCardServerTests {
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         
         try setupContext()
-        try await setupChannel()
     }
     
     private mutating func setupContext() throws {
@@ -74,27 +72,38 @@ struct TimeCardServerTests {
         records.append(record.asTimeRecord())
     }
     
-    private mutating func setupChannel() async throws {
+    private mutating func runTest(method: HTTPMethod, uri: String, body: String) async throws {
+        let channel = NIOAsyncTestingChannel()
+        let asyncChannel = try await channel.testingEventLoop.submit {
+            try NIOAsyncChannel(
+                wrappingChannelSynchronously: channel,
+                configuration: NIOAsyncChannel.Configuration(
+                    inboundType: HTTPServerRequestPart.self,
+                    outboundType: HTTPServerResponsePart.self
+                )
+            )
+        }.get()
+        
         let source = DefaultLocalDataSource(context)
         let repository = DefaultTimeRecordRepository(source)
-        let handler = TimeCardServer.TimeCardServerHandler(repository)
-        channel = EmbeddedChannel()
-        try await channel.pipeline.addHandler(handler)
-    }
-    
-    private mutating func runTest(method: HTTPMethod, uri: String, body: String) throws {
+        let handler = TimeCardServer.TimeCardServerHandler(asyncChannel, repository)
+        
+        Task {
+            try await handler.handleRequests()
+        }
+        
         let head = HTTPRequestHead(version: .init(major: 1, minor: 1), method: method, uri: uri)
         let body = channel.allocator.buffer(string: body)
         let requestHead = HTTPServerRequestPart.head(head)
         let requestBody = HTTPServerRequestPart.body(body)
         let requestEnd = HTTPServerRequestPart.end(nil)
-        try channel.writeInbound(requestHead)
-        try channel.writeInbound(requestBody)
-        try channel.writeInbound(requestEnd)
+        try await channel.writeInbound(requestHead)
+        try await channel.writeInbound(requestBody)
+        try await channel.writeInbound(requestEnd)
         
-        let responseHead: HTTPServerResponsePart? = try channel.readOutbound()
-        let responseBody: HTTPServerResponsePart? = try channel.readOutbound()
-        let responseEnd: HTTPServerResponsePart? = try channel.readOutbound()
+        let responseHead = try await channel.waitForOutboundWrite(as: HTTPServerResponsePart.self)
+        let responseBody = try await channel.waitForOutboundWrite(as: HTTPServerResponsePart.self)
+        let responseEnd = try await channel.waitForOutboundWrite(as: HTTPServerResponsePart.self)
         if case .head(let head) = responseHead {
             self.responseHead = head
         }
@@ -109,7 +118,7 @@ struct TimeCardServerTests {
     }
     
     @Test mutating func testGetRecords() async throws {
-        try runTest(method: .GET, uri: "/timecard/records?year=2025&month=10", body: "")
+        try await runTest(method: .GET, uri: "/timecard/records?year=2025&month=10", body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -134,18 +143,18 @@ struct TimeCardServerTests {
     }
 
     @Test mutating func testGetRecords_missingParameter() async throws {
-        try runTest(method: .GET, uri: "/timecard/records", body: "")
+        try await runTest(method: .GET, uri: "/timecard/records", body: "")
         #expect(responseHead?.status == .badRequest)
     }
     
     @Test mutating func testGetRecords_wrongMethod() async throws {
-        try runTest(method: .ACL, uri: "/timecard/records?year=2025&month=10", body: "")
+        try await runTest(method: .ACL, uri: "/timecard/records?year=2025&month=10", body: "")
         #expect(responseHead?.status == .methodNotAllowed)
     }
     
     @Test mutating func testGetRecord() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
-        try runTest(method: .GET, uri: uri, body: "")
+        try await runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -170,13 +179,13 @@ struct TimeCardServerTests {
     
     @Test mutating func testGetRecord_wrongId() async throws {
         let uri = "/timecard/records/\(UUID().uuidString)"
-        try runTest(method: .GET, uri: uri, body: "")
+        try await runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetRecord_tooManyPath() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)/redundant"
-        try runTest(method: .GET, uri: uri, body: "")
+        try await runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
     
@@ -201,7 +210,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .POST, uri: uri, body: body)
+        try await runTest(method: .POST, uri: uri, body: body)
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -254,7 +263,7 @@ struct TimeCardServerTests {
                 "wrongKey": "wrongValue"
             }
             """
-        try runTest(method: .POST, uri: uri, body: body)
+        try await runTest(method: .POST, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -275,7 +284,7 @@ struct TimeCardServerTests {
                 "checkIn":  "\(checkIn)"
             }
             """
-        try runTest(method: .POST, uri: uri, body: body)
+        try await runTest(method: .POST, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -309,7 +318,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .POST, uri: uri, body: body)
+        try await runTest(method: .POST, uri: uri, body: body)
         #expect(responseHead?.status == .methodNotAllowed)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -338,7 +347,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PATCH, uri: uri, body: body)
+        try await runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -385,7 +394,7 @@ struct TimeCardServerTests {
                 "wrongKey": "wrongValue"
             }
             """
-        try runTest(method: .PATCH, uri: uri, body: body)
+        try await runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -411,7 +420,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PATCH, uri: uri, body: body)
+        try await runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .badRequest)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -439,7 +448,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PATCH, uri: uri, body: body)
+        try await runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .notFound)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -469,7 +478,7 @@ struct TimeCardServerTests {
                 }]
             }
             """
-        try runTest(method: .PATCH, uri: uri, body: body)
+        try await runTest(method: .PATCH, uri: uri, body: body)
         #expect(responseHead?.status == .methodNotAllowed)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -485,7 +494,7 @@ struct TimeCardServerTests {
     
     @Test mutating func testDeleteRecord() async throws {
         let uri = "/timecard/records/\(records[1].id.uuidString)"
-        try runTest(method: .DELETE, uri: uri, body: "")
+        try await runTest(method: .DELETE, uri: uri, body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -502,7 +511,7 @@ struct TimeCardServerTests {
     
     @Test mutating func testDeleteRecord_wrongId() async throws {
         let uri = "/timecard/records/\(UUID().uuidString)"
-        try runTest(method: .DELETE, uri: uri, body: "")
+        try await runTest(method: .DELETE, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -517,7 +526,7 @@ struct TimeCardServerTests {
     
     @Test mutating func testDeleteRecord_missingId() async throws {
         let uri = "/timecard/records/"
-        try runTest(method: .DELETE, uri: uri, body: "")
+        try await runTest(method: .DELETE, uri: uri, body: "")
         #expect(responseHead?.status == .methodNotAllowed)
         
         let descriptor = FetchDescriptor<LocalTimeRecord>(
@@ -532,7 +541,7 @@ struct TimeCardServerTests {
     
     @Test mutating func testGetBreakTime() async throws {
         let uri = "/timecard/breaktimes/\(records[1].breakTimes[0].id.uuidString)"
-        try runTest(method: .GET, uri: uri, body: "")
+        try await runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .ok)
         #expect(responseHead?.headers.first(name: "Content-Type") == "application/json")
         
@@ -547,19 +556,19 @@ struct TimeCardServerTests {
     
     @Test mutating func testGetBreakTime_wrongId() async throws {
         let uri = "/timecard/breaktimes/\(UUID().uuidString)"
-        try runTest(method: .GET, uri: uri, body: "")
+        try await runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetBreakTime_missingId() async throws {
         let uri = "/timecard/breaktimes"
-        try runTest(method: .GET, uri: uri, body: "")
+        try await runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
     
     @Test mutating func testGetBreakTime_tooManyPath() async throws {
         let uri = "/timecard/breaktimes/\(records[1].breakTimes[0].id.uuidString)/redundant"
-        try runTest(method: .GET, uri: uri, body: "")
+        try await runTest(method: .GET, uri: uri, body: "")
         #expect(responseHead?.status == .notFound)
     }
 }

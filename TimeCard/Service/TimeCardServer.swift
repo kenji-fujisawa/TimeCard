@@ -9,28 +9,58 @@ import Foundation
 import NIO
 import NIOFoundationCompat
 import NIOHTTP1
+import OSLog
 
 class TimeCardServer {
     private let host: String = "0.0.0.0"
     private let port: Int = 8080
     private let eventLoopGroup: MultiThreadedEventLoopGroup
     private let bootstrap: ServerBootstrap
-    
+    private let repository: TimeRecordRepository
+    #if DEBUG
+    private let logger = Logger(subsystem: "TimeCard.Debug", category: "TimeCardServer")
+    #else
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "TimeCard", category: "TimeCardServer")
+    #endif
+
     init(_ repository: TimeRecordRepository) {
         eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
         bootstrap = ServerBootstrap(group: eventLoopGroup)
             .serverChannelOption(.backlog, value: 256)
-            .childChannelInitializer({ channel in
-                channel.pipeline.configureHTTPServerPipeline(withErrorHandling: true).flatMap {
-                    channel.pipeline.addHandler(TimeCardServerHandler(repository))
-                }
-            })
             .childChannelOption(.socketOption(.so_reuseaddr), value: 1)
+        
+        self.repository = repository
     }
     
     func run() async throws {
-        let serverChannel = try await bootstrap.bind(host: host, port: port).get()
-        try await serverChannel.closeFuture.get()
+        let serverChannel = try await bootstrap.bind(host: host, port: port) { channel in
+            channel.pipeline.configureHTTPServerPipeline(withErrorHandling: true).flatMap {
+                channel.eventLoop.makeCompletedFuture {
+                    try NIOAsyncChannel(
+                        wrappingChannelSynchronously: channel,
+                        configuration: NIOAsyncChannel.Configuration(
+                            inboundType: HTTPServerRequestPart.self,
+                            outboundType: HTTPServerResponsePart.self
+                        )
+                    )
+                }
+            }
+        }
+        
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            try await serverChannel.executeThenClose { inbound, _ in
+                for try await clientChannel in inbound {
+                    group.addTask {
+                        do {
+                            let handler = TimeCardServerHandler(clientChannel, self.repository)
+                            try await handler.handleRequests()
+                        } catch {
+                            self.logger.error("\(error.localizedDescription, privacy: .public)")
+                        }
+                    }
+                }
+            }
+        }
     }
     
     func shutdown() async throws {
@@ -43,20 +73,20 @@ class TimeCardServer {
         }
     }
     
-    class TimeCardServerHandler: ChannelInboundHandler {
+    class TimeCardServerHandler {
+        typealias Outbound = NIOAsyncChannelOutboundWriter<HTTPServerResponsePart>
+        
         struct Route {
             let method: HTTPMethod
             let path: [String]
-            let handler: (ChannelHandlerContext) throws -> Void
+            let handler: (Outbound) async throws -> Void
         }
         
         struct HTTPError: Error {
             let status: HTTPResponseStatus
         }
         
-        typealias InboundIn = HTTPServerRequestPart
-        typealias OutboundOut = HTTPServerResponsePart
-        
+        private let channel: NIOAsyncChannel<HTTPServerRequestPart, HTTPServerResponsePart>
         private let repository: TimeRecordRepository
         private var routes: [Route] = []
         private var method: HTTPMethod = .GET
@@ -65,8 +95,10 @@ class TimeCardServer {
         private var requestParams: [String: String] = [:]
         private var requestBody: [String: Any]? = nil
         
-        init(_ repository: TimeRecordRepository) {
+        init(_ channel: NIOAsyncChannel<HTTPServerRequestPart, HTTPServerResponsePart>, _ repository: TimeRecordRepository) {
+            self.channel = channel
             self.repository = repository
+            
             setupRoutes()
         }
         
@@ -79,8 +111,20 @@ class TimeCardServer {
             routes.append(Route(method: .GET, path: ["timecard", "breaktimes", ":id"], handler: getBreakTime))
         }
         
-        private func handleRoutes(context: ChannelHandlerContext) throws {
-            typealias Handler = (ChannelHandlerContext) throws -> Void
+        func handleRequests() async throws {
+            try await channel.executeThenClose { inbound, outbound in
+                for try await requestPart in inbound {
+                    try await channelRead(requestPart, outbound)
+                    
+                    if case .end = requestPart {
+                        break
+                    }
+                }
+            }
+        }
+        
+        private func handleRoutes(_ outbound: Outbound) async throws {
+            typealias Handler = (Outbound) async throws -> Void
             var pathMethods: [[String]: [(method: HTTPMethod, handler: Handler)]] = [:]
             for route in routes {
                 if pathMethods[route.path] == nil {
@@ -95,13 +139,11 @@ class TimeCardServer {
             
             requestParams = pathComponents.extractParams(rule: pathMethod.key)
             
-            try methodHandlerPair.handler(context)
+            try await methodHandlerPair.handler(outbound)
         }
         
-        func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-            let part = unwrapInboundIn(data)
-            
-            switch part {
+        private func channelRead(_ inbound: HTTPServerRequestPart, _ outbound: Outbound) async throws {
+            switch inbound {
             case .head(let header):
                 method = header.method
                 if let url = URLComponents(string: header.uri) {
@@ -114,16 +156,16 @@ class TimeCardServer {
                 
             case .end:
                 do {
-                    try handleRoutes(context: context)
+                    try await handleRoutes(outbound)
                 } catch let error as HTTPError {
-                    handleErrorResponse(status: error.status, context: context)
+                    try await handleErrorResponse(status: error.status, outbound: outbound)
                 } catch {
-                    handleErrorResponse(status: .internalServerError, context: context)
+                    try await handleErrorResponse(status: .internalServerError, outbound: outbound)
                 }
             }
         }
         
-        private func getRecords(context: ChannelHandlerContext) throws {
+        private func getRecords(outbound: Outbound) async throws {
             guard let year = Int(queryItems?.first(where: { $0.name == "year" })?.value ?? "") else { throw HTTPError(status: .badRequest) }
             guard let month = Int(queryItems?.first(where: { $0.name == "month" })?.value ?? "") else { throw HTTPError(status: .badRequest)}
             
@@ -132,11 +174,11 @@ class TimeCardServer {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
             let json = try encoder.encode(records)
-            let buffer = context.channel.allocator.buffer(data: json)
-            handleResponse(buffer: buffer, context: context)
+            let buffer = channel.channel.allocator.buffer(data: json)
+            try await handleResponse(buffer: buffer, outbound: outbound)
         }
         
-        private func getRecord(context: ChannelHandlerContext) throws {
+        private func getRecord(outbound: Outbound) async throws {
             guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             
             guard let record = try repository.getRecord(id: uuid) else { throw HTTPError(status: .notFound) }
@@ -144,11 +186,11 @@ class TimeCardServer {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
             let json = try encoder.encode([record])
-            let buffer = context.channel.allocator.buffer(data: json)
-            handleResponse(buffer: buffer, context: context)
+            let buffer = channel.channel.allocator.buffer(data: json)
+            try await handleResponse(buffer: buffer, outbound: outbound)
         }
         
-        private func insertRecord(context: ChannelHandlerContext) throws {
+        private func insertRecord(outbound: Outbound) async throws {
             guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
             guard let checkIn = requestBody["checkIn"] as? String else { throw HTTPError(status: .badRequest) }
             guard let checkOut = requestBody["checkOut"] as? String else { throw HTTPError(status: .badRequest) }
@@ -176,11 +218,11 @@ class TimeCardServer {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
             let json = try encoder.encode([record])
-            let buffer = context.channel.allocator.buffer(data: json)
-            handleResponse(buffer: buffer, context: context)
+            let buffer = channel.channel.allocator.buffer(data: json)
+            try await handleResponse(buffer: buffer, outbound: outbound)
         }
         
-        private func updateRecord(context: ChannelHandlerContext) throws {
+        private func updateRecord(outbound: Outbound) async throws {
             guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             guard let requestBody = requestBody else { throw HTTPError(status: .badRequest) }
             guard let checkIn = requestBody["checkIn"] as? String else { throw HTTPError(status: .badRequest) }
@@ -208,11 +250,11 @@ class TimeCardServer {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
             let json = try encoder.encode([record])
-            let buffer = context.channel.allocator.buffer(data: json)
-            handleResponse(buffer: buffer, context: context)
+            let buffer = channel.channel.allocator.buffer(data: json)
+            try await handleResponse(buffer: buffer, outbound: outbound)
         }
         
-        private func deleteRecord(context: ChannelHandlerContext) throws {
+        private func deleteRecord(outbound: Outbound) async throws {
             guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             
             guard let record = try repository.getRecord(id: uuid) else { throw HTTPError(status: .notFound) }
@@ -222,11 +264,11 @@ class TimeCardServer {
             encoder.dateEncodingStrategy = .iso8601
             let records: [TimeRecord] = []
             let json = try encoder.encode(records)
-            let buffer = context.channel.allocator.buffer(data: json)
-            handleResponse(buffer: buffer, context: context)
+            let buffer = channel.channel.allocator.buffer(data: json)
+            try await handleResponse(buffer: buffer, outbound: outbound)
         }
         
-        private func getBreakTime(context: ChannelHandlerContext) throws {
+        private func getBreakTime(outbound: Outbound) async throws {
             guard let uuid = UUID(uuidString: requestParams["id"] ?? "") else { throw HTTPError(status: .badRequest) }
             
             guard let record = try repository.getBreakTime(id: uuid) else { throw HTTPError(status: .notFound) }
@@ -234,30 +276,30 @@ class TimeCardServer {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
             let json = try encoder.encode([record])
-            let buffer = context.channel.allocator.buffer(data: json)
-            handleResponse(buffer: buffer, context: context)
+            let buffer = channel.channel.allocator.buffer(data: json)
+            try await handleResponse(buffer: buffer, outbound: outbound)
         }
         
-        private func handleResponse(buffer: ByteBuffer, context: ChannelHandlerContext) {
+        private func handleResponse(buffer: ByteBuffer, outbound: Outbound) async throws {
             var responseHeaders = HTTPHeaders()
             responseHeaders.add(name: "Content-Type", value: "application/json")
             responseHeaders.add(name: "Content-Length", value: "\(buffer.readableBytes)")
             let responseHead = HTTPResponseHead(version: .init(major: 1, minor: 1), status: .ok, headers: responseHeaders)
-            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
-            context.write(wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
-            context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
+            try await outbound.write(.head(responseHead))
+            try await outbound.write(.body(.byteBuffer(buffer)))
+            try await outbound.write(.end(nil))
         }
         
-        private func handleErrorResponse(status: HTTPResponseStatus, context: ChannelHandlerContext) {
-            let buffer = context.channel.allocator.buffer(string: status.description)
+        private func handleErrorResponse(status: HTTPResponseStatus, outbound: Outbound) async throws {
+            let buffer = channel.channel.allocator.buffer(string: status.description)
             
             var responseHeaders = HTTPHeaders()
             responseHeaders.add(name: "Content-Type", value: "text/plain")
             responseHeaders.add(name: "Content-Length", value: "\(buffer.readableBytes)")
             let responseHead = HTTPResponseHead(version: .init(major: 1, minor: 1), status: status, headers: responseHeaders)
-            context.write(wrapOutboundOut(.head(responseHead)), promise: nil)
-            context.write(wrapOutboundOut(.body(.byteBuffer(buffer))), promise: nil)
-            context.writeAndFlush(wrapOutboundOut(.end(nil)), promise: nil)
+            try await outbound.write(.head(responseHead))
+            try await outbound.write(.body(.byteBuffer(buffer)))
+            try await outbound.write(.end(nil))
         }
     }
 }
