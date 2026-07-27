@@ -31,8 +31,9 @@ struct ServerView: View {
 }
 
 #Preview {
-    let repository = FakeTimeRecordRepository()
-    let server = TimeCardServer(repository)
+    let timeRepository = FakeTimeRecordRepository()
+    let userRepository = FakeUserRepository()
+    let server = TimeCardServer(timeRepository, userRepository)
     ServerView(server: server)
 }
 
@@ -48,4 +49,13 @@ private class FakeTimeRecordRepository: TimeRecordRepository {
     func checkOut() throws {}
     func startBreak() throws {}
     func endBreak() throws {}
+}
+
+private class FakeUserRepository: UserRepository {
+    func register(mail: String, password: String) async throws {}
+    func verify(mail: String, verifyCode: String) throws -> TokenPair { TokenPair(accessToken: "", refreshToken: "") }
+    func login(mail: String, password: String) async throws -> TokenPair { TokenPair(accessToken: "", refreshToken: "") }
+    func verifyLogin(token: String) -> Bool { true }
+    func refresh(token: String) throws -> TokenPair { TokenPair(accessToken: "", refreshToken: "") }
+    func purgeExpiredTokens() throws {}
 }

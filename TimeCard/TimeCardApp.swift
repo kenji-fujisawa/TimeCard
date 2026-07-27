@@ -13,6 +13,7 @@ struct TimeCardApp: App {
     private let timeRepository: TimeRecordRepository
     private let uptimeRepository: SystemUptimeRecordRepository
     private let calendarRepository: CalendarRecordRepository
+    private let userRepository: UserRepository
     @State private var timeViewModel: TimeRecordViewModel
     @State private var uptimeViewModel: SystemUptimeRecordViewModel
     @State private var calendarViewModel: CalendarViewModel
@@ -40,13 +41,25 @@ struct TimeCardApp: App {
         let fileSource = DefaultFileDataSource()
         #endif
         
+        let verifyCodeSender = MailVerifyCodeSender(
+            host: "localhost",
+            port: 587,
+            username: "TimeCard",
+            password: "TimeCard",
+            senderName: "TimeCard",
+            senderAddress: "info@timecard.jp",
+            allowSelfCertificate: true
+        )
+        let passwordHasher = Argon2PasswordHasher()
+        
         timeRepository = DefaultTimeRecordRepository(localSource)
         uptimeRepository = DefaultSystemUptimeRecordRepository(localSource, fileSource)
         calendarRepository = DefaultCalendarRecordRepository(localSource)
+        userRepository = DefaultUserRepository(localSource, verifyCodeSender, passwordHasher)
         timeViewModel = TimeRecordViewModel(timeRepository)
         uptimeViewModel = SystemUptimeRecordViewModel(uptimeRepository)
         calendarViewModel = CalendarViewModel(calendarRepository)
-        server = TimeCardServer(timeRepository)
+        server = TimeCardServer(timeRepository, userRepository)
         
         try? uptimeRepository.restoreBackup()
     }

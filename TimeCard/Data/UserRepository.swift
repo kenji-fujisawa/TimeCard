@@ -8,7 +8,7 @@
 import Foundation
 import OSLog
 
-struct TokenPair {
+struct TokenPair: Encodable {
     let accessToken: String
     let refreshToken: String
 }
