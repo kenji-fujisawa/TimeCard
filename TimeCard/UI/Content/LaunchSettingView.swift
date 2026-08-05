@@ -21,7 +21,8 @@ struct LaunchSettingView: View {
             }
             .toggleStyle(.switch)
         }
-        .padding()
+        .formStyle(.grouped)
+        .fixedSize()
         .onAppear() {
             launchAtLogin = SMAppService.mainApp.status == .enabled
         }
