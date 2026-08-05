@@ -23,6 +23,14 @@ protocol LocalDataSource {
     func insertUptimeRecord(_ record: SystemUptimeRecord) throws
     func updateUptimeRecord(_ record: SystemUptimeRecord) throws
     func deleteUptimeRecord(_ record: SystemUptimeRecord) throws
+    
+    func getUsers() throws -> [User]
+    func getUser(id: UUID) throws -> User?
+    func getUser(mail: String) throws -> User?
+    func getRefreshToken(token: String) throws -> User.RefreshToken?
+    func insertUser(_ user: User) throws
+    func updateUser(_ user: User) throws
+    func deleteUser(_ user: User) throws
 }
 
 class DefaultLocalDataSource: LocalDataSource {
@@ -135,6 +143,62 @@ class DefaultLocalDataSource: LocalDataSource {
             try context.save()
         }
     }
+    
+    func getUsers() throws -> [User] {
+        let descriptor = FetchDescriptor<LocalUser>()
+        return try context.fetch(descriptor).map { $0.asUser() }
+    }
+    
+    func getUser(id: UUID) throws -> User? {
+        let descriptor = FetchDescriptor<LocalUser>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try context.fetch(descriptor).first?.asUser()
+    }
+    
+    func getUser(mail: String) throws -> User? {
+        return try getLocalUser(mail: mail)?.asUser()
+    }
+    
+    private func getLocalUser(mail: String) throws -> LocalUser? {
+        let descriptor = FetchDescriptor<LocalUser>(
+            predicate: #Predicate { $0.mail == mail }
+        )
+        return try context.fetch(descriptor).first
+    }
+    
+    func getRefreshToken(token: String) throws -> User.RefreshToken? {
+        let descriptor = FetchDescriptor<LocalUser.RefreshToken>(
+            predicate: #Predicate { $0.token == token }
+        )
+        return try context.fetch(descriptor).first?.asRefreshToken()
+    }
+    
+    func insertUser(_ user: User) throws {
+        context.insert(user.asLocal())
+        try context.save()
+    }
+    
+    func updateUser(_ user: User) throws {
+        if let local = try getLocalUser(mail: user.mail) {
+            local.password = user.password
+            local.verifyCode = user.verifyCode
+            local.verifyCodeExpires = user.verifyCodeExpires
+            local.verifyAttempts = user.verifyAttempts
+            local.loginAttempts = user.loginAttempts
+            local.lastAttempt = user.lastAttempt
+            local.locked = user.locked
+            local.refreshTokens = user.refreshTokens.map { $0.asLocal() }
+            try context.save()
+        }
+    }
+    
+    func deleteUser(_ user: User) throws {
+        if let local = try getLocalUser(mail: user.mail) {
+            context.delete(local)
+            try context.save()
+        }
+    }
 }
 
 extension TimeRecord {
@@ -184,6 +248,33 @@ extension SystemUptimeRecord.SleepRecord {
     }
 }
 
+extension User {
+    func asLocal() -> LocalUser {
+        LocalUser(
+            id: self.id,
+            mail: self.mail,
+            password: self.password,
+            verifyCode: self.verifyCode,
+            verifyCodeExpires: self.verifyCodeExpires,
+            verifyAttempts: self.verifyAttempts,
+            loginAttempts: self.loginAttempts,
+            lastAttempt: self.lastAttempt,
+            locked: self.locked,
+            refreshTokens: self.refreshTokens.map { $0.asLocal() }
+        )
+    }
+}
+
+extension User.RefreshToken {
+    func asLocal() -> LocalUser.RefreshToken {
+        LocalUser.RefreshToken(
+            token: self.token,
+            status: self.status,
+            expire: self.expire
+        )
+    }
+}
+
 extension LocalTimeRecord {
     func asTimeRecord() -> TimeRecord {
         TimeRecord(
@@ -226,6 +317,36 @@ extension LocalUptimeRecord.SleepRecord {
             id: self.id,
             start: self.start,
             end: self.end
+        )
+    }
+}
+
+extension LocalUser {
+    func asUser() -> User {
+        User(
+            id: self.id,
+            mail: self.mail,
+            password: self.password,
+            verifyCode: self.verifyCode,
+            verifyCodeExpires: self.verifyCodeExpires,
+            verifyAttempts: self.verifyAttempts,
+            loginAttempts: self.loginAttempts,
+            lastAttempt: self.lastAttempt,
+            locked: self.locked,
+            refreshTokens: self.refreshTokens
+                .sorted { $0.token < $1.token }
+                .map { $0.asRefreshToken() }
+        )
+    }
+}
+
+extension LocalUser.RefreshToken {
+    func asRefreshToken() -> User.RefreshToken {
+        User.RefreshToken(
+            token: self.token,
+            status: self.status,
+            expire: self.expire,
+            userId: self.parent?.id
         )
     }
 }

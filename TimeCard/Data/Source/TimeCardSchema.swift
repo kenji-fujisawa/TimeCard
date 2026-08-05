@@ -38,16 +38,30 @@ struct TimeCardSchema_v3: VersionedSchema {
     ]
 }
 
+struct TimeCardSchema_v4: VersionedSchema {
+    static var versionIdentifier: Schema.Version = Schema.Version(4, 0, 0)
+    static var models: [any PersistentModel.Type] = [
+        TimeCardSchema_v1.TimeRecord.self,
+        TimeCardSchema_v1.TimeRecord.BreakTime.self,
+        TimeCardSchema_v3.SystemUptimeRecord_v3.self,
+        TimeCardSchema_v3.SystemUptimeRecord_v3.SleepRecord_v3.self,
+        TimeCardSchema_v4.User.self,
+        TimeCardSchema_v4.User.RefreshToken.self
+    ]
+}
+
 enum TimeCardMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] = [
         TimeCardSchema_v1.self,
         TimeCardSchema_v2_3.self,
-        TimeCardSchema_v3.self
+        TimeCardSchema_v3.self,
+        TimeCardSchema_v4.self
     ]
     
     static var stages: [MigrationStage] = [
         migrateV1toV2_3,
-        migrateV2_3toV3
+        migrateV2_3toV3,
+        migrateV3toV4
     ]
     
     private static var records_v2_3: [TimeCardSchema_v2_3.SystemUptimeRecord_v2_3] = []
@@ -121,5 +135,10 @@ enum TimeCardMigrationPlan: SchemaMigrationPlan {
             }
             try context.save()
         }
+    )
+    
+    static let migrateV3toV4 = MigrationStage.lightweight(
+        fromVersion: TimeCardSchema_v3.self,
+        toVersion: TimeCardSchema_v4.self
     )
 }

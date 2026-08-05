@@ -323,5 +323,13 @@ struct CalendarRecordRepositoryTests {
         func deleteUptimeRecord(_ record: SystemUptimeRecord) throws {
             uptimeDeleted.append(record)
         }
+        
+        func getUsers() throws -> [User] { [] }
+        func getUser(id: UUID) throws -> User? { nil }
+        func getUser(mail: String) throws -> User? { nil }
+        func getRefreshToken(token: String) throws -> User.RefreshToken? { nil }
+        func insertUser(_ user: User) throws {}
+        func updateUser(_ user: User) throws {}
+        func deleteUser(_ user: User) throws {}
     }
 }

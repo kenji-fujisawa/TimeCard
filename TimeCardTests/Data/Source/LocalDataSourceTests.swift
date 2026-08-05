@@ -18,9 +18,10 @@ struct LocalDataSourceTests {
     private let formatter: DateFormatter
     private let timeRecords: [TimeRecord]
     private let uptimeRecords: [SystemUptimeRecord]
+    private let users: [User]
     
     init() throws {
-        let schema = Schema(versionedSchema: TimeCardSchema_v3.self)
+        let schema = Schema(versionedSchema: TimeCardSchema_v4.self)
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         self.container = try ModelContainer(for: schema, configurations: config)
         self.context = ModelContext(container)
@@ -91,6 +92,67 @@ struct LocalDataSourceTests {
                 ]
             )
         ]
+        
+        let users = [
+            User(
+                mail: "aaa@test.com",
+                password: "aaa",
+                verifyCode: "111",
+                verifyCodeExpires: .now,
+                verifyAttempts: 0,
+                loginAttempts: 1,
+                lastAttempt: .now,
+                locked: .now,
+                refreshTokens: [
+                    User.RefreshToken(
+                        token: "aaaaa",
+                        status: .valid,
+                        expire: .now
+                    ),
+                    User.RefreshToken(
+                        token: "bbbbb",
+                        status: .used,
+                        expire: .now
+                    )
+                ]
+            ),
+            User(
+                mail: "bbb@test.com",
+                password: "bbb"
+            ),
+            User(
+                mail: "ccc@test.com",
+                password: "ccc",
+                refreshTokens: [
+                    User.RefreshToken(
+                        token: "ccccc",
+                        status: .valid,
+                        expire: .now
+                    )
+                ]
+            )
+        ]
+        self.users = users.map { user in
+            User(
+                id: user.id,
+                mail: user.mail,
+                password: user.password,
+                verifyCode: user.verifyCode,
+                verifyCodeExpires: user.verifyCodeExpires,
+                verifyAttempts: user.verifyAttempts,
+                loginAttempts: user.loginAttempts,
+                lastAttempt: user.lastAttempt,
+                locked: user.locked,
+                refreshTokens: user.refreshTokens.map { token in
+                    User.RefreshToken(
+                        token: token.token,
+                        status: token.status,
+                        expire: token.expire,
+                        userId: user.id
+                    )
+                }
+            )
+        }
     }
     
     @Test func testGetTimeRecord() async throws {
@@ -333,5 +395,184 @@ struct LocalDataSourceTests {
         let sleepRecords = try context.fetch(FetchDescriptor<LocalUptimeRecord.SleepRecord>()).map { $0.asSleepRecord() }
         #expect(sleepRecords.count == 1)
         #expect(sleepRecords[0] == self.uptimeRecords[2].sleepRecords[0])
+    }
+    
+    @Test func testGetUsers() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        let results = try source.getUsers().sorted { $0.mail < $1.mail }
+        #expect(results.count == 3)
+        #expect(results[0] == users[0])
+        #expect(results[1] == users[1])
+        #expect(results[2] == users[2])
+    }
+    
+    @Test func testGetUser() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        var result = try source.getUser(id: users[0].id)
+        #expect(result == users[0])
+        
+        result = try source.getUser(id: users[1].id)
+        #expect(result == users[1])
+        
+        result = try source.getUser(id: users[2].id)
+        #expect(result == users[2])
+        
+        result = try source.getUser(id: UUID())
+        #expect(result == nil)
+        
+        result = try source.getUser(mail: users[0].mail)
+        #expect(result == users[0])
+        
+        result = try source.getUser(mail: users[1].mail)
+        #expect(result == users[1])
+        
+        result = try source.getUser(mail: users[2].mail)
+        #expect(result == users[2])
+        
+        result = try source.getUser(mail: "ddd@test.com")
+        #expect(result == nil)
+    }
+    
+    @Test func testGetRefreshToken() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        var result = try source.getRefreshToken(token: "aaaaa")
+        #expect(result?.token == users[0].refreshTokens[0].token)
+        #expect(result?.status == users[0].refreshTokens[0].status)
+        #expect(result?.expire == users[0].refreshTokens[0].expire)
+        #expect(result?.userId == users[0].id)
+        
+        result = try source.getRefreshToken(token: "bbbbb")
+        #expect(result?.token == users[0].refreshTokens[1].token)
+        #expect(result?.status == users[0].refreshTokens[1].status)
+        #expect(result?.expire == users[0].refreshTokens[1].expire)
+        #expect(result?.userId == users[0].id)
+        
+        result = try source.getRefreshToken(token: "ccccc")
+        #expect(result?.token == users[2].refreshTokens[0].token)
+        #expect(result?.status == users[2].refreshTokens[0].status)
+        #expect(result?.expire == users[2].refreshTokens[0].expire)
+        #expect(result?.userId == users[2].id)
+        
+        result = try source.getRefreshToken(token: "ddddd")
+        #expect(result == nil)
+    }
+    
+    @Test func testInsertUser() async throws {
+        let source = DefaultLocalDataSource(context)
+        try users.forEach { try source.insertUser($0) }
+        
+        let descriptor = FetchDescriptor<LocalUser>(
+            sortBy: [.init(\.mail)]
+        )
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 3)
+        #expect(results[0] == users[0])
+        #expect(results[1] == users[1])
+        #expect(results[2] == users[2])
+    }
+    
+    @Test func testUpdateUser() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        
+        guard var user1 = try source.getUser(mail: users[0].mail) else {
+            Issue.record()
+            return
+        }
+        user1.verifyCode = ""
+        user1.verifyCodeExpires = Date(timeIntervalSinceNow: 3600)
+        
+        guard var user2 = try source.getUser(mail: users[2].mail) else {
+            Issue.record()
+            return
+        }
+        user2.verifyCode = "333"
+        user2.verifyAttempts = 3
+        user2.refreshTokens.append(
+            User.RefreshToken(
+                token: "ddddd",
+                status: .valid,
+                expire: .now,
+                userId: user2.id
+            )
+        )
+        
+        let descriptor = FetchDescriptor<LocalUser>(
+            sortBy: [.init(\.mail)]
+        )
+        var results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 3)
+        #expect(results[0] == users[0])
+        #expect(results[1] == users[1])
+        #expect(results[2] == users[2])
+        
+        try source.updateUser(user1)
+        try source.updateUser(user2)
+        
+        results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 3)
+        #expect(results[0] == user1)
+        #expect(results[1] == users[1])
+        #expect(results[2] == user2)
+        
+        #expect(results[0].mail == "aaa@test.com")
+        #expect(results[0].password == "aaa")
+        #expect(results[0].verifyCode == "")
+        #expect(results[0].verifyCodeExpires == user1.verifyCodeExpires)
+        #expect(results[0].verifyAttempts == 0)
+        #expect(results[0].refreshTokens[0].token == "aaaaa")
+        #expect(results[0].refreshTokens[0].status == .valid)
+        #expect(results[0].refreshTokens[0].expire == user1.refreshTokens[0].expire)
+        #expect(results[0].refreshTokens[0].userId == user1.id)
+        #expect(results[0].refreshTokens[1].token == "bbbbb")
+        #expect(results[0].refreshTokens[1].status == .used)
+        #expect(results[0].refreshTokens[1].expire == user1.refreshTokens[1].expire)
+        #expect(results[0].refreshTokens[1].userId == user1.id)
+        
+        #expect(results[2].mail == "ccc@test.com")
+        #expect(results[2].password == "ccc")
+        #expect(results[2].verifyCode == "333")
+        #expect(results[2].verifyCodeExpires == user2.verifyCodeExpires)
+        #expect(results[2].verifyAttempts == 3)
+        #expect(results[2].refreshTokens.count == 2)
+        #expect(results[2].refreshTokens[0].token == "ccccc")
+        #expect(results[2].refreshTokens[0].status == .valid)
+        #expect(results[2].refreshTokens[0].expire == user2.refreshTokens[0].expire)
+        #expect(results[2].refreshTokens[0].userId == user2.id)
+        #expect(results[2].refreshTokens[1].token == "ddddd")
+        #expect(results[2].refreshTokens[1].status == .valid)
+        #expect(results[2].refreshTokens[1].expire == user2.refreshTokens[1].expire)
+        #expect(results[2].refreshTokens[1].userId == user2.id)
+    }
+    
+    @Test func testDeleteUser() async throws {
+        users.forEach { context.insert($0.asLocal()) }
+        
+        let source = DefaultLocalDataSource(context)
+        
+        guard let user = try source.getUser(mail: users[0].mail) else {
+            Issue.record()
+            return
+        }
+        try source.deleteUser(user)
+        
+        let descriptor = FetchDescriptor<LocalUser>(
+            sortBy: [.init(\.mail)]
+        )
+        let results = try context.fetch(descriptor).map { $0.asUser() }
+        #expect(results.count == 2)
+        #expect(results[0] == users[1])
+        #expect(results[1] == users[2])
+        
+        let refreshTokens = try context.fetch(FetchDescriptor<LocalUser.RefreshToken>()).map { $0.asRefreshToken() }
+        #expect(refreshTokens.count == 1)
+        #expect(refreshTokens[0] == users[2].refreshTokens[0])
     }
 }

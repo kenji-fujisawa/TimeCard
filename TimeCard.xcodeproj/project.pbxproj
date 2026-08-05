@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		CA07B7AC2F443A0100656E80 /* JapanHolidays in Frameworks */ = {isa = PBXBuildFile; productRef = CA07B7AB2F443A0100656E80 /* JapanHolidays */; };
+		CA320C413008AEAA00E3E91C /* SwiftSMTP in Frameworks */ = {isa = PBXBuildFile; productRef = CA320C403008AEAA00E3E91C /* SwiftSMTP */; };
 		CA32D18B2EB0A27B00BFDA7B /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D18A2EB0A27B00BFDA7B /* NIO */; };
 		CA32D18D2EB0A27B00BFDA7B /* NIOConcurrencyHelpers in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D18C2EB0A27B00BFDA7B /* NIOConcurrencyHelpers */; };
 		CA32D18F2EB0A27B00BFDA7B /* NIOCore in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D18E2EB0A27B00BFDA7B /* NIOCore */; };
 		CA32D1912EB0A27B00BFDA7B /* NIOEmbedded in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D1902EB0A27B00BFDA7B /* NIOEmbedded */; };
 		CA32D1932EB0A27B00BFDA7B /* NIOFoundationCompat in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D1922EB0A27B00BFDA7B /* NIOFoundationCompat */; };
 		CA32D2682EB0AC0D00BFDA7B /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = CA32D2672EB0AC0D00BFDA7B /* NIOHTTP1 */; };
+		CA63A4D42FADAA800049F588 /* Argon2Swift in Frameworks */ = {isa = PBXBuildFile; productRef = CA63A4D32FADAA800049F588 /* Argon2Swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -86,12 +88,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA32D18D2EB0A27B00BFDA7B /* NIOConcurrencyHelpers in Frameworks */,
+				CA63A4D42FADAA800049F588 /* Argon2Swift in Frameworks */,
 				CA32D18F2EB0A27B00BFDA7B /* NIOCore in Frameworks */,
 				CA32D2682EB0AC0D00BFDA7B /* NIOHTTP1 in Frameworks */,
 				CA32D18B2EB0A27B00BFDA7B /* NIO in Frameworks */,
 				CA32D1932EB0A27B00BFDA7B /* NIOFoundationCompat in Frameworks */,
 				CA32D1912EB0A27B00BFDA7B /* NIOEmbedded in Frameworks */,
 				CA07B7AC2F443A0100656E80 /* JapanHolidays in Frameworks */,
+				CA320C413008AEAA00E3E91C /* SwiftSMTP in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -168,6 +172,8 @@
 				CA32D1922EB0A27B00BFDA7B /* NIOFoundationCompat */,
 				CA32D2672EB0AC0D00BFDA7B /* NIOHTTP1 */,
 				CA07B7AB2F443A0100656E80 /* JapanHolidays */,
+				CA63A4D32FADAA800049F588 /* Argon2Swift */,
+				CA320C403008AEAA00E3E91C /* SwiftSMTP */,
 			);
 			productName = TimeCard;
 			productReference = CA20F1822E84019000444640 /* TimeCard.app */;
@@ -255,6 +261,8 @@
 			packageReferences = (
 				CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */,
 				CA07B7AA2F443A0100656E80 /* XCRemoteSwiftPackageReference "JapanHolidays_Swift" */,
+				CA63A4D22FADAA800049F588 /* XCRemoteSwiftPackageReference "Argon2Swift" */,
+				CA320C3F3008AEAA00E3E91C /* XCRemoteSwiftPackageReference "Swift-SMTP" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CA20F1832E84019000444640 /* Products */;
@@ -696,12 +704,28 @@
 				minimumVersion = 1.0.1;
 			};
 		};
+		CA320C3F3008AEAA00E3E91C /* XCRemoteSwiftPackageReference "Swift-SMTP" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Kitura/Swift-SMTP";
+			requirement = {
+				kind = exactVersion;
+				version = 6.0.0;
+			};
+		};
 		CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-nio.git";
 			requirement = {
 				kind = exactVersion;
 				version = 2.87.0;
+			};
+		};
+		CA63A4D22FADAA800049F588 /* XCRemoteSwiftPackageReference "Argon2Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tmthecoder/Argon2Swift.git";
+			requirement = {
+				kind = revision;
+				revision = 53543623fefe68461b7eeea03d7f96677c2fd76d;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -711,6 +735,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA07B7AA2F443A0100656E80 /* XCRemoteSwiftPackageReference "JapanHolidays_Swift" */;
 			productName = JapanHolidays;
+		};
+		CA320C403008AEAA00E3E91C /* SwiftSMTP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA320C3F3008AEAA00E3E91C /* XCRemoteSwiftPackageReference "Swift-SMTP" */;
+			productName = SwiftSMTP;
 		};
 		CA32D18A2EB0A27B00BFDA7B /* NIO */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -741,6 +770,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CA32D1892EB0A27B00BFDA7B /* XCRemoteSwiftPackageReference "swift-nio" */;
 			productName = NIOHTTP1;
+		};
+		CA63A4D32FADAA800049F588 /* Argon2Swift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CA63A4D22FADAA800049F588 /* XCRemoteSwiftPackageReference "Argon2Swift" */;
+			productName = Argon2Swift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
