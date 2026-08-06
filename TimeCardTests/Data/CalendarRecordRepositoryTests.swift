@@ -13,13 +13,13 @@ import Testing
 
 struct CalendarRecordRepositoryTests {
 
-    @Test func testGetRecords() async throws {
+    @Test func testGetRecordsStream() async throws {
         let source = FakeLocalDataSource()
         source.initForGet()
         
         let repository = DefaultCalendarRecordRepository(source)
         var iterator = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
-        let records = await iterator.next()
+        let records = try await iterator.next()
         #expect(records?.count == 31)
         
         for i in 0..<31 {
@@ -58,7 +58,34 @@ struct CalendarRecordRepositoryTests {
         
         NotificationCenter.default.post(name: ModelContext.didSave, object: nil)
         
-        let records2 = await iterator.next()
+        var updated = try await iterator.next()
+        #expect(records?.count == updated?.count)
+        
+        for i in 0..<31 {
+            #expect(records?[i].timeRecords == updated?[i].timeRecords)
+            #expect(records?[i].uptimeRecords == updated?[i].uptimeRecords)
+        }
+        
+        var iterator2 = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
+        var records2 = try await iterator2.next()
+        #expect(records?.count == records2?.count)
+        
+        for i in 0..<31 {
+            #expect(records?[i].timeRecords == records2?[i].timeRecords)
+            #expect(records?[i].uptimeRecords == records2?[i].uptimeRecords)
+        }
+        
+        NotificationCenter.default.post(name: ModelContext.didSave, object: nil)
+        
+        updated = try await iterator.next()
+        #expect(records?.count == updated?.count)
+        
+        for i in 0..<31 {
+            #expect(records?[i].timeRecords == updated?[i].timeRecords)
+            #expect(records?[i].uptimeRecords == updated?[i].uptimeRecords)
+        }
+        
+        records2 = try await iterator2.next()
         #expect(records?.count == records2?.count)
         
         for i in 0..<31 {

@@ -9,45 +9,46 @@ import Foundation
 import SwiftData
 
 protocol CalendarRecordRepository {
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]>
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error>
     func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord
     func updateRecord(_ record: CalendarRecord) throws
 }
 
 class DefaultCalendarRecordRepository: CalendarRecordRepository {
     private let source: LocalDataSource
-    private var publish: (([CalendarRecord]) -> Void)? = nil
-    private var fetchTask: Task<Void, Never>? = nil
     
     init(_ source: LocalDataSource) {
         self.source = source
     }
     
-    deinit {
-        fetchTask?.cancel()
-    }
-    
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
-        fetchTask?.cancel()
-        fetchTask = Task { [weak self] in
-            let notifications = NotificationCenter.default.notifications(named: ModelContext.didSave)
-            for await _ in notifications {
-                await MainActor.run { [weak self] in
-                    try? self?.publishRecords(year: year, month: month)
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    continuation.yield(try getRecords(year: year, month: month))
+                } catch {
+                    continuation.finish(throwing: error)
+                    return
+                }
+                
+                let notifications = NotificationCenter.default.notifications(named: ModelContext.didSave)
+                for await _ in notifications {
+                    do {
+                        continuation.yield(try getRecords(year: year, month: month))
+                    } catch {
+                        continuation.finish(throwing: error)
+                        break
+                    }
                 }
             }
-        }
-        
-        return AsyncStream { continuation in
-            publish = { records in
-                continuation.yield(records)
-            }
             
-            try? publishRecords(year: year, month: month)
+            continuation.onTermination = { _ in
+                task.cancel()
+            }
         }
     }
     
-    private func publishRecords(year: Int, month: Int) throws {
+    private func getRecords(year: Int, month: Int) throws -> [CalendarRecord] {
         var timeRecords: [Int: [TimeRecord]] = [:]
         try source.getTimeRecords(year: year, month: month).forEach { rec in
             if let day = rec.checkIn?.day {
@@ -67,16 +68,16 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
             uptimes[day]?.append(uptime)
         }
         
-        var results: [CalendarRecord] = []
+        var records: [CalendarRecord] = []
         Calendar.current.datesOf(year: year, month: month).forEach { date in
-            results.append(CalendarRecord(
+            records.append(CalendarRecord(
                 date: date,
                 timeRecords: timeRecords[date.day] ?? [],
                 uptimeRecords: uptimes[date.day] ?? []
             ))
         }
         
-        publish?(results)
+        return records
     }
     
     func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {

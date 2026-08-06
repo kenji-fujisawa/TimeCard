@@ -122,8 +122,8 @@ extension EnvironmentValues {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
-        AsyncStream { _ in }
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+        AsyncThrowingStream { _ in }
     }
     func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
         CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])

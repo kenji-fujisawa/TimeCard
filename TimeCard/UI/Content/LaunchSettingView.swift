@@ -11,10 +11,6 @@ import SwiftUI
 struct LaunchSettingView: View {
     @State private var launchAtLogin: Bool = false
     
-    init() {
-        launchAtLogin = SMAppService.mainApp.status == .enabled
-    }
-    
     var body: some View {
         Form {
             Toggle(isOn: Binding<Bool>(
@@ -25,7 +21,11 @@ struct LaunchSettingView: View {
             }
             .toggleStyle(.switch)
         }
-        .padding()
+        .formStyle(.grouped)
+        .fixedSize()
+        .onAppear() {
+            launchAtLogin = SMAppService.mainApp.status == .enabled
+        }
     }
     
     private func toggleLaunchAtLogin(value: Bool) {

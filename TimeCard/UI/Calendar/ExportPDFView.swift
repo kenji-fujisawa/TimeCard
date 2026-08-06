@@ -173,8 +173,8 @@ private struct PDFView: View {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
-        AsyncStream { continuation in
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+        AsyncThrowingStream { continuation in
             let record = CalendarRecord(
                 date: .now,
                 timeRecords: [
