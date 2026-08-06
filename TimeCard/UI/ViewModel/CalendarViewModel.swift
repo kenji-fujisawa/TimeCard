@@ -73,6 +73,7 @@ class CalendarViewModel {
     var records: [CalendarRecord] = []
     private(set) var timeWorkedSum: TimeInterval = 0
     private(set) var systemUptimeSum: TimeInterval = 0
+    var error: String? = nil
     
     init(_ repository: CalendarRecordRepository) {
         self.repository = repository
@@ -88,12 +89,17 @@ class CalendarViewModel {
         
         fetchTask?.cancel()
         fetchTask = Task { [weak self] in
-            for await records in stream {
-                await MainActor.run { [weak self] in
-                    self?.records = records.map { $0.asViewModel() }
-                    self?.timeWorkedSum = records.timeWorkedSum
-                    self?.systemUptimeSum = records.systemUptimeSum
+            do {
+                for try await records in stream {
+                    await MainActor.run { [weak self] in
+                        self?.records = records.map { $0.asViewModel() }
+                        self?.timeWorkedSum = records.timeWorkedSum
+                        self?.systemUptimeSum = records.systemUptimeSum
+                        self?.error = nil
+                    }
                 }
+            } catch {
+                self?.error = error.localizedDescription
             }
         }
     }

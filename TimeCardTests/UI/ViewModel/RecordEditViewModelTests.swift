@@ -446,8 +446,8 @@ struct RecordEditViewModelTests {
     }
     
     class FakeCalendarRecordRepository: CalendarRecordRepository {
-        func getRecordsStream(year: Int, month: Int) -> AsyncStream<[TimeCard.CalendarRecord]> {
-            AsyncStream { _ in }
+        func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+            AsyncThrowingStream { _ in }
         }
         func getRecord(year: Int, month: Int, day: Int) throws -> TimeCard.CalendarRecord {
             CalendarRecord(date: .now, timeRecords: [], uptimeRecords: [])

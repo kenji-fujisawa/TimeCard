@@ -164,8 +164,8 @@ struct CalendarViewModelTests {
     
     class FakeCalendarRecordRepository: CalendarRecordRepository {
         var publish: (([CalendarRecord]) -> Void)?
-        func getRecordsStream(year: Int, month: Int) -> AsyncStream<[TimeCard.CalendarRecord]> {
-            AsyncStream { continuation in
+        func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+            AsyncThrowingStream { continuation in
                 publish = { records in
                     continuation.yield(records)
                 }

@@ -17,7 +17,16 @@ struct CalendarView: View {
                     viewModel.fetchRecords()
                 }
             
-            CalendarBodyView(viewModel: viewModel)
+            if let error = viewModel.error {
+                HStack {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.red)
+                    Text(error)
+                        .foregroundStyle(.red)
+                }
+            } else {
+                CalendarBodyView(viewModel: viewModel)
+            }
         }
         .padding()
         .toolbar {
@@ -33,8 +42,8 @@ struct CalendarView: View {
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
-        AsyncStream { continuation in
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+        AsyncThrowingStream { continuation in
             let records = Calendar.current.datesOf(year: year, month: month).map { date in
                 CalendarRecord(date: date, timeRecords: [], uptimeRecords: [])
             }

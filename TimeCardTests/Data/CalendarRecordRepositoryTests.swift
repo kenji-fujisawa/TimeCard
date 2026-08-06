@@ -19,7 +19,7 @@ struct CalendarRecordRepositoryTests {
         
         let repository = DefaultCalendarRecordRepository(source)
         var iterator = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
-        let records = await iterator.next()
+        let records = try await iterator.next()
         #expect(records?.count == 31)
         
         for i in 0..<31 {
@@ -58,7 +58,7 @@ struct CalendarRecordRepositoryTests {
         
         NotificationCenter.default.post(name: ModelContext.didSave, object: nil)
         
-        var updated = await iterator.next()
+        var updated = try await iterator.next()
         #expect(records?.count == updated?.count)
         
         for i in 0..<31 {
@@ -67,7 +67,7 @@ struct CalendarRecordRepositoryTests {
         }
         
         var iterator2 = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
-        var records2 = await iterator2.next()
+        var records2 = try await iterator2.next()
         #expect(records?.count == records2?.count)
         
         for i in 0..<31 {
@@ -77,7 +77,7 @@ struct CalendarRecordRepositoryTests {
         
         NotificationCenter.default.post(name: ModelContext.didSave, object: nil)
         
-        updated = await iterator.next()
+        updated = try await iterator.next()
         #expect(records?.count == updated?.count)
         
         for i in 0..<31 {
@@ -85,7 +85,7 @@ struct CalendarRecordRepositoryTests {
             #expect(records?[i].uptimeRecords == updated?[i].uptimeRecords)
         }
         
-        records2 = await iterator2.next()
+        records2 = try await iterator2.next()
         #expect(records?.count == records2?.count)
         
         for i in 0..<31 {

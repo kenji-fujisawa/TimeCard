@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 protocol CalendarRecordRepository {
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]>
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error>
     func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord
     func updateRecord(_ record: CalendarRecord) throws
 }
@@ -21,19 +21,23 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
         self.source = source
     }
     
-    func getRecordsStream(year: Int, month: Int) -> AsyncStream<[CalendarRecord]> {
-        AsyncStream { continuation in
+    func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], any Error> {
+        AsyncThrowingStream { continuation in
             let task = Task {
-                if let records = try? getRecords(year: year, month: month) {
-                    continuation.yield(records)
+                do {
+                    continuation.yield(try getRecords(year: year, month: month))
+                } catch {
+                    continuation.finish(throwing: error)
+                    return
                 }
                 
                 let notifications = NotificationCenter.default.notifications(named: ModelContext.didSave)
                 for await _ in notifications {
-                    await MainActor.run {
-                        if let records = try? getRecords(year: year, month: month) {
-                            continuation.yield(records)
-                        }
+                    do {
+                        continuation.yield(try getRecords(year: year, month: month))
+                    } catch {
+                        continuation.finish(throwing: error)
+                        break
                     }
                 }
             }
