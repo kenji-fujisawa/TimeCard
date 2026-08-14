@@ -6,16 +6,18 @@
 //
 
 import Foundation
+import SwiftData
 import Testing
 
 @testable import TimeCardClientIOS
 
+@Suite(.serialized)
 struct CalendarRecordRepositoryTests {
 
-    @Test func testGetRecords() async throws {
+    @Test func testGetRecordsStream() async throws {
         let network = FakeNetworkDataSource()
-        let local = FakeLocalDataSource()
-        local.initForGet()
+        let local = try FakeLocalDataSource()
+        try local.initForGet()
         
         let localRecords = local.records
         
@@ -78,13 +80,36 @@ struct CalendarRecordRepositoryTests {
         #expect(local.inserted[1] == network.records[1])
         #expect(local.inserted[2] == network.records[2])
         
-        #expect(local.records == network.records)
+        let localRecs = try local.getRecords(year: 2025, month: 12)
+        let netRecs = try await network.getRecords(year: 2025, month: 12)
+        #expect(localRecs == netRecs)
+    }
+    
+    @Test func testGetRecordsStream_multiStream() async throws {
+        let network = FakeNetworkDataSource()
+        let local = try FakeLocalDataSource()
+        try local.initForGet()
+        
+        let repository = DefaultCalendarRecordRepository(network, local)
+        var iterator1 = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
+        var iterator2 = repository.getRecordsStream(year: 2025, month: 12).makeAsyncIterator()
+        var records = try await iterator1.next()
+        #expect(records?.count == 31)
+        
+        records = try await iterator2.next()
+        #expect(records?.count == 31)
+        
+        records = try await iterator1.next()
+        #expect(records?.count == 31)
+        
+        records = try await iterator2.next()
+        #expect(records?.count == 31)
     }
     
     @Test func testGetRecord() async throws {
         let network = FakeNetworkDataSource()
-        let local = FakeLocalDataSource()
-        local.initForGet()
+        let local = try FakeLocalDataSource()
+        try local.initForGet()
         
         let repository = DefaultCalendarRecordRepository(network, local)
         
@@ -112,8 +137,8 @@ struct CalendarRecordRepositoryTests {
     
     @Test func testUpdateRecord() async throws {
         let network = FakeNetworkDataSource()
-        let local = FakeLocalDataSource()
-        local.initForUpdate()
+        let local = try FakeLocalDataSource()
+        try local.initForUpdate()
         
         let localRecords = local.records
         
@@ -163,13 +188,26 @@ struct CalendarRecordRepositoryTests {
         #expect(result?[4].records.count == 1)
         
         // cleanup
-        local.records = localRecords
+        try local.deleteRecords(year: 2025, month: 12)
+        try localRecords.forEach { try local.insertRecord($0) }
+        local.deleteRecordsYear = 0
+        local.deleteRecordsMonth = 0
         local.inserted.removeAll()
+        
+        result = try await iterator.next()
+        result = try await iterator.next()
+        result = try await iterator.next()
+        result = try await iterator.next()
+        #expect(result?.count == 31)
+        #expect(result?[0].records.count == 3)
         
         // run tests
         try await repository.updateRecord(record)
         result = try await iterator.next()
+        result = try await iterator.next()
+        result = try await iterator.next()
         #expect(result?.count == 31)
+        #expect(result?[0].records.count == 3)
         
         for i in 0..<31 {
             #expect(result?[i].date.year == 2025)
@@ -311,10 +349,18 @@ struct CalendarRecordRepositoryTests {
         }
     }
     
-    class FakeLocalDataSource: LocalDataSource {
+    class FakeLocalDataSource: DefaultLocalDataSource {
         var records: [TimeRecord] = []
         
-        func initForGet() {
+        init() throws {
+            let schema = Schema([LocalTimeRecord.self])
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: schema, configurations: config)
+            let context = ModelContext(container)
+            super.init(context)
+        }
+        
+        func initForGet() throws {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
             
@@ -355,9 +401,10 @@ struct CalendarRecordRepositoryTests {
                     breakTimes: []
                 )
             ]
+            try records.forEach { try super.insertRecord($0) }
         }
         
-        func initForUpdate() {
+        func initForUpdate() throws {
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
             let date = formatter.date(from: "2025-12-01 00:00:00") ?? .now
@@ -378,42 +425,41 @@ struct CalendarRecordRepositoryTests {
                     )
                 )
             }
+            try records.forEach { try super.insertRecord($0) }
         }
         
         var getRecordsYear: Int = 0
         var getRecordsMonth: Int = 0
-        func getRecords(year: Int, month: Int) throws -> [TimeRecord] {
+        override func getRecords(year: Int, month: Int) throws -> [TimeRecord] {
             getRecordsYear = year
             getRecordsMonth = month
-            return records
+            return try super.getRecords(year: year, month: month)
         }
         
         var inserted: [TimeRecord] = []
-        func insertRecord(_ record: TimeRecord) throws {
+        override func insertRecord(_ record: TimeRecord) throws {
             inserted.append(record)
-            records.append(record)
+            try super.insertRecord(record)
         }
         
         var updated: [TimeRecord] = []
-        func updateRecord(_ record: TimeRecord) throws {
+        override func updateRecord(_ record: TimeRecord) throws {
             updated.append(record)
-            if let index = records.firstIndex(where: { $0.id == record.id }) {
-                records[index] = record
-            }
+            try super.updateRecord(record)
         }
         
         var deleted: [TimeRecord] = []
-        func deleteRecord(_ record: TimeRecord) throws {
+        override func deleteRecord(_ record: TimeRecord) throws {
             deleted.append(record)
-            records.removeAll { $0.id == record.id }
+            try super.deleteRecord(record)
         }
         
         var deleteRecordsYear: Int = 0
         var deleteRecordsMonth: Int = 0
-        func deleteRecords(year: Int, month: Int) throws {
+        override func deleteRecords(year: Int, month: Int) throws {
             deleteRecordsYear = year
             deleteRecordsMonth = month
-            records.removeAll { $0.checkIn?.year == year && $0.checkIn?.month == month }
+            try super.deleteRecords(year: year, month: month)
         }
     }
 }

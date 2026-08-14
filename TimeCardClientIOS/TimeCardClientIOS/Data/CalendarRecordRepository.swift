@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 
 protocol CalendarRecordRepository {
     func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error>
@@ -16,7 +17,6 @@ protocol CalendarRecordRepository {
 class DefaultCalendarRecordRepository: CalendarRecordRepository {
     private var networkDataSource: NetworkDataSource
     private var localDataSource: LocalDataSource
-    private var publish: (([CalendarRecord]) -> Void)?
     
     init(_ networkDataSource: NetworkDataSource, _ localDataSource: LocalDataSource) {
         self.networkDataSource = networkDataSource
@@ -25,32 +25,42 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
     
     func getRecordsStream(year: Int, month: Int) -> AsyncThrowingStream<[CalendarRecord], Error> {
         return AsyncThrowingStream { continuation in
-            publish = { records in
-                continuation.yield(records)
-            }
-            
             do {
-                try publishRecords(year: year, month: month)
+                continuation.yield(try getRecords(year: year, month: month))
             } catch {
                 continuation.finish(throwing: error)
             }
             
-            Task {
+            let task = Task {
                 do {
                     let records = try await networkDataSource.getRecords(year: year, month: month)
                     
                     try localDataSource.deleteRecords(year: year, month: month)
                     try records.forEach { try localDataSource.insertRecord($0) }
                     
-                    try publishRecords(year: year, month: month)
+                    continuation.yield(try getRecords(year: year, month: month))
                 } catch {
                     continuation.finish(throwing: error)
                 }
+                
+                let notifications = NotificationCenter.default.notifications(named: ModelContext.didSave)
+                for await _ in notifications {
+                    do {
+                        continuation.yield(try getRecords(year: year, month: month))
+                    } catch {
+                        continuation.finish(throwing: error)
+                        break
+                    }
+                }
+            }
+            
+            continuation.onTermination = { _ in
+                task.cancel()
             }
         }
     }
     
-    private func publishRecords(year: Int, month: Int) throws {
+    private func getRecords(year: Int, month: Int) throws -> [CalendarRecord] {
         let records = try localDataSource.getRecords(year: year, month: month)
         
         var timeRecords: [Int: [TimeRecord]] = [:]
@@ -69,7 +79,7 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
             results.append(CalendarRecord(date: date, records: timeRecords[date.day] ?? []))
         }
         
-        publish?(results)
+        return results
     }
     
     func getRecord(year: Int, month: Int, day: Int) throws -> CalendarRecord {
@@ -107,7 +117,5 @@ class DefaultCalendarRecordRepository: CalendarRecordRepository {
             try await networkDataSource.deleteRecord(rec)
             try localDataSource.deleteRecord(rec)
         }
-        
-        try publishRecords(year: year, month: month)
     }
 }
