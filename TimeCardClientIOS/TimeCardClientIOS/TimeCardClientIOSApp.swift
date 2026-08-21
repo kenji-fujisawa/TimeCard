@@ -8,6 +8,11 @@
 import SwiftData
 import SwiftUI
 
+enum Constants {
+    static let accessTokenKey = "jp.uhimania.TimeCardClient.AccessToken"
+    static let refreshTokenKey = "jp.uhimania.TimeCardClient.RefreshToken"
+}
+
 struct TimeCardClientIOSApp: App {
     private let container: ModelContainer
     private let repository: CalendarRecordRepository
@@ -23,7 +28,11 @@ struct TimeCardClientIOSApp: App {
         }
         
         guard let url = URL(string: "http://192.168.4.33:8080") else { fatalError() }
-        let network = DefaultNetworkDataSource(url)
+        let auth = DefaultAuthNetworkDataSource(url)
+        let secure = KeyChainDataSource()
+        let authRepository = DefaultAuthRepository(auth, secure)
+        let session = DefaultAuthURLSession(authRepository)
+        let network = DefaultNetworkDataSource(url, session)
         let local = DefaultLocalDataSource(container.mainContext)
         self.repository = DefaultCalendarRecordRepository(network, local)
         self.viewModel = CalendarViewModel(repository)

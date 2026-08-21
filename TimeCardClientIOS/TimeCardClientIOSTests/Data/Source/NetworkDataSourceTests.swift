@@ -64,12 +64,15 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         let records = try await source.getRecords(year: 2025, month: 12)
         
         #expect(request?.url?.path() == "/timecard/records")
         #expect(request?.url?.query() == "year=2025&month=12")
         #expect(request?.httpMethod == "GET")
+        
+        #expect(session.called == true)
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -102,7 +105,8 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.getRecords(year: 2025, month: 12)
         }
@@ -122,12 +126,15 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         let record = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         let response = try await source.insertRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records")
         #expect(request?.httpMethod == "POST")
+        
+        #expect(session.called == true)
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -158,7 +165,8 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         let request = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.insertRecord(request)
@@ -179,12 +187,15 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         let record = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         let response = try await source.updateRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records/\(record.id.uuidString)")
         #expect(request?.httpMethod == "PATCH")
+        
+        #expect(session.called == true)
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
@@ -215,7 +226,8 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         let request = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.updateRecord(request)
@@ -234,12 +246,15 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         let record = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         try await source.deleteRecord(record)
         
         #expect(request?.url?.path() == "/timecard/records/\(record.id.uuidString)")
         #expect(request?.httpMethod == "DELETE")
+        
+        #expect(session.called == true)
     }
     
     @Test func testDeleteRecords_fail() async throws {
@@ -251,10 +266,19 @@ class NetworkDataSourceTests {
             Issue.record()
             return
         }
-        let source = DefaultNetworkDataSource(url)
+        let session = FakeAuthURLSession()
+        let source = DefaultNetworkDataSource(url, session)
         let request = TimeRecord(id: UUID(), checkIn: .now, checkOut: .now, breakTimes: [])
         await #expect(throws: DefaultNetworkDataSource.NetworkError.self) {
             try await source.deleteRecord(request)
+        }
+    }
+    
+    class FakeAuthURLSession: AuthURLSession {
+        var called = false
+        func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+            called = true
+            return try await URLSession.shared.data(for: request)
         }
     }
 }
