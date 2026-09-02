@@ -108,6 +108,7 @@ class LoginViewModel {
         state = .register
         mail = ""
         password = ""
+        error = nil
     }
     
     func switchToLogin() {
@@ -115,5 +116,6 @@ class LoginViewModel {
         mail = ""
         password = ""
         passwordConfirm = ""
+        error = nil
     }
 }
