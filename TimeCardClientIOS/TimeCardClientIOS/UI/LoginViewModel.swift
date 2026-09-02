@@ -50,6 +50,8 @@ class LoginViewModel {
             
             do {
                 try await repository.login(mail: mail, password: password)
+                self.mail = ""
+                self.password = ""
                 self.isLoggedIn = repository.isLoggedIn()
             } catch {
                 self.error = "メールアドレス、またはパスワードが間違っています"
@@ -101,6 +103,9 @@ class LoginViewModel {
             
             do {
                 try await repository.verify(mail: mail, verifyCode: verifyCode)
+                self.mail = ""
+                self.password = ""
+                self.passwordConfirm = ""
                 self.isLoggedIn = repository.isLoggedIn()
             } catch {
                 self.error = error.localizedDescription
