@@ -222,6 +222,7 @@ private class ContentAuthRepository: AuthRepository {
     func login(mail: String, password: String) async throws {}
     func refresh() async throws {}
     func isLoggedIn() -> Bool { true }
+    func onLogout(_ callback: @escaping () -> Void) {}
     func getAccessToken() -> String { "" }
 }
 
@@ -239,6 +240,7 @@ private class LoginAuthRepository: AuthRepository {
     
     func refresh() async throws {}
     func isLoggedIn() -> Bool { loggedIn }
+    func onLogout(_ callback: @escaping () -> Void) {}
     func getAccessToken() -> String { "" }
 }
 #endif

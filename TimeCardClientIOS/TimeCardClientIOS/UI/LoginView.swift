@@ -123,5 +123,6 @@ private class FakeAuthRepository: AuthRepository {
     func login(mail: String, password: String) async throws {}
     func refresh() async throws {}
     func isLoggedIn() -> Bool { false }
+    func onLogout(_ callback: @escaping () -> Void) {}
     func getAccessToken() -> String { "" }
 }

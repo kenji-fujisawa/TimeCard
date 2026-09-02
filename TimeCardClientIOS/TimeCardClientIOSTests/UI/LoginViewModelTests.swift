@@ -131,6 +131,7 @@ struct LoginViewModelTests {
         
         func refresh() async throws {}
         func isLoggedIn() -> Bool { loggedIn }
+        func onLogout(_ callback: @escaping () -> Void) {}
         func getAccessToken() -> String { "" }
     }
 }

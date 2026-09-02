@@ -97,6 +97,7 @@ class AuthURLSessionTests {
         func verify(mail: String, verifyCode: String) async throws {}
         func login(mail: String, password: String) async throws {}
         func isLoggedIn() -> Bool { false }
+        func onLogout(_ callback: @escaping () -> Void) {}
         
         var token = ""
         func getAccessToken() -> String {

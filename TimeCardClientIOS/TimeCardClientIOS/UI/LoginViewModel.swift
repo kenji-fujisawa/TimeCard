@@ -28,6 +28,10 @@ class LoginViewModel {
     init(_ repository: AuthRepository) {
         self.repository = repository
         self.isLoggedIn = repository.isLoggedIn()
+        
+        repository.onLogout {
+            self.isLoggedIn = false
+        }
     }
     
     func login() {
