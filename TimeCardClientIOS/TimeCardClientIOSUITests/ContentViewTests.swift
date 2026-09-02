@@ -57,4 +57,19 @@ final class ContentViewTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["text_message"].waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["text_message"].label, "データを取得できませんでした")
     }
+    
+    func testLogin() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-UITests", "ContentViewTests", "testLogin"]
+        app.launch()
+
+        XCTAssertTrue(app.textFields["メールアドレス"].waitForExistence(timeout: 5))
+        app.textFields["メールアドレス"].tap()
+        app.textFields["メールアドレス"].typeText("mail@test.com")
+        app.secureTextFields["パスワード"].tap()
+        app.secureTextFields["パスワード"].typeText("pass")
+        app.buttons["ログイン"].tap()
+        
+        XCTAssertTrue(app.staticTexts["text_month"].waitForExistence(timeout: 3))
+    }
 }

@@ -16,7 +16,8 @@ enum Constants {
 struct TimeCardClientIOSApp: App {
     private let container: ModelContainer
     private let repository: CalendarRecordRepository
-    @State private var viewModel: CalendarViewModel
+    @State private var calendarViewModel: CalendarViewModel
+    @State private var loginViewModel: LoginViewModel
     
     init() {
         let schema = Schema([LocalTimeRecord.self])
@@ -35,12 +36,13 @@ struct TimeCardClientIOSApp: App {
         let network = DefaultNetworkDataSource(url, session)
         let local = DefaultLocalDataSource(container.mainContext)
         self.repository = DefaultCalendarRecordRepository(network, local)
-        self.viewModel = CalendarViewModel(repository)
+        self.calendarViewModel = CalendarViewModel(repository)
+        self.loginViewModel = LoginViewModel(authRepository)
     }
     
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: viewModel)
+            ContentView(calendarViewModel: calendarViewModel, loginViewModel: loginViewModel)
                 .environment(\.calendarRecordRepository, repository)
         }
     }
@@ -63,10 +65,13 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
 #if DEBUG
 struct UITestApp: App {
     private let container: ModelContainer
-    private let repository: CalendarRecordRepository
+    private let calendarRepository: CalendarRecordRepository
+    private let authRepository: AuthRepository
     @State private var date: Date
     @State private var record: CalendarRecord
     @State private var toast = ToastViewModel()
+    @State private var login: LoginViewModel
+    @State private var text: String = ""
     
     init() {
         let schema = Schema([LocalTimeRecord.self])
@@ -79,7 +84,10 @@ struct UITestApp: App {
         
         let network = FakeNetworkDataSource()
         let local = DefaultLocalDataSource(container.mainContext)
-        repository = DefaultCalendarRecordRepository(network, local)
+        calendarRepository = DefaultCalendarRecordRepository(network, local)
+        
+        authRepository = LoginAuthRepository()
+        login = LoginViewModel(authRepository)
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
@@ -126,13 +134,13 @@ struct UITestApp: App {
                     Text(record.records[0].breakTimes.count, format: .number)
                         .accessibilityIdentifier("break_time_count")
                     NavigationLink {
-                        CalendarDetailView(repository: repository, date: date)
+                        CalendarDetailView(repository: calendarRepository, date: date)
                             .environment(toast)
                     } label: {
                         Text("link")
                     }
                     Button("update") {
-                        if let record = try? repository.getRecord(year: date.year, month: date.month, day: date.day) {
+                        if let record = try? calendarRepository.getRecord(year: date.year, month: date.month, day: date.day) {
                             self.record = record
                         }
                     }
@@ -145,9 +153,18 @@ struct UITestApp: App {
                 }
             } else if CommandLine.arguments.contains("ContentViewTests") {
                 if CommandLine.arguments.contains("testLoading") {
-                    ContentView(viewModel: CalendarViewModel(LoadingCalendarRecordRepository()))
+                    ContentView(calendarViewModel: CalendarViewModel(LoadingCalendarRecordRepository()), loginViewModel: LoginViewModel(ContentAuthRepository()))
                 } else if CommandLine.arguments.contains("testToast") {
-                    ContentView(viewModel: CalendarViewModel(ToastCalendarRecordRepository()))
+                    ContentView(calendarViewModel: CalendarViewModel(ToastCalendarRecordRepository()), loginViewModel: LoginViewModel(ContentAuthRepository()))
+                } else if CommandLine.arguments.contains("testLogin") {
+                    ContentView(calendarViewModel: CalendarViewModel(ToastCalendarRecordRepository()), loginViewModel: LoginViewModel(LoginAuthRepository()))
+                }
+            } else if CommandLine.arguments.contains("LoginViewTests") {
+                LoginView(viewModel: login)
+                Text(text)
+                    .accessibilityIdentifier("text_login")
+                Button("update") {
+                    text = authRepository.isLoggedIn() ? "logged in" : "logged out"
                 }
             }
         }
@@ -197,5 +214,31 @@ private class ToastCalendarRecordRepository: CalendarRecordRepository {
         CalendarRecord(date: .now, records: [])
     }
     func updateRecord(_ record: CalendarRecord) async throws {}
+}
+
+private class ContentAuthRepository: AuthRepository {
+    func register(mail: String, password: String) async throws {}
+    func verify(mail: String, verifyCode: String) async throws {}
+    func login(mail: String, password: String) async throws {}
+    func refresh() async throws {}
+    func isLoggedIn() -> Bool { true }
+    func getAccessToken() -> String { "" }
+}
+
+private class LoginAuthRepository: AuthRepository {
+    func register(mail: String, password: String) async throws {}
+    
+    var loggedIn = false
+    func verify(mail: String, verifyCode: String) async throws {
+        loggedIn = true
+    }
+    
+    func login(mail: String, password: String) async throws {
+        loggedIn = true
+    }
+    
+    func refresh() async throws {}
+    func isLoggedIn() -> Bool { loggedIn }
+    func getAccessToken() -> String { "" }
 }
 #endif

@@ -8,25 +8,32 @@
 import SwiftUI
 
 struct ContentView: View {
-    let viewModel: CalendarViewModel
+    let calendarViewModel: CalendarViewModel
+    let loginViewModel: LoginViewModel
     @State private var toast = ToastViewModel()
     
     var body: some View {
-        VStack {
-            CalendarView(viewModel: viewModel)
+        if loginViewModel.isLoggedIn {
+            VStack {
+                CalendarView(viewModel: calendarViewModel)
+            }
+            .padding()
+            .overlay {
+                ToastView(viewModel: toast)
+            }
+            .environment(toast)
+        } else {
+            LoginView(viewModel: loginViewModel)
         }
-        .padding()
-        .overlay {
-            ToastView(viewModel: toast)
-        }
-        .environment(toast)
     }
 }
 
 #Preview {
-    let repository = FakeCalendarRecordRepository()
-    let viewModel = CalendarViewModel(repository)
-    ContentView(viewModel: viewModel)
+    let calendarRepository = FakeCalendarRecordRepository()
+    let calendarViewModel = CalendarViewModel(calendarRepository)
+    let authRepository = FakeAuthRepository()
+    let loginViewModel = LoginViewModel(authRepository)
+    ContentView(calendarViewModel: calendarViewModel, loginViewModel: loginViewModel)
 }
 
 private class FakeCalendarRecordRepository: CalendarRecordRepository {
@@ -43,4 +50,13 @@ private class FakeCalendarRecordRepository: CalendarRecordRepository {
         CalendarRecord(date: .now, records: [])
     }
     func updateRecord(_ record: CalendarRecord) async throws {}
+}
+
+private class FakeAuthRepository: AuthRepository {
+    func register(mail: String, password: String) async throws {}
+    func verify(mail: String, verifyCode: String) async throws {}
+    func login(mail: String, password: String) async throws {}
+    func refresh() async throws {}
+    func isLoggedIn() -> Bool { true }
+    func getAccessToken() -> String { "" }
 }
