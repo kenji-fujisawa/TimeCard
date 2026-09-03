@@ -54,6 +54,9 @@ struct CalendarView: View {
                 .padding()
             }
         }
+        .onAppear() {
+            viewModel.fetchRecords()
+        }
         .onChange(of: viewModel.message) { _, _ in
             if !viewModel.message.isEmpty {
                 withAnimation {
