@@ -20,9 +20,11 @@ class DefaultNetworkDataSource: NetworkDataSource {
     }
     
     private let baseUrl: URL
+    private let session: AuthURLSession
     
-    init(_ baseUrl: URL) {
+    init(_ baseUrl: URL, _ session: AuthURLSession) {
         self.baseUrl = baseUrl
+        self.session = session
     }
     
     func getRecords(year: Int, month: Int) async throws -> [TimeRecord] {
@@ -33,7 +35,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         if let response = response as? HTTPURLResponse,
            response.statusCode != 200 {
             throw NetworkError(status: response.statusCode)
@@ -60,7 +62,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
         request.httpMethod = "POST"
         request.httpBody = json
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         if let response = response as? HTTPURLResponse,
            response.statusCode != 200 {
             throw NetworkError(status: response.statusCode)
@@ -88,7 +90,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
         request.httpMethod = "PATCH"
         request.httpBody = json
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         if let response = response as? HTTPURLResponse,
            response.statusCode != 200 {
             throw NetworkError(status: response.statusCode)
@@ -111,7 +113,7 @@ class DefaultNetworkDataSource: NetworkDataSource {
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
         
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await session.data(for: request)
         if let response = response as? HTTPURLResponse,
            response.statusCode != 200 {
             throw NetworkError(status: response.statusCode)

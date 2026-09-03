@@ -74,6 +74,7 @@ class CalendarViewModel {
     }
     
     func fetchRecords() {
+        self.message = ""
         self.loading = true
         
         let stream = repository.getRecordsStream(year: date.year, month: date.month)
